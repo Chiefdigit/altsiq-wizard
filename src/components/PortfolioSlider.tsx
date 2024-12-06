@@ -20,9 +20,9 @@ export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
     if (numericValue) {
       const parsedValue = parseInt(numericValue, 10);
       if (!isNaN(parsedValue)) {
-        if (parsedValue >= 250000 && parsedValue <= 10000000) {
-          onChange(parsedValue);
-        }
+        // Always update the slider within valid range
+        const clampedValue = Math.max(250000, Math.min(10000000, parsedValue));
+        onChange(clampedValue);
       }
     }
   };
@@ -31,6 +31,20 @@ export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
   React.useEffect(() => {
     setInputValue(value.toLocaleString());
   }, [value]);
+
+  const handleBlur = () => {
+    // On blur, format the value properly and ensure it's within bounds
+    const numericValue = inputValue.replace(/[^0-9,]/g, '').replace(/,/g, '');
+    const parsedValue = parseInt(numericValue, 10);
+    
+    if (isNaN(parsedValue) || parsedValue < 250000) {
+      onChange(250000);
+    } else if (parsedValue > 10000000) {
+      onChange(10000000);
+    } else {
+      onChange(parsedValue);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -60,6 +74,7 @@ export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
             type="text"
             value={inputValue}
             onChange={handleInputChange}
+            onBlur={handleBlur}
             className="text-xl font-semibold text-center"
             aria-label="Portfolio size input"
           />
