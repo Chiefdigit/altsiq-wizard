@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import * as Slider from "@radix-ui/react-slider";
 import { Input } from "@/components/ui/input";
 
@@ -8,12 +8,29 @@ interface PortfolioSliderProps {
 }
 
 export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
+  const [inputValue, setInputValue] = useState(value.toLocaleString());
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseInt(e.target.value.replace(/,/g, ''), 10);
-    if (!isNaN(newValue) && newValue >= 250000 && newValue <= 10000000) {
-      onChange(newValue);
+    const rawValue = e.target.value;
+    setInputValue(rawValue);
+    
+    // Remove all non-numeric characters except commas
+    const numericValue = rawValue.replace(/[^0-9,]/g, '').replace(/,/g, '');
+    
+    if (numericValue) {
+      const parsedValue = parseInt(numericValue, 10);
+      if (!isNaN(parsedValue)) {
+        if (parsedValue >= 250000 && parsedValue <= 10000000) {
+          onChange(parsedValue);
+        }
+      }
     }
   };
+
+  // Update input value when slider changes
+  React.useEffect(() => {
+    setInputValue(value.toLocaleString());
+  }, [value]);
 
   return (
     <div className="w-full">
@@ -41,7 +58,7 @@ export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
         <div className="p-3 border rounded-lg">
           <Input
             type="text"
-            value={value.toLocaleString()}
+            value={inputValue}
             onChange={handleInputChange}
             className="text-xl font-semibold text-center"
             aria-label="Portfolio size input"
