@@ -1,5 +1,6 @@
 import React from "react";
 import * as Slider from "@radix-ui/react-slider";
+import { Input } from "@/components/ui/input";
 
 interface PortfolioSliderProps {
   value: number;
@@ -7,6 +8,13 @@ interface PortfolioSliderProps {
 }
 
 export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseInt(e.target.value.replace(/,/g, ''), 10);
+    if (!isNaN(newValue) && newValue >= 250000 && newValue <= 10000000) {
+      onChange(newValue);
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="flex justify-between mb-2">
@@ -30,8 +38,14 @@ export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
         />
       </Slider.Root>
       <div className="mt-4">
-        <div className="p-3 border rounded-lg text-center">
-          <span className="text-xl font-semibold">${value.toLocaleString()}</span>
+        <div className="p-3 border rounded-lg">
+          <Input
+            type="text"
+            value={value.toLocaleString()}
+            onChange={handleInputChange}
+            className="text-xl font-semibold text-center"
+            aria-label="Portfolio size input"
+          />
         </div>
       </div>
     </div>
