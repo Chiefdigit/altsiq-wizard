@@ -71,7 +71,7 @@ export const OnboardingWizard = () => {
             <PortfolioSlider value={portfolioSize} onChange={setPortfolioSize} />
             <div className="mt-6 flex justify-end">
               <Button onClick={() => setActiveStep("allocation")}>
-                Continue to Asset Allocation
+                Continue
               </Button>
             </div>
           </AccordionContent>
@@ -117,7 +117,7 @@ export const OnboardingWizard = () => {
                 portfolioSize={portfolioSize}
               />
               <div className="flex justify-end">
-                <Button onClick={handleComplete}>Complete Setup</Button>
+                <Button onClick={handleComplete}>Continue</Button>
               </div>
             </div>
           </AccordionContent>
