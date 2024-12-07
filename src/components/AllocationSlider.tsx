@@ -19,10 +19,10 @@ export const AllocationSlider = ({
 }: AllocationSliderProps) => {
   const [inputValue, setInputValue] = useState<string>("");
 
+  // Update dollar value whenever percentage or portfolio size changes
   useEffect(() => {
-    if (!inputValue) {
-      setInputValue(`$${((value / 100) * portfolioSize).toLocaleString()}`);
-    }
+    const dollarValue = (value / 100) * portfolioSize;
+    setInputValue(`$${dollarValue.toLocaleString()}`);
   }, [value, portfolioSize]);
 
   const getSliderColor = (label: string) => {
@@ -54,8 +54,9 @@ export const AllocationSlider = ({
       const clampedPercentage = Math.max(0, Math.min(100, percentage));
       onChange(clampedPercentage);
     }
-    // Always update the input value to reflect the current state
-    setInputValue(`$${((value / 100) * portfolioSize).toLocaleString()}`);
+    // Update the input value to reflect the current state
+    const dollarValue = (value / 100) * portfolioSize;
+    setInputValue(`$${dollarValue.toLocaleString()}`);
   };
 
   const sliderColor = getSliderColor(label);
