@@ -17,11 +17,12 @@ export const AllocationSlider = ({
   disabled = false,
   portfolioSize,
 }: AllocationSliderProps) => {
-  const [inputValue, setInputValue] = useState("");
-  const [dollarValue, setDollarValue] = useState(((value / 100) * portfolioSize).toLocaleString());
+  const [inputValue, setInputValue] = useState<string>("");
 
   useEffect(() => {
-    setDollarValue(((value / 100) * portfolioSize).toLocaleString());
+    if (!inputValue) {
+      setInputValue(`$${((value / 100) * portfolioSize).toLocaleString()}`);
+    }
   }, [value, portfolioSize]);
 
   const getSliderColor = (label: string) => {
@@ -40,26 +41,25 @@ export const AllocationSlider = ({
   };
 
   const handleDollarInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow user to type freely without immediate conversion
-    setInputValue(e.target.value);
+    const newValue = e.target.value;
+    // If the input starts with $, remove it before setting
+    setInputValue(newValue.startsWith('$') ? newValue : `$${newValue}`);
   };
 
   const handleDollarBlur = () => {
-    // Clean and process the input value when the field loses focus
-    const cleanValue = inputValue.replace(/[$,]/g, '');
+    // Remove $ and commas, then parse
+    const numericValue = inputValue.replace(/[$,]/g, '');
     
-    if (cleanValue && !isNaN(Number(cleanValue))) {
-      const parsedValue = parseInt(cleanValue, 10);
-      // Convert dollar value to percentage
+    if (numericValue && !isNaN(Number(numericValue))) {
+      const parsedValue = parseInt(numericValue, 10);
       const percentage = Math.round((parsedValue / portfolioSize) * 100);
-      // Clamp percentage between 0 and 100
       const clampedPercentage = Math.max(0, Math.min(100, percentage));
       onChange(clampedPercentage);
+      setInputValue(`$${parsedValue.toLocaleString()}`);
+    } else {
+      // Reset to current value if invalid input
+      setInputValue(`$${((value / 100) * portfolioSize).toLocaleString()}`);
     }
-    
-    // Reset the input to show the formatted dollar value
-    setInputValue("");
-    setDollarValue(((value / 100) * portfolioSize).toLocaleString());
   };
 
   const sliderColor = getSliderColor(label);
@@ -103,7 +103,7 @@ export const AllocationSlider = ({
         <div className="p-2 border rounded-lg text-center">
           <Input
             type="text"
-            value={inputValue || `$${dollarValue}`}
+            value={inputValue}
             onChange={handleDollarInputChange}
             onBlur={handleDollarBlur}
             className="text-lg font-medium text-center"
