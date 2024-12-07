@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { PortfolioSlider } from "./PortfolioSlider";
 import { AllocationSlider } from "./AllocationSlider";
 import { AllocationChart } from "./AllocationChart";
+import { RiskScoreDisplay } from "./RiskScoreDisplay";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -117,7 +118,10 @@ export const OnboardingWizard = () => {
                 onChange={(value) => updateAllocation("alternatives", value)}
                 portfolioSize={portfolioSize}
               />
-              <AllocationChart allocations={allocations} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AllocationChart allocations={allocations} />
+                <RiskScoreDisplay allocations={allocations} />
+              </div>
               <div className="flex justify-end">
                 <Button onClick={handleComplete}>Continue</Button>
               </div>
