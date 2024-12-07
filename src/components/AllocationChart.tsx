@@ -16,17 +16,14 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   const chartRef = useRef<am5.Root | null>(null);
 
   useLayoutEffect(() => {
-    // Initialize chart with high DPI settings
     const root = am5.Root.new("chartdiv", {
-      useSafeResolution: false  // Disable safe resolution to get sharper rendering
+      useSafeResolution: false
     });
     
     chartRef.current = root;
 
-    // Set themes
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Create chart with zero padding
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.verticalLayout,
@@ -40,7 +37,6 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       })
     );
 
-    // Create series with high-quality rendering settings
     const series = chart.series.push(
       am5percent.PieSeries.new(root, {
         valueField: "value",
@@ -55,17 +51,21 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     series.slices.template.setAll({
       cornerRadius: 5,
       templateField: "settings",
-      stroke: am5.color(0x000000),  // Set stroke to transparent
-      strokeWidth: 0,  // Set stroke width to 0
-      strokeOpacity: 0,  // Set stroke opacity to 0
-      fillOpacity: 1  // Full opacity for crisp edges
+      stroke: am5.color(0x000000),
+      strokeWidth: 0,
+      strokeOpacity: 0,
+      fillOpacity: 1
     });
 
-    // Hide labels completely
     series.labels.template.set("visible", false);
     series.ticks.template.set("visible", false);
 
-    // Add data with updated colors
+    // Calculate total allocation
+    const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
+    
+    // Calculate unallocated amount
+    const unallocated = Math.max(0, 100 - totalAllocation);
+
     const data = [
       {
         category: "Stocks (Equities)",
@@ -89,9 +89,17 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       }
     ];
 
+    // Only add unallocated segment if there is any unallocated amount
+    if (unallocated > 0) {
+      data.push({
+        category: "Unallocated",
+        value: unallocated,
+        settings: { fill: am5.color("#64748b") }  // Grey color for unallocated
+      });
+    }
+
     series.data.setAll(data);
 
-    // Cleanup
     return () => {
       root.dispose();
     };
