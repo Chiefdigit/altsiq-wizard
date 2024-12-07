@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+import { Card } from "@/components/ui/card";
 
 interface AllocationChartProps {
   allocations: {
@@ -106,10 +107,12 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   }, [allocations]);
 
   return (
-    <div
-      id="chartdiv"
-      style={{ width: "100%", height: "300px", margin: 0, padding: 0 }}
-      className="mt-0"
-    />
+    <Card className="p-4">
+      <div
+        id="chartdiv"
+        style={{ width: "100%", height: "300px", margin: 0, padding: 0 }}
+        className="mt-0"
+      />
+    </Card>
   );
 };
