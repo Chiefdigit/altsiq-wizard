@@ -16,8 +16,12 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   const chartRef = useRef<am5.Root | null>(null);
 
   useLayoutEffect(() => {
-    // Initialize chart
-    const root = am5.Root.new("chartdiv");
+    // Initialize chart with high DPI settings
+    const root = am5.Root.new("chartdiv", {
+      useSafeResolution: false,  // Disable safe resolution to get sharper rendering
+      pixelRatio: window.devicePixelRatio || 2  // Use device pixel ratio or fallback to 2x
+    });
+    
     chartRef.current = root;
 
     // Set themes
@@ -33,7 +37,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       })
     );
 
-    // Create series
+    // Create series with high-quality rendering settings
     const series = chart.series.push(
       am5percent.PieSeries.new(root, {
         valueField: "value",
@@ -48,7 +52,9 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     series.slices.template.setAll({
       cornerRadius: 5,
       templateField: "settings",
-      strokeWidth: 0  // Remove the border by setting stroke width to 0
+      strokeWidth: 0,  // Remove the border
+      forceHidden: false,  // Ensure visibility
+      fillOpacity: 1,  // Full opacity for crisp edges
     });
 
     // Hide labels completely
