@@ -16,6 +16,24 @@ export const AllocationSlider = ({
   disabled = false,
   portfolioSize,
 }: AllocationSliderProps) => {
+  // Get the color based on the asset type label
+  const getSliderColor = (label: string) => {
+    switch (label) {
+      case "Equities":
+        return "#2563eb"; // Primary blue from chart
+      case "Bonds":
+        return "#64748b"; // Secondary color from chart
+      case "Cash":
+        return "#22c55e"; // Success color from chart
+      case "Alternatives":
+        return "#ef4444"; // Red from chart
+      default:
+        return "#2563eb"; // Default to primary color
+    }
+  };
+
+  const sliderColor = getSliderColor(label);
+
   return (
     <div className="w-full mb-6">
       <div className="flex justify-between mb-2">
@@ -32,10 +50,14 @@ export const AllocationSlider = ({
         disabled={disabled}
       >
         <Slider.Track className="bg-gray-200 relative grow rounded-full h-2">
-          <Slider.Range className="absolute bg-primary rounded-full h-full" />
+          <Slider.Range 
+            className="absolute rounded-full h-full" 
+            style={{ backgroundColor: sliderColor }}
+          />
         </Slider.Track>
         <Slider.Thumb
-          className="block w-5 h-5 bg-white shadow-lg rounded-full border-2 border-primary hover:bg-gray-50 focus:outline-none disabled:opacity-50"
+          className="block w-5 h-5 bg-white shadow-lg rounded-full border-2 hover:bg-gray-50 focus:outline-none disabled:opacity-50"
+          style={{ borderColor: sliderColor }}
           aria-label={`${label} allocation`}
         />
       </Slider.Root>
