@@ -40,20 +40,22 @@ export const AllocationSlider = ({
 
   const handleDollarInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    setDollarValue(rawValue);
+    // Remove dollar sign and any other non-numeric characters except commas
+    const cleanValue = rawValue.replace(/[$,]/g, '');
     
-    // Remove all non-numeric characters except commas
-    const numericValue = rawValue.replace(/[^0-9,]/g, '').replace(/,/g, '');
-    
-    if (numericValue) {
-      const parsedValue = parseInt(numericValue, 10);
+    if (cleanValue) {
+      const parsedValue = parseInt(cleanValue, 10);
       if (!isNaN(parsedValue)) {
+        setDollarValue(parsedValue.toLocaleString());
         // Convert dollar value to percentage
         const percentage = Math.round((parsedValue / portfolioSize) * 100);
         // Clamp percentage between 0 and 100
         const clampedPercentage = Math.max(0, Math.min(100, percentage));
         onChange(clampedPercentage);
       }
+    } else {
+      setDollarValue('0');
+      onChange(0);
     }
   };
 
