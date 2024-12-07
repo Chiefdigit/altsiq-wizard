@@ -59,22 +59,22 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       {
         category: "Stocks (Equities)",
         value: allocations.equities,
-        settings: { fill: am5.color("#4B79A1") }  // Deep blue
+        settings: { fill: am5.color("#007AFF") }  // iOS Blue
       },
       {
         category: "Bonds (Fixed Income)",
         value: allocations.bonds,
-        settings: { fill: am5.color("#283E51") }  // Navy blue
+        settings: { fill: am5.color("#5856D6") }  // iOS Purple
       },
       {
         category: "Cash (and Equivalents)",
         value: allocations.cash,
-        settings: { fill: am5.color("#5F2C82") }  // Purple
+        settings: { fill: am5.color("#FF2D55") }  // iOS Pink
       },
       {
-        category: "Private Alternatives",
+        category: "Private Alternatives)",
         value: allocations.alternatives,
-        settings: { fill: am5.color("#355C7D") }  // Steel blue
+        settings: { fill: am5.color("#34C759") }  // iOS Green
       }
     ];
 
