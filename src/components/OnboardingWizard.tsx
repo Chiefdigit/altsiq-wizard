@@ -96,23 +96,25 @@ export const OnboardingWizard = () => {
                 label="Equities"
                 value={allocations.equities}
                 onChange={(value) => updateAllocation("equities", value)}
+                portfolioSize={portfolioSize}
               />
               <AllocationSlider
                 label="Bonds"
                 value={allocations.bonds}
                 onChange={(value) => updateAllocation("bonds", value)}
+                portfolioSize={portfolioSize}
               />
               <AllocationSlider
                 label="Cash"
                 value={allocations.cash}
                 onChange={(value) => updateAllocation("cash", value)}
-                disabled={true}
+                portfolioSize={portfolioSize}
               />
               <AllocationSlider
                 label="Alternatives"
                 value={allocations.alternatives}
                 onChange={(value) => updateAllocation("alternatives", value)}
-                disabled={true}
+                portfolioSize={portfolioSize}
               />
               <div className="flex justify-end">
                 <Button onClick={handleComplete}>Complete Setup</Button>

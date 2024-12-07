@@ -6,6 +6,7 @@ interface AllocationSliderProps {
   value: number;
   onChange: (value: number) => void;
   disabled?: boolean;
+  portfolioSize: number;
 }
 
 export const AllocationSlider = ({
@@ -13,6 +14,7 @@ export const AllocationSlider = ({
   value,
   onChange,
   disabled = false,
+  portfolioSize,
 }: AllocationSliderProps) => {
   return (
     <div className="w-full mb-6">
@@ -40,7 +42,7 @@ export const AllocationSlider = ({
       <div className="mt-2">
         <div className="p-2 border rounded-lg text-center">
           <span className="text-lg font-medium">
-            ${((value / 100) * 500000).toLocaleString()}
+            ${((value / 100) * portfolioSize).toLocaleString()}
           </span>
         </div>
       </div>
