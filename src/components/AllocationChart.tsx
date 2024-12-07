@@ -37,6 +37,20 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       })
     );
 
+    // Add label in center
+    const label = chart.seriesContainer.children.push(
+      am5.Label.new(root, {
+        text: `$${(500000).toLocaleString()}`,
+        fontSize: 22,
+        fontWeight: "500",
+        textAlign: "center",
+        x: am5.percent(50),
+        y: am5.percent(50),
+        centerX: am5.percent(50),
+        centerY: am5.percent(50)
+      })
+    );
+
     const series = chart.series.push(
       am5percent.PieSeries.new(root, {
         valueField: "value",
