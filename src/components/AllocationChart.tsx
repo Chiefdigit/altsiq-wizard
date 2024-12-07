@@ -26,10 +26,10 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     // Create chart
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
-        startAngle: 180,
-        endAngle: 360,
         layout: root.verticalLayout,
-        innerRadius: am5.percent(80),
+        innerRadius: am5.percent(70),
+        startAngle: 180,
+        endAngle: 360
       })
     );
 
@@ -38,63 +38,70 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       am5percent.PieSeries.new(root, {
         valueField: "value",
         categoryField: "category",
-        alignLabels: false,
+        startAngle: 180,
+        endAngle: 360,
+        radius: am5.percent(100),
+        innerRadius: am5.percent(70)
       })
     );
 
     series.slices.template.setAll({
-      cornerRadius: 4,
-      templateField: "settings",
+      cornerRadius: 5,
+      templateField: "settings"
     });
+
+    series.labels.template.set("forceHidden", true);
 
     // Add data
     const colors = ["#6366f1", "#a855f7", "#38bdf8", "#2dd4bf"];
     const data = [
-      { 
-        category: "Stocks (Equities)", 
+      {
+        category: "Stocks (Equities)",
         value: allocations.equities,
         settings: { fill: am5.color(colors[0]) }
       },
-      { 
-        category: "Bonds (Fixed Income)", 
+      {
+        category: "Bonds (Fixed Income)",
         value: allocations.bonds,
         settings: { fill: am5.color(colors[1]) }
       },
-      { 
-        category: "Cash (and Equivalents)", 
+      {
+        category: "Cash (and Equivalents)",
         value: allocations.cash,
         settings: { fill: am5.color(colors[2]) }
       },
-      { 
-        category: "Private Alternatives", 
+      {
+        category: "Private Alternatives",
         value: allocations.alternatives,
         settings: { fill: am5.color(colors[3]) }
-      },
+      }
     ];
 
     series.data.setAll(data);
 
     // Add labels
-    series.events.on("datavalidated", () => {
+    series.events.on("datavalidated", function() {
       series.slices.each((slice) => {
-        if (slice.dataItem && slice.dataItem.get("value") > 0) {
-          const startAngle = slice.get("startAngle", 0);
-          const endAngle = slice.get("endAngle", 0);
-          const middleAngle = startAngle + (endAngle - startAngle) / 2;
-          const category = slice.dataItem.get("category", "");
-          const value = slice.dataItem.get("value", 0);
+        if (slice.dataItem) {
+          const value = slice.dataItem.get("value");
+          if (typeof value === "number" && value > 0) {
+            const startAngle = slice.get("startAngle", 0);
+            const endAngle = slice.get("endAngle", 0);
+            const middleAngle = startAngle + (endAngle - startAngle) / 2;
+            const category = slice.dataItem.get("category", "");
 
-          const label = chart.container.children.push(
-            am5.Label.new(root, {
-              text: `${category}\n${value}%`,
-              fontSize: "0.8em",
-              textAlign: "center",
-              radius: am5.percent(95),
-              centerX: am5.percent(50),
-              centerY: am5.percent(50),
-              rotation: middleAngle,
-            })
-          );
+            chart.series[0].labelsContainer.children.push(
+              am5.Label.new(root, {
+                text: `${category}\n${value}%`,
+                fontSize: "0.8em",
+                textAlign: "center",
+                radius: am5.percent(95),
+                centerX: am5.percent(50),
+                centerY: am5.percent(50),
+                rotation: middleAngle
+              })
+            );
+          }
         }
       });
     });
