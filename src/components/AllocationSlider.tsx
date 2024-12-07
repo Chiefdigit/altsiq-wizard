@@ -42,12 +42,10 @@ export const AllocationSlider = ({
 
   const handleDollarInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    // If the input starts with $, remove it before setting
     setInputValue(newValue.startsWith('$') ? newValue : `$${newValue}`);
   };
 
   const handleDollarBlur = () => {
-    // Remove $ and commas, then parse
     const numericValue = inputValue.replace(/[$,]/g, '');
     
     if (numericValue && !isNaN(Number(numericValue))) {
@@ -55,11 +53,9 @@ export const AllocationSlider = ({
       const percentage = Math.round((parsedValue / portfolioSize) * 100);
       const clampedPercentage = Math.max(0, Math.min(100, percentage));
       onChange(clampedPercentage);
-      setInputValue(`$${parsedValue.toLocaleString()}`);
-    } else {
-      // Reset to current value if invalid input
-      setInputValue(`$${((value / 100) * portfolioSize).toLocaleString()}`);
     }
+    // Always update the input value to reflect the current state
+    setInputValue(`$${((value / 100) * portfolioSize).toLocaleString()}`);
   };
 
   const sliderColor = getSliderColor(label);
