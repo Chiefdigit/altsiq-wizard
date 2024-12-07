@@ -85,7 +85,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       {
         category: "Private Alternatives)",
         value: allocations.alternatives,
-        settings: { fill: am5.color("#ef4444") }
+        settings: { fill: am5.color("#F97316") }
       }
     ];
 

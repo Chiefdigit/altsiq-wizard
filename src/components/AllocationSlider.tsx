@@ -34,7 +34,7 @@ export const AllocationSlider = ({
       case "Cash":
         return "#22c55e";
       case "Alternatives":
-        return "#ef4444";
+        return "#F97316";
       default:
         return "#2563eb";
     }
