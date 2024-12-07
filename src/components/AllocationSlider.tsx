@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import * as Slider from "@radix-ui/react-slider";
+import { Input } from "@/components/ui/input";
 
 interface AllocationSliderProps {
   label: string;
@@ -16,20 +17,47 @@ export const AllocationSlider = ({
   disabled = false,
   portfolioSize,
 }: AllocationSliderProps) => {
-  // Get the color based on the asset type label
+  const [inputValue, setInputValue] = useState(value.toString());
+
+  useEffect(() => {
+    setInputValue(value.toString());
+  }, [value]);
+
   const getSliderColor = (label: string) => {
     switch (label) {
       case "Equities":
-        return "#2563eb"; // Primary blue from chart
+        return "#2563eb";
       case "Bonds":
-        return "#64748b"; // Secondary color from chart
+        return "#64748b";
       case "Cash":
-        return "#22c55e"; // Success color from chart
+        return "#22c55e";
       case "Alternatives":
-        return "#ef4444"; // Red from chart
+        return "#ef4444";
       default:
-        return "#2563eb"; // Default to primary color
+        return "#2563eb";
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value;
+    setInputValue(rawValue);
+    
+    // Remove all non-numeric characters
+    const numericValue = rawValue.replace(/[^0-9]/g, '');
+    
+    if (numericValue) {
+      const parsedValue = parseInt(numericValue, 10);
+      if (!isNaN(parsedValue)) {
+        // Clamp value between 0 and 100
+        const clampedValue = Math.max(0, Math.min(100, parsedValue));
+        onChange(clampedValue);
+      }
+    }
+  };
+
+  const handleBlur = () => {
+    // On blur, ensure the input shows the actual value
+    setInputValue(value.toString());
   };
 
   const sliderColor = getSliderColor(label);
@@ -38,7 +66,16 @@ export const AllocationSlider = ({
     <div className="w-full mb-6">
       <div className="flex justify-between mb-2">
         <span className="text-sm font-medium">{label}</span>
-        <span className="text-sm text-gray-600">{value}%</span>
+        <div className="w-20">
+          <Input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            className="h-7 text-right text-sm"
+            disabled={disabled}
+          />
+        </div>
       </div>
       <Slider.Root
         className="relative flex items-center select-none touch-none w-full h-5"
