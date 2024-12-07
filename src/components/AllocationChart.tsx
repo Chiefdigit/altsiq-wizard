@@ -50,7 +50,8 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       templateField: "settings"
     });
 
-    series.labels.template.set("forceHidden", true);
+    // Hide default labels
+    series.labels.template.set("visible", false);
 
     // Add data
     const colors = ["#6366f1", "#a855f7", "#38bdf8", "#2dd4bf"];
@@ -79,18 +80,20 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
     series.data.setAll(data);
 
-    // Add labels
+    // Add custom labels
     series.events.on("datavalidated", function() {
       series.slices.each((slice) => {
-        if (slice.dataItem) {
-          const value = slice.dataItem.get("value");
+        const dataItem = slice.dataItem;
+        if (dataItem) {
+          const value = dataItem.get("valueWorking");
+          const category = dataItem.get("categoryY");
+          
           if (typeof value === "number" && value > 0) {
-            const startAngle = slice.get("startAngle", 0);
-            const endAngle = slice.get("endAngle", 0);
-            const middleAngle = startAngle + (endAngle - startAngle) / 2;
-            const category = slice.dataItem.get("category", "");
+            const startAngle = slice.get("startAngle");
+            const arc = slice.get("arc");
+            const middleAngle = startAngle + arc / 2;
 
-            chart.series[0].labelsContainer.children.push(
+            chart.container.children.push(
               am5.Label.new(root, {
                 text: `${category}\n${value}%`,
                 fontSize: "0.8em",
