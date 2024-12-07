@@ -17,11 +17,11 @@ export const AllocationSlider = ({
   disabled = false,
   portfolioSize,
 }: AllocationSliderProps) => {
-  const [inputValue, setInputValue] = useState(value.toString());
+  const [dollarValue, setDollarValue] = useState(((value / 100) * portfolioSize).toLocaleString());
 
   useEffect(() => {
-    setInputValue(value.toString());
-  }, [value]);
+    setDollarValue(((value / 100) * portfolioSize).toLocaleString());
+  }, [value, portfolioSize]);
 
   const getSliderColor = (label: string) => {
     switch (label) {
@@ -38,26 +38,28 @@ export const AllocationSlider = ({
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDollarInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
-    setInputValue(rawValue);
+    setDollarValue(rawValue);
     
-    // Remove all non-numeric characters
-    const numericValue = rawValue.replace(/[^0-9]/g, '');
+    // Remove all non-numeric characters except commas
+    const numericValue = rawValue.replace(/[^0-9,]/g, '').replace(/,/g, '');
     
     if (numericValue) {
       const parsedValue = parseInt(numericValue, 10);
       if (!isNaN(parsedValue)) {
-        // Clamp value between 0 and 100
-        const clampedValue = Math.max(0, Math.min(100, parsedValue));
-        onChange(clampedValue);
+        // Convert dollar value to percentage
+        const percentage = Math.round((parsedValue / portfolioSize) * 100);
+        // Clamp percentage between 0 and 100
+        const clampedPercentage = Math.max(0, Math.min(100, percentage));
+        onChange(clampedPercentage);
       }
     }
   };
 
-  const handleBlur = () => {
-    // On blur, ensure the input shows the actual value
-    setInputValue(value.toString());
+  const handleDollarBlur = () => {
+    // On blur, format the value properly
+    setDollarValue(((value / 100) * portfolioSize).toLocaleString());
   };
 
   const sliderColor = getSliderColor(label);
@@ -69,11 +71,10 @@ export const AllocationSlider = ({
         <div className="w-20">
           <Input
             type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
+            value={value + "%"}
             className="h-7 text-right text-sm"
-            disabled={disabled}
+            disabled={true}
+            readOnly
           />
         </div>
       </div>
@@ -100,9 +101,13 @@ export const AllocationSlider = ({
       </Slider.Root>
       <div className="mt-2">
         <div className="p-2 border rounded-lg text-center">
-          <span className="text-lg font-medium">
-            ${((value / 100) * portfolioSize).toLocaleString()}
-          </span>
+          <Input
+            type="text"
+            value={`$${dollarValue}`}
+            onChange={handleDollarInputChange}
+            onBlur={handleDollarBlur}
+            className="text-lg font-medium text-center"
+          />
         </div>
       </div>
     </div>
