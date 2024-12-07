@@ -1,7 +1,6 @@
 import React, { useLayoutEffect, useRef } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
-import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 interface AllocationChartProps {
@@ -76,24 +75,28 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     series.data.setAll(data);
 
     // Add labels
-    data.forEach((item, index) => {
-      if (item.value > 0) {
-        const startAngle = series.dataItems[index].get("startAngle");
-        const endAngle = series.dataItems[index].get("endAngle");
-        const middleAngle = startAngle + (endAngle - startAngle) / 2;
+    series.events.on("datavalidated", () => {
+      series.slices.each((slice) => {
+        if (slice.dataItem && slice.dataItem.get("value") > 0) {
+          const startAngle = slice.get("startAngle", 0);
+          const endAngle = slice.get("endAngle", 0);
+          const middleAngle = startAngle + (endAngle - startAngle) / 2;
+          const category = slice.dataItem.get("category", "");
+          const value = slice.dataItem.get("value", 0);
 
-        const label = chart.radarContainer.children.push(
-          am5.Label.new(root, {
-            text: item.category + "\n" + item.value + "%",
-            fontSize: "0.8em",
-            textAlign: "center",
-            radius: am5.percent(95),
-            centerX: am5.percent(50),
-            centerY: am5.percent(50),
-            rotation: middleAngle,
-          })
-        );
-      }
+          const label = chart.container.children.push(
+            am5.Label.new(root, {
+              text: `${category}\n${value}%`,
+              fontSize: "0.8em",
+              textAlign: "center",
+              radius: am5.percent(95),
+              centerX: am5.percent(50),
+              centerY: am5.percent(50),
+              rotation: middleAngle,
+            })
+          );
+        }
+      });
     });
 
     // Cleanup
