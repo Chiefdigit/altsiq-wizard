@@ -27,7 +27,8 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.verticalLayout,
-        innerRadius: am5.percent(50),
+        radius: am5.percent(90),
+        innerRadius: am5.percent(80),
       })
     );
 
@@ -37,34 +38,49 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         valueField: "value",
         categoryField: "category",
         alignLabels: false,
+        startAngle: 180,
+        endAngle: 360,
       })
     );
 
-    series.labels.template.setAll({
-      textType: "circular",
-      centerX: 0,
-      centerY: 0,
+    series.slices.template.setAll({
+      cornerRadius: 5,
+      templateField: "sliceSettings",
+    });
+
+    series.labels.template.set("forceHidden", true);
+
+    // Add custom labels
+    const labelData = [
+      { category: "Equities", value: allocations.equities, color: "#38bdf8" },
+      { category: "Bonds", value: allocations.bonds, color: "#a855f7" },
+      { category: "Cash", value: allocations.cash, color: "#2dd4bf" },
+      { category: "Alternatives", value: allocations.alternatives, color: "#f472b6" },
+    ];
+
+    labelData.forEach((data, index) => {
+      const label = am5.Label.new(root, {
+        text: `[fontSize: 12px]${data.category}[/]\n[fontSize: 16px]${data.value}%`,
+        textAlign: "center",
+        x: am5.percent(50),
+        y: am5.percent(50),
+        centerX: am5.percent(50),
+        centerY: am5.percent(index * 20 + 30),
+      });
+
+      chart.bulletsContainer.children.push(label);
     });
 
     // Set data
-    series.data.setAll([
-      {
-        value: allocations.equities,
-        category: "Equities",
-      },
-      {
-        value: allocations.bonds,
-        category: "Bonds",
-      },
-      {
-        value: allocations.cash,
-        category: "Cash",
-      },
-      {
-        value: allocations.alternatives,
-        category: "Alternatives",
-      },
-    ]);
+    series.data.setAll(
+      labelData.map((item) => ({
+        category: item.category,
+        value: item.value,
+        sliceSettings: {
+          fill: am5.color(item.color),
+        },
+      }))
+    );
 
     // Cleanup
     return () => {
