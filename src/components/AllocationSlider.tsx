@@ -17,6 +17,7 @@ export const AllocationSlider = ({
   disabled = false,
   portfolioSize,
 }: AllocationSliderProps) => {
+  const [inputValue, setInputValue] = useState("");
   const [dollarValue, setDollarValue] = useState(((value / 100) * portfolioSize).toLocaleString());
 
   useEffect(() => {
@@ -39,28 +40,25 @@ export const AllocationSlider = ({
   };
 
   const handleDollarInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    // Remove dollar sign and any other non-numeric characters except commas
-    const cleanValue = rawValue.replace(/[$,]/g, '');
-    
-    if (cleanValue) {
-      const parsedValue = parseInt(cleanValue, 10);
-      if (!isNaN(parsedValue)) {
-        setDollarValue(parsedValue.toLocaleString());
-        // Convert dollar value to percentage
-        const percentage = Math.round((parsedValue / portfolioSize) * 100);
-        // Clamp percentage between 0 and 100
-        const clampedPercentage = Math.max(0, Math.min(100, percentage));
-        onChange(clampedPercentage);
-      }
-    } else {
-      setDollarValue('0');
-      onChange(0);
-    }
+    // Allow user to type freely without immediate conversion
+    setInputValue(e.target.value);
   };
 
   const handleDollarBlur = () => {
-    // On blur, format the value properly
+    // Clean and process the input value when the field loses focus
+    const cleanValue = inputValue.replace(/[$,]/g, '');
+    
+    if (cleanValue && !isNaN(Number(cleanValue))) {
+      const parsedValue = parseInt(cleanValue, 10);
+      // Convert dollar value to percentage
+      const percentage = Math.round((parsedValue / portfolioSize) * 100);
+      // Clamp percentage between 0 and 100
+      const clampedPercentage = Math.max(0, Math.min(100, percentage));
+      onChange(clampedPercentage);
+    }
+    
+    // Reset the input to show the formatted dollar value
+    setInputValue("");
     setDollarValue(((value / 100) * portfolioSize).toLocaleString());
   };
 
@@ -105,7 +103,7 @@ export const AllocationSlider = ({
         <div className="p-2 border rounded-lg text-center">
           <Input
             type="text"
-            value={`$${dollarValue}`}
+            value={inputValue || `$${dollarValue}`}
             onChange={handleDollarInputChange}
             onBlur={handleDollarBlur}
             className="text-lg font-medium text-center"
