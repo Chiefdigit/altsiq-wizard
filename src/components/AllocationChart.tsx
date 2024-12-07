@@ -18,8 +18,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   useLayoutEffect(() => {
     // Initialize chart with high DPI settings
     const root = am5.Root.new("chartdiv", {
-      useSafeResolution: false,  // Disable safe resolution to get sharper rendering
-      pixelRatio: window.devicePixelRatio || 2  // Use device pixel ratio or fallback to 2x
+      useSafeResolution: false  // Disable safe resolution to get sharper rendering
     });
     
     chartRef.current = root;
@@ -33,7 +32,11 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         layout: root.verticalLayout,
         innerRadius: am5.percent(70),
         startAngle: 180,
-        endAngle: 360
+        endAngle: 360,
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingLeft: 0,
+        paddingRight: 0
       })
     );
 
@@ -54,7 +57,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       templateField: "settings",
       strokeWidth: 0,  // Remove the border
       forceHidden: false,  // Ensure visibility
-      fillOpacity: 1,  // Full opacity for crisp edges
+      fillOpacity: 1  // Full opacity for crisp edges
     });
 
     // Hide labels completely
@@ -66,22 +69,22 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       {
         category: "Stocks (Equities)",
         value: allocations.equities,
-        settings: { fill: am5.color("#007AFF") }  // iOS Blue
+        settings: { fill: am5.color("#2563eb") }  // Primary blue from tailwind config
       },
       {
         category: "Bonds (Fixed Income)",
         value: allocations.bonds,
-        settings: { fill: am5.color("#5856D6") }  // iOS Purple
+        settings: { fill: am5.color("#64748b") }  // Secondary color from tailwind config
       },
       {
         category: "Cash (and Equivalents)",
         value: allocations.cash,
-        settings: { fill: am5.color("#FF2D55") }  // iOS Pink
+        settings: { fill: am5.color("#22c55e") }  // Success color from tailwind config
       },
       {
         category: "Private Alternatives)",
         value: allocations.alternatives,
-        settings: { fill: am5.color("#34C759") }  // iOS Green
+        settings: { fill: am5.color("#ef4444") }  // Red-500 from tailwind
       }
     ];
 
@@ -96,8 +99,8 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   return (
     <div
       id="chartdiv"
-      style={{ width: "100%", height: "300px" }}
-      className="mt-4"
+      style={{ width: "100%", height: "300px", margin: 0 }}
+      className="mt-0"
     />
   );
 };
