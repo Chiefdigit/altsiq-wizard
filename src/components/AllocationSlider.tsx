@@ -30,7 +30,7 @@ export const AllocationSlider = ({
       case "Equities":
         return "#2563eb";
       case "Bonds":
-        return "#64748b";
+        return "#000000";
       case "Cash":
         return "#22c55e";
       case "Alternatives":

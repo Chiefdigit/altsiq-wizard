@@ -70,22 +70,22 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       {
         category: "Stocks (Equities)",
         value: allocations.equities,
-        settings: { fill: am5.color("#2563eb") }  // Primary blue from tailwind config
+        settings: { fill: am5.color("#2563eb") }
       },
       {
         category: "Bonds (Fixed Income)",
         value: allocations.bonds,
-        settings: { fill: am5.color("#64748b") }  // Secondary color from tailwind config
+        settings: { fill: am5.color("#000000") }
       },
       {
         category: "Cash (and Equivalents)",
         value: allocations.cash,
-        settings: { fill: am5.color("#22c55e") }  // Success color from tailwind config
+        settings: { fill: am5.color("#22c55e") }
       },
       {
         category: "Private Alternatives)",
         value: allocations.alternatives,
-        settings: { fill: am5.color("#ef4444") }  // Red-500 from tailwind
+        settings: { fill: am5.color("#ef4444") }
       }
     ];
 
