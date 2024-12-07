@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PortfolioSlider } from "./PortfolioSlider";
 import { AllocationSlider } from "./AllocationSlider";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,16 @@ export const OnboardingWizard = () => {
     cash: 0,
     alternatives: 0,
   });
+
+  // Update allocations when portfolio size changes
+  useEffect(() => {
+    setAllocations({
+      equities: 60,
+      bonds: 40,
+      cash: 0,
+      alternatives: 0,
+    });
+  }, [portfolioSize]);
 
   const handleComplete = () => {
     toast({
@@ -90,11 +100,13 @@ export const OnboardingWizard = () => {
                 label="Cash"
                 value={allocations.cash}
                 onChange={(value) => updateAllocation("cash", value)}
+                disabled={true}
               />
               <AllocationSlider
                 label="Alternatives"
                 value={allocations.alternatives}
                 onChange={(value) => updateAllocation("alternatives", value)}
+                disabled={true}
               />
               <div className="flex justify-end">
                 <Button onClick={handleComplete}>Complete Setup</Button>

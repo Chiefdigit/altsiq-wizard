@@ -21,7 +21,7 @@ export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
       const parsedValue = parseInt(numericValue, 10);
       if (!isNaN(parsedValue)) {
         // Always update the slider within valid range
-        const clampedValue = Math.max(250000, Math.min(10000000, parsedValue));
+        const clampedValue = Math.max(250000, Math.min(5000000, parsedValue));
         onChange(clampedValue);
       }
     }
@@ -39,8 +39,8 @@ export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
     
     if (isNaN(parsedValue) || parsedValue < 250000) {
       onChange(250000);
-    } else if (parsedValue > 10000000) {
-      onChange(10000000);
+    } else if (parsedValue > 5000000) {
+      onChange(5000000);
     } else {
       onChange(parsedValue);
     }
@@ -50,13 +50,13 @@ export const PortfolioSlider = ({ value, onChange }: PortfolioSliderProps) => {
     <div className="w-full">
       <div className="flex justify-between mb-2">
         <span className="text-sm text-gray-600">$250k</span>
-        <span className="text-sm text-gray-600">$10M</span>
+        <span className="text-sm text-gray-600">$5M</span>
       </div>
       <Slider.Root
         className="relative flex items-center select-none touch-none w-full h-5"
         value={[value]}
         onValueChange={(values) => onChange(values[0])}
-        max={10000000}
+        max={5000000}
         min={250000}
         step={10000}
       >
