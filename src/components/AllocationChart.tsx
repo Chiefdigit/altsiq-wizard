@@ -50,64 +50,35 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       templateField: "settings"
     });
 
-    // Hide default labels
+    // Hide labels completely
     series.labels.template.set("visible", false);
+    series.ticks.template.set("visible", false);
 
-    // Add data
-    const colors = ["#6366f1", "#a855f7", "#38bdf8", "#2dd4bf"];
+    // Add data with updated colors
     const data = [
       {
         category: "Stocks (Equities)",
         value: allocations.equities,
-        settings: { fill: am5.color(colors[0]) }
+        settings: { fill: am5.color("#4B79A1") }  // Deep blue
       },
       {
         category: "Bonds (Fixed Income)",
         value: allocations.bonds,
-        settings: { fill: am5.color(colors[1]) }
+        settings: { fill: am5.color("#283E51") }  // Navy blue
       },
       {
         category: "Cash (and Equivalents)",
         value: allocations.cash,
-        settings: { fill: am5.color(colors[2]) }
+        settings: { fill: am5.color("#5F2C82") }  // Purple
       },
       {
         category: "Private Alternatives",
         value: allocations.alternatives,
-        settings: { fill: am5.color(colors[3]) }
+        settings: { fill: am5.color("#355C7D") }  // Steel blue
       }
     ];
 
     series.data.setAll(data);
-
-    // Add custom labels
-    series.events.on("datavalidated", function() {
-      series.slices.each((slice) => {
-        const dataItem = slice.dataItem;
-        if (dataItem) {
-          const value = dataItem.get("valueWorking");
-          const category = dataItem.get("categoryY");
-          
-          if (typeof value === "number" && value > 0) {
-            const startAngle = slice.get("startAngle");
-            const arc = slice.get("arc");
-            const middleAngle = startAngle + arc / 2;
-
-            chart.container.children.push(
-              am5.Label.new(root, {
-                text: `${category}\n${value}%`,
-                fontSize: "0.8em",
-                textAlign: "center",
-                radius: am5.percent(95),
-                centerX: am5.percent(50),
-                centerY: am5.percent(50),
-                rotation: middleAngle
-              })
-            );
-          }
-        }
-      });
-    });
 
     // Cleanup
     return () => {
