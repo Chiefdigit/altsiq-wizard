@@ -26,7 +26,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     // Set themes
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Create chart
+    // Create chart with zero padding
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.verticalLayout,
@@ -99,7 +99,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   return (
     <div
       id="chartdiv"
-      style={{ width: "100%", height: "300px", margin: 0 }}
+      style={{ width: "100%", height: "300px", margin: 0, padding: 0 }}
       className="mt-0"
     />
   );
