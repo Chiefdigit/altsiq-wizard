@@ -55,8 +55,9 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     series.slices.template.setAll({
       cornerRadius: 5,
       templateField: "settings",
-      strokeWidth: 0,  // Remove the border
-      forceHidden: false,  // Ensure visibility
+      stroke: am5.color(0x000000),  // Set stroke to transparent
+      strokeWidth: 0,  // Set stroke width to 0
+      strokeOpacity: 0,  // Set stroke opacity to 0
       fillOpacity: 1  // Full opacity for crisp edges
     });
 
