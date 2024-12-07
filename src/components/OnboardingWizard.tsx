@@ -93,7 +93,6 @@ export const OnboardingWizard = () => {
                 <span className="text-sm text-gray-600">Total Allocation: </span>
                 <span className="font-semibold">{totalAllocation}%</span>
               </div>
-              <AllocationChart allocations={allocations} />
               <AllocationSlider
                 label="Equities"
                 value={allocations.equities}
@@ -118,6 +117,7 @@ export const OnboardingWizard = () => {
                 onChange={(value) => updateAllocation("alternatives", value)}
                 portfolioSize={portfolioSize}
               />
+              <AllocationChart allocations={allocations} />
               <div className="flex justify-end">
                 <Button onClick={handleComplete}>Continue</Button>
               </div>
