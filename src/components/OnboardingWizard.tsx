@@ -48,6 +48,8 @@ export const OnboardingWizard = () => {
     }
   };
 
+  const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
+
   return (
     <div className="max-w-2xl mx-auto p-6 animate-fade-in">
       <Accordion
@@ -86,6 +88,10 @@ export const OnboardingWizard = () => {
           </AccordionTrigger>
           <AccordionContent className="pt-6">
             <div className="space-y-6">
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+                <span className="text-sm text-gray-600">Total Allocation: </span>
+                <span className="font-semibold">{totalAllocation}%</span>
+              </div>
               <AllocationSlider
                 label="Equities"
                 value={allocations.equities}
