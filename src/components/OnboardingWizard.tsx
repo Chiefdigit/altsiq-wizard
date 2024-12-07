@@ -118,10 +118,8 @@ export const OnboardingWizard = () => {
                 onChange={(value) => updateAllocation("alternatives", value)}
                 portfolioSize={portfolioSize}
               />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <AllocationChart allocations={allocations} />
-                <RiskScoreDisplay allocations={allocations} />
-              </div>
+              <AllocationChart allocations={allocations} />
+              <RiskScoreDisplay allocations={allocations} />
               <div className="flex justify-end">
                 <Button onClick={handleComplete}>Continue</Button>
               </div>
