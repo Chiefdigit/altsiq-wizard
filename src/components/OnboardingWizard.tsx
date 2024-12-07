@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { PortfolioSlider } from "./PortfolioSlider";
 import { AllocationSlider } from "./AllocationSlider";
+import { AllocationChart } from "./AllocationChart";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -21,7 +22,6 @@ export const OnboardingWizard = () => {
     alternatives: 0,
   });
 
-  // Update allocations when portfolio size changes
   useEffect(() => {
     setAllocations({
       equities: 60,
@@ -48,7 +48,10 @@ export const OnboardingWizard = () => {
     }
   };
 
-  const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
+  const totalAllocation = Object.values(allocations).reduce(
+    (sum, val) => sum + val,
+    0
+  );
 
   return (
     <div className="max-w-2xl mx-auto p-6 animate-fade-in">
@@ -70,9 +73,7 @@ export const OnboardingWizard = () => {
           <AccordionContent className="pt-6">
             <PortfolioSlider value={portfolioSize} onChange={setPortfolioSize} />
             <div className="mt-6 flex justify-end">
-              <Button onClick={() => setActiveStep("allocation")}>
-                Continue
-              </Button>
+              <Button onClick={() => setActiveStep("allocation")}>Continue</Button>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -92,6 +93,7 @@ export const OnboardingWizard = () => {
                 <span className="text-sm text-gray-600">Total Allocation: </span>
                 <span className="font-semibold">{totalAllocation}%</span>
               </div>
+              <AllocationChart allocations={allocations} />
               <AllocationSlider
                 label="Equities"
                 value={allocations.equities}
