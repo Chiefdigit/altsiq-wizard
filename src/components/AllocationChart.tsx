@@ -25,62 +25,89 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
     // Create chart
     const chart = root.container.children.push(
-      am5percent.PieChart.new(root, {
+      am5percent.GaugeChart.new(root, {
+        startAngle: 180,
+        endAngle: 360,
         layout: root.verticalLayout,
-        radius: am5.percent(90),
         innerRadius: am5.percent(80),
       })
     );
 
-    // Create series
-    const series = chart.series.push(
-      am5percent.PieSeries.new(root, {
-        valueField: "value",
-        categoryField: "category",
-        alignLabels: false,
-        startAngle: 180,
-        endAngle: 360,
+    // Create axis and clock hand
+    const axisRenderer = am5percent.AxisRendererCircular.new(root, {
+      innerRadius: -10,
+      strokeOpacity: 0,
+    });
+
+    axisRenderer.labels.template.set("forceHidden", true);
+    axisRenderer.grid.template.set("forceHidden", true);
+
+    const xAxis = chart.xAxes.push(
+      am5xy.ValueAxis.new(root, {
+        maxDeviation: 0,
+        min: 0,
+        max: 100,
+        strictMinMax: true,
+        renderer: axisRenderer,
       })
     );
 
-    series.slices.template.setAll({
-      cornerRadius: 5,
-      templateField: "sliceSettings",
-    });
+    // Add series
+    const colors = ["#6366f1", "#a855f7", "#38bdf8", "#2dd4bf"];
+    let startValue = 0;
 
-    series.labels.template.set("forceHidden", true);
-
-    // Add custom labels
-    const labelData = [
-      { category: "Equities", value: allocations.equities, color: "#38bdf8" },
-      { category: "Bonds", value: allocations.bonds, color: "#a855f7" },
-      { category: "Cash", value: allocations.cash, color: "#2dd4bf" },
-      { category: "Alternatives", value: allocations.alternatives, color: "#f472b6" },
+    const data = [
+      { category: "Stocks (Equities)", value: allocations.equities },
+      { category: "Bonds (Fixed Income)", value: allocations.bonds },
+      { category: "Cash (and Equivalents)", value: allocations.cash },
+      { category: "Private Alternatives", value: allocations.alternatives },
     ];
 
-    labelData.forEach((data, index) => {
-      const label = am5.Label.new(root, {
-        text: `[fontSize: 12px]${data.category}[/]\n[fontSize: 16px]${data.value}%`,
-        textAlign: "center",
-        x: am5.percent(50),
-        y: am5.percent(50),
-        centerX: am5.percent(50),
-        centerY: am5.percent(index * 20 + 30),
+    data.forEach((item, index) => {
+      const series = chart.series.push(
+        am5percent.ClockHandSeries.new(root, {
+          xAxis: xAxis,
+          valueField: "value",
+          startField: "start",
+          endField: "end",
+          categoryField: "category",
+        })
+      );
+
+      series.sectors.template.setAll({
+        cornerRadius: 4,
+        fill: am5.color(colors[index]),
+        strokeOpacity: 0,
+        tooltipText: "{category}: {value}%",
       });
 
-      chart.bulletsContainer.children.push(label);
-    });
-
-    // Set data
-    series.data.setAll(
-      labelData.map((item) => ({
-        category: item.category,
-        value: item.value,
-        sliceSettings: {
-          fill: am5.color(item.color),
+      series.data.setAll([
+        {
+          category: item.category,
+          start: startValue,
+          end: startValue + item.value,
+          value: item.value,
         },
-      }))
-    );
+      ]);
+
+      // Add percentage labels along the arc
+      if (item.value > 0) {
+        const labelAngle = 180 + (startValue + item.value / 2) * 1.8; // 1.8 = 180/100 to convert percentage to degrees
+        const label = chart.radarContainer.children.push(
+          am5.Label.new(root, {
+            text: item.category + "\n" + item.value + "%",
+            fontSize: "0.8em",
+            textAlign: "center",
+            radius: am5.percent(95),
+            centerX: am5.percent(50),
+            centerY: am5.percent(50),
+            rotation: labelAngle,
+          })
+        );
+      }
+
+      startValue += item.value;
+    });
 
     // Cleanup
     return () => {
