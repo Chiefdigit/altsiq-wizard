@@ -47,7 +47,8 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
     series.slices.template.setAll({
       cornerRadius: 5,
-      templateField: "settings"
+      templateField: "settings",
+      strokeWidth: 0  // Remove the border by setting stroke width to 0
     });
 
     // Hide labels completely
