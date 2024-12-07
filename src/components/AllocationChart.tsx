@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useRef } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
+import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 interface AllocationChartProps {
@@ -25,7 +26,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
     // Create chart
     const chart = root.container.children.push(
-      am5percent.GaugeChart.new(root, {
+      am5percent.PieChart.new(root, {
         startAngle: 180,
         endAngle: 360,
         layout: root.verticalLayout,
@@ -33,66 +34,54 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       })
     );
 
-    // Create axis and clock hand
-    const axisRenderer = am5percent.AxisRendererCircular.new(root, {
-      innerRadius: -10,
-      strokeOpacity: 0,
-    });
-
-    axisRenderer.labels.template.set("forceHidden", true);
-    axisRenderer.grid.template.set("forceHidden", true);
-
-    const xAxis = chart.xAxes.push(
-      am5xy.ValueAxis.new(root, {
-        maxDeviation: 0,
-        min: 0,
-        max: 100,
-        strictMinMax: true,
-        renderer: axisRenderer,
+    // Create series
+    const series = chart.series.push(
+      am5percent.PieSeries.new(root, {
+        valueField: "value",
+        categoryField: "category",
+        alignLabels: false,
       })
     );
 
-    // Add series
-    const colors = ["#6366f1", "#a855f7", "#38bdf8", "#2dd4bf"];
-    let startValue = 0;
+    series.slices.template.setAll({
+      cornerRadius: 4,
+      templateField: "settings",
+    });
 
+    // Add data
+    const colors = ["#6366f1", "#a855f7", "#38bdf8", "#2dd4bf"];
     const data = [
-      { category: "Stocks (Equities)", value: allocations.equities },
-      { category: "Bonds (Fixed Income)", value: allocations.bonds },
-      { category: "Cash (and Equivalents)", value: allocations.cash },
-      { category: "Private Alternatives", value: allocations.alternatives },
+      { 
+        category: "Stocks (Equities)", 
+        value: allocations.equities,
+        settings: { fill: am5.color(colors[0]) }
+      },
+      { 
+        category: "Bonds (Fixed Income)", 
+        value: allocations.bonds,
+        settings: { fill: am5.color(colors[1]) }
+      },
+      { 
+        category: "Cash (and Equivalents)", 
+        value: allocations.cash,
+        settings: { fill: am5.color(colors[2]) }
+      },
+      { 
+        category: "Private Alternatives", 
+        value: allocations.alternatives,
+        settings: { fill: am5.color(colors[3]) }
+      },
     ];
 
+    series.data.setAll(data);
+
+    // Add labels
     data.forEach((item, index) => {
-      const series = chart.series.push(
-        am5percent.ClockHandSeries.new(root, {
-          xAxis: xAxis,
-          valueField: "value",
-          startField: "start",
-          endField: "end",
-          categoryField: "category",
-        })
-      );
-
-      series.sectors.template.setAll({
-        cornerRadius: 4,
-        fill: am5.color(colors[index]),
-        strokeOpacity: 0,
-        tooltipText: "{category}: {value}%",
-      });
-
-      series.data.setAll([
-        {
-          category: item.category,
-          start: startValue,
-          end: startValue + item.value,
-          value: item.value,
-        },
-      ]);
-
-      // Add percentage labels along the arc
       if (item.value > 0) {
-        const labelAngle = 180 + (startValue + item.value / 2) * 1.8; // 1.8 = 180/100 to convert percentage to degrees
+        const startAngle = series.dataItems[index].get("startAngle");
+        const endAngle = series.dataItems[index].get("endAngle");
+        const middleAngle = startAngle + (endAngle - startAngle) / 2;
+
         const label = chart.radarContainer.children.push(
           am5.Label.new(root, {
             text: item.category + "\n" + item.value + "%",
@@ -101,12 +90,10 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
             radius: am5.percent(95),
             centerX: am5.percent(50),
             centerY: am5.percent(50),
-            rotation: labelAngle,
+            rotation: middleAngle,
           })
         );
       }
-
-      startValue += item.value;
     });
 
     // Cleanup
