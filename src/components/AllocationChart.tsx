@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef, useId } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -15,102 +15,149 @@ interface AllocationChartProps {
 
 export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   const chartRef = useRef<am5.Root | null>(null);
+  const chartId = useId(); // Generate unique ID for each chart instance
 
   useLayoutEffect(() => {
-    const root = am5.Root.new("chartdiv", {
-      useSafeResolution: false
-    });
-    
-    chartRef.current = root;
-
-    root.setThemes([am5themes_Animated.new(root)]);
-
-    const chart = root.container.children.push(
-      am5percent.PieChart.new(root, {
-        layout: root.verticalLayout,
-        innerRadius: am5.percent(70),
-        startAngle: 180,
-        endAngle: 360,
-        paddingTop: 0,
-        paddingBottom: 0,
-        paddingLeft: 0,
-        paddingRight: 0
-      })
-    );
-
-    const series = chart.series.push(
-      am5percent.PieSeries.new(root, {
-        valueField: "value",
-        categoryField: "category",
-        startAngle: 180,
-        endAngle: 360,
-        radius: am5.percent(100),
-        innerRadius: am5.percent(70)
-      })
-    );
-
-    series.slices.template.setAll({
-      cornerRadius: 5,
-      templateField: "settings",
-      stroke: am5.color(0x000000),
-      strokeWidth: 0,
-      strokeOpacity: 0,
-      fillOpacity: 1
-    });
-
-    series.labels.template.set("visible", false);
-    series.ticks.template.set("visible", false);
-
-    // Calculate total allocation
-    const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
-    
-    // Calculate unallocated amount
-    const unallocated = Math.max(0, 100 - totalAllocation);
-
-    const data = [
-      {
-        category: "Stocks (Equities)",
-        value: allocations.equities,
-        settings: { fill: am5.color("#2563eb") }
-      },
-      {
-        category: "Bonds (Fixed Income)",
-        value: allocations.bonds,
-        settings: { fill: am5.color("#000000") }
-      },
-      {
-        category: "Cash (and Equivalents)",
-        value: allocations.cash,
-        settings: { fill: am5.color("#22c55e") }
-      },
-      {
-        category: "Private Alternatives",
-        value: allocations.alternatives,
-        settings: { fill: am5.color("#F97316") }
-      }
-    ];
-
-    // Only add unallocated segment if there is any unallocated amount
-    if (unallocated > 0) {
-      data.push({
-        category: "Unallocated",
-        value: unallocated,
-        settings: { fill: am5.color("#64748b") }  // Grey color for unallocated
+    // Only create root if it doesn't exist
+    if (!chartRef.current) {
+      const root = am5.Root.new(`chartdiv-${chartId}`, {
+        useSafeResolution: false
       });
+      
+      chartRef.current = root;
+
+      root.setThemes([am5themes_Animated.new(root)]);
+
+      const chart = root.container.children.push(
+        am5percent.PieChart.new(root, {
+          layout: root.verticalLayout,
+          innerRadius: am5.percent(70),
+          startAngle: 180,
+          endAngle: 360,
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingLeft: 0,
+          paddingRight: 0
+        })
+      );
+
+      const series = chart.series.push(
+        am5percent.PieSeries.new(root, {
+          valueField: "value",
+          categoryField: "category",
+          startAngle: 180,
+          endAngle: 360,
+          radius: am5.percent(100),
+          innerRadius: am5.percent(70)
+        })
+      );
+
+      series.slices.template.setAll({
+        cornerRadius: 5,
+        templateField: "settings",
+        stroke: am5.color(0x000000),
+        strokeWidth: 0,
+        strokeOpacity: 0,
+        fillOpacity: 1
+      });
+
+      series.labels.template.set("visible", false);
+      series.ticks.template.set("visible", false);
+
+      // Calculate total allocation
+      const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
+      
+      // Calculate unallocated amount
+      const unallocated = Math.max(0, 100 - totalAllocation);
+
+      const data = [
+        {
+          category: "Stocks (Equities)",
+          value: allocations.equities,
+          settings: { fill: am5.color("#2563eb") }
+        },
+        {
+          category: "Bonds (Fixed Income)",
+          value: allocations.bonds,
+          settings: { fill: am5.color("#000000") }
+        },
+        {
+          category: "Cash (and Equivalents)",
+          value: allocations.cash,
+          settings: { fill: am5.color("#22c55e") }
+        },
+        {
+          category: "Private Alternatives",
+          value: allocations.alternatives,
+          settings: { fill: am5.color("#F97316") }
+        }
+      ];
+
+      // Only add unallocated segment if there is any unallocated amount
+      if (unallocated > 0) {
+        data.push({
+          category: "Unallocated",
+          value: unallocated,
+          settings: { fill: am5.color("#64748b") }
+        });
+      }
+
+      series.data.setAll(data);
+    } else {
+      // If root exists, just update the data
+      const series = chartRef.current.container.children.getIndex(0)?.series.getIndex(0);
+      if (series) {
+        const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
+        const unallocated = Math.max(0, 100 - totalAllocation);
+        
+        const data = [
+          {
+            category: "Stocks (Equities)",
+            value: allocations.equities,
+            settings: { fill: am5.color("#2563eb") }
+          },
+          {
+            category: "Bonds (Fixed Income)",
+            value: allocations.bonds,
+            settings: { fill: am5.color("#000000") }
+          },
+          {
+            category: "Cash (and Equivalents)",
+            value: allocations.cash,
+            settings: { fill: am5.color("#22c55e") }
+          },
+          {
+            category: "Private Alternatives",
+            value: allocations.alternatives,
+            settings: { fill: am5.color("#F97316") }
+          }
+        ];
+
+        if (unallocated > 0) {
+          data.push({
+            category: "Unallocated",
+            value: unallocated,
+            settings: { fill: am5.color("#64748b") }
+          });
+        }
+
+        series.data.setAll(data);
+      }
     }
 
-    series.data.setAll(data);
-
     return () => {
-      root.dispose();
+      if (chartRef.current) {
+        chartRef.current.dispose();
+        chartRef.current = null;
+      }
     };
-  }, [allocations]);
+  }, [allocations, chartId]);
 
   return (
     <Card className="p-4">
       <h3 className="text-lg font-semibold mb-4">Portfolio Mix</h3>
       <div
-        id="chartdiv"
+        id={`chartdiv-${chartId}`}
         style={{ width: "100%", height: "300px", margin: 0, padding: 0 }}
         className="mt-0"
       />
