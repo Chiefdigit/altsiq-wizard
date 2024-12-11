@@ -6,6 +6,7 @@ import { RiskScoreDisplay } from "./RiskScoreDisplay";
 import { StrategyLegend } from "./StrategyLegend";
 import { StrategyPieChart } from "./StrategyPieChart";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import {
@@ -24,11 +25,19 @@ const DEFAULT_ALLOCATIONS = {
   alternatives: 0,
 };
 
+const DEFAULT_CUSTOM_ALLOCATIONS = {
+  equities: 25,
+  bonds: 25,
+  cash: 25,
+  alternatives: 25,
+};
+
 export const OnboardingWizard = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(500000);
   const [allocations, setAllocations] = useState(DEFAULT_ALLOCATIONS);
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
+  const [customAllocations, setCustomAllocations] = useState(DEFAULT_CUSTOM_ALLOCATIONS);
 
   useEffect(() => {
     setAllocations(DEFAULT_ALLOCATIONS);
@@ -51,9 +60,60 @@ export const OnboardingWizard = () => {
     }
   };
 
+  const handleCustomAllocationChange = (type: keyof typeof customAllocations, value: string) => {
+    const numericValue = Math.min(100, Math.max(0, Number(value) || 0));
+    setCustomAllocations(prev => ({ ...prev, [type]: numericValue }));
+  };
+
   const totalAllocation = Object.values(allocations).reduce(
     (sum, val) => sum + val,
     0
+  );
+
+  const totalCustomAllocation = Object.values(customAllocations).reduce(
+    (sum, val) => sum + val,
+    0
+  );
+
+  const renderAdvancedContent = () => (
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold">Custom Allocation</h3>
+      <p className="text-gray-700">Let's build a personalized allocation for you.</p>
+      
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+        <span className="text-sm text-gray-600">Total Allocation: </span>
+        <span className={`font-semibold ${totalCustomAllocation !== 100 ? 'text-red-500' : 'text-green-500'}`}>
+          {totalCustomAllocation}%
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex-1 flex flex-col gap-4">
+          {Object.entries(customAllocations).map(([key, value]) => (
+            <div key={key} className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 capitalize">
+                {key}
+              </label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={value}
+                  onChange={(e) => handleCustomAllocationChange(key as keyof typeof customAllocations, e.target.value)}
+                  className="w-24"
+                />
+                <span className="text-sm text-gray-500">%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex-1">
+          <StrategyPieChart allocation={customAllocations} />
+          <StrategyLegend allocation={customAllocations} />
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -150,38 +210,42 @@ export const OnboardingWizard = () => {
                 </ToggleGroupItem>
               </ToggleGroup>
 
-              {selectedStrategy && (
-                <div className="mt-6 space-y-4">
-                  <h3 className="text-xl font-semibold">
-                    {STRATEGY_DESCRIPTIONS[selectedStrategy].title}
-                  </h3>
-                  <div className="space-y-4">
-                    <p className="text-gray-700 font-medium">
-                      Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
-                    </p>
-                    
-                    {STRATEGY_DESCRIPTIONS[selectedStrategy].description && (
-                      <>
-                        <div className="flex flex-col md:flex-row md:items-start gap-4">
-                          <div className="md:w-1/2">
-                            <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
+              {selectedStrategy === "advanced" ? (
+                renderAdvancedContent()
+              ) : (
+                selectedStrategy && (
+                  <div className="mt-6 space-y-4">
+                    <h3 className="text-xl font-semibold">
+                      {STRATEGY_DESCRIPTIONS[selectedStrategy].title}
+                    </h3>
+                    <div className="space-y-4">
+                      <p className="text-gray-700 font-medium">
+                        Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
+                      </p>
+                      
+                      {STRATEGY_DESCRIPTIONS[selectedStrategy].description && (
+                        <>
+                          <div className="flex flex-col md:flex-row md:items-start gap-4">
+                            <div className="md:w-1/2">
+                              <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
+                            </div>
+                            <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
                           </div>
-                          <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
-                        </div>
-                        <p className="text-gray-700 font-medium">
-                          {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
-                        </p>
-                        <ul className="list-disc pl-6 space-y-2">
-                          {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
-                            <li key={index} className="text-gray-600">
-                              {point}
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
+                          <p className="text-gray-700 font-medium">
+                            {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
+                          </p>
+                          <ul className="list-disc pl-6 space-y-2">
+                            {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
+                              <li key={index} className="text-gray-600">
+                                {point}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )
               )}
 
               <div className="flex justify-end">
