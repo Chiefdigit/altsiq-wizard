@@ -80,7 +80,24 @@ export const StrategyStep = ({
               <p className="text-gray-700 font-medium">
                 Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
               </p>
-              
+
+              <div className="flex flex-col md:flex-row md:items-start gap-4">
+                <div className="md:w-1/2">
+                  <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
+                </div>
+                <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
+              </div>
+              <p className="text-gray-700 font-medium">
+                {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
+                  <li key={index} className="text-gray-600">
+                    {point}
+                  </li>
+                ))}
+              </ul>
+
               <Card className="p-3 max-w-sm">
                 <div className="space-y-1">
                   <span className="text-sm font-medium text-gray-600">
@@ -105,23 +122,6 @@ export const StrategyStep = ({
                   </div>
                 </div>
               </Card>
-
-              <div className="flex flex-col md:flex-row md:items-start gap-4">
-                <div className="md:w-1/2">
-                  <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
-                </div>
-                <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
-              </div>
-              <p className="text-gray-700 font-medium">
-                {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
-              </p>
-              <ul className="list-disc pl-6 space-y-2">
-                {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
-                  <li key={index} className="text-gray-600">
-                    {point}
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         )
