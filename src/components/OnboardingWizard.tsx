@@ -103,7 +103,28 @@ export const OnboardingWizard = () => {
               <AllocationChart allocations={allocations} />
               <RiskScoreDisplay allocations={allocations} />
               <div className="flex justify-end">
-                <Button onClick={handleComplete}>Continue</Button>
+                <Button onClick={() => setActiveStep("strategy")}>Continue</Button>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="strategy" className="border rounded-lg p-4">
+          <AccordionTrigger className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+                {activeStep === "complete" ? <Check size={14} /> : "3"}
+              </div>
+              <span>Alts Investment Strategy</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-6">
+            <div className="space-y-6">
+              <div className="text-center">
+                <p className="text-gray-600">Configure your alternatives investment strategy</p>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleComplete}>Complete</Button>
               </div>
             </div>
           </AccordionContent>
