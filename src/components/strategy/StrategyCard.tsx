@@ -113,6 +113,8 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
         <h3 className="text-xl font-semibold">{strategy.title}</h3>
         <p className="text-gray-600">{strategy.objective}</p>
         
+        <div id={`chartdiv-${chartId}`} style={{ width: "100%", height: "300px" }} />
+        
         <div>
           <h4 className="font-medium mb-2">Typically, an investor seeking {strategy.title.toLowerCase()} is:</h4>
           <ul className="space-y-2">
@@ -122,8 +124,6 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
           </ul>
         </div>
 
-        <div id={`chartdiv-${chartId}`} style={{ width: "100%", height: "300px" }} />
-        
         <div>
           <h4 className="font-medium mb-2">Volatility:</h4>
           <div className="flex items-center space-x-2">
