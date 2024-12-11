@@ -38,7 +38,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
       // Create X axis
       const xAxis = chart.xAxes.push(
-        am5radar.RadarAxisCategoryRenderer.new(root, {
+        am5radar.CategoryAxis.new(root, {
           maxDeviation: 0,
           categoryField: "category",
           renderer: axisRenderer
@@ -47,7 +47,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
       // Create Y axis
       const yAxis = chart.yAxes.push(
-        am5radar.RadarAxisValueRenderer.new(root, {
+        am5radar.ValueAxis.new(root, {
           maxDeviation: 0,
           min: 0,
           max: 100,
