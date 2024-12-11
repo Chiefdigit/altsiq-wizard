@@ -21,7 +21,7 @@ export const RiskScoreDisplay = ({ allocations }: RiskScoreDisplayProps) => {
   const calculateRiskScore = () => {
     const { equities, bonds, cash, alternatives } = allocations;
     return (
-      (equities * 4 + bonds * 2 + cash * 1 + alternatives * 3) / 100
+      (equities * 4 + bonds * 2 + cash * 1 + alternatives * 4) / 100
     ).toFixed(1);
   };
 
@@ -40,7 +40,7 @@ export const RiskScoreDisplay = ({ allocations }: RiskScoreDisplayProps) => {
   return (
     <Card className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">AltsIQ Portfolio Risk Score</h3>
+        <h3 className="text-lg font-semibold">Volatility:</h3>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -52,35 +52,36 @@ export const RiskScoreDisplay = ({ allocations }: RiskScoreDisplayProps) => {
                 <li>Equities: 4 (High risk)</li>
                 <li>Bonds: 2 (Low risk)</li>
                 <li>Cash: 1 (Very low risk)</li>
-                <li>Alternatives: 3 (Moderate-high risk)</li>
+                <li>Alternatives: 4 (High risk)</li>
               </ul>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold">{score}</span>
-        </div>
-
-        <div className="relative">
-          {/* Colored bar background */}
-          <div className="h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" />
-          
-          {/* Indicator dot */}
-          <div
-            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-full -mt-2.5 transform -translate-x-1/2"
-            style={{ left: `${Math.min(Math.max(position, 0), 100)}%` }}
-          />
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            {/* Gradient bar */}
+            <div className="h-2 bg-gradient-to-r from-blue-400 via-yellow-400 to-red-500 rounded-full" />
+            
+            {/* Indicator dot */}
+            <div
+              className="absolute w-4 h-4 bg-white border-2 border-gray-800 rounded-full -mt-3 transform -translate-x-1/2"
+              style={{ left: `${Math.min(Math.max(position, 0), 100)}%` }}
+            />
+          </div>
           
           {/* Risk level text */}
-          <div className="absolute -bottom-6 left-0 text-xs font-semibold text-gray-600">
+          <div className="mt-4 text-lg font-bold">
             {profile}
           </div>
         </div>
-
-        <div className="h-6" /> {/* Spacer for the text below the slider */}
+        
+        {/* Score value */}
+        <div className="text-2xl font-bold min-w-[60px] text-right">
+          {score}
+        </div>
       </div>
     </Card>
   );
