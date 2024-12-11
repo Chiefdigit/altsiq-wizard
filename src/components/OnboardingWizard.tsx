@@ -154,24 +154,27 @@ export const OnboardingWizard = () => {
                   <h3 className="text-xl font-semibold">
                     {STRATEGY_DESCRIPTIONS[selectedStrategy].title}
                   </h3>
-                  <p className="text-gray-700 font-medium">
-                    Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
-                  </p>
-                  {STRATEGY_DESCRIPTIONS[selectedStrategy].description && (
-                    <>
-                      <p className="text-gray-700 font-medium mt-4">
-                        {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
-                      </p>
-                      <ul className="list-disc pl-6 space-y-2">
-                        {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
-                          <li key={index} className="text-gray-600">
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                      <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
-                    </>
-                  )}
+                  <div className="space-y-4">
+                    <p className="text-gray-700 font-medium">
+                      Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
+                    </p>
+                    
+                    {STRATEGY_DESCRIPTIONS[selectedStrategy].description && (
+                      <>
+                        <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
+                        <p className="text-gray-700 font-medium">
+                          {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
+                        </p>
+                        <ul className="list-disc pl-6 space-y-2">
+                          {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
+                            <li key={index} className="text-gray-600">
+                              {point}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 
