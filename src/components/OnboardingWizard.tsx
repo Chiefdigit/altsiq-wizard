@@ -86,6 +86,7 @@ export const OnboardingWizard = () => {
               customAllocations={customAllocations}
               totalCustomAllocation={totalCustomAllocation}
               onCustomAllocationChange={handleCustomAllocationChange}
+              setActiveStep={setActiveStep}
             />
           </AccordionContent>
         </AccordionItem>
