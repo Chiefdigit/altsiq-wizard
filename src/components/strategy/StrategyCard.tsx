@@ -107,6 +107,13 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
     };
   }, [strategy.allocations, chartId]);
 
+  const legendItems = [
+    { label: "Stocks", value: strategy.allocations.equities, color: "#2563eb" },
+    { label: "Bonds", value: strategy.allocations.bonds, color: "#000000" },
+    { label: "Cash", value: strategy.allocations.cash, color: "#22c55e" },
+    { label: "Alts", value: strategy.allocations.alternatives, color: "#F97316" },
+  ];
+
   return (
     <Card className="p-6 space-y-6">
       <div className="space-y-4">
@@ -115,6 +122,20 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
         
         <div id={`chartdiv-${chartId}`} style={{ width: "100%", height: "300px" }} />
         
+        <div className="flex flex-wrap gap-4 justify-start">
+          {legendItems.map((item, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-sm" 
+                style={{ backgroundColor: item.color }}
+              />
+              <span className="text-sm text-gray-700">
+                {item.label}: {item.value}%
+              </span>
+            </div>
+          ))}
+        </div>
+
         <div>
           <h4 className="font-medium mb-2">Typically, an investor seeking {strategy.title.toLowerCase()} is:</h4>
           <ul className="space-y-2">
