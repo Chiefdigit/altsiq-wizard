@@ -2,7 +2,6 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { AllocationChart } from "./AllocationChart";
 import { cn } from "@/lib/utils";
 
 interface StrategyProps {
@@ -112,28 +111,20 @@ const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
         <h3 className="text-xl font-semibold">{strategy.title}</h3>
         <p className="text-gray-600">{strategy.objective}</p>
         
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Typically, an investor seeking {strategy.title.toLowerCase()} is:</h4>
-              <ul className="space-y-2">
-                {strategy.characteristics.map((char, index) => (
-                  <li key={index} className="text-sm text-gray-600">• {char}</li>
-                ))}
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-medium mb-2">Volatility:</h4>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-32 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" />
-                <span className="text-sm font-medium">{strategy.volatility}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <AllocationChart allocations={strategy.allocations} />
+        <div>
+          <h4 className="font-medium mb-2">Typically, an investor seeking {strategy.title.toLowerCase()} is:</h4>
+          <ul className="space-y-2">
+            {strategy.characteristics.map((char, index) => (
+              <li key={index} className="text-sm text-gray-600">• {char}</li>
+            ))}
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="font-medium mb-2">Volatility:</h4>
+          <div className="flex items-center space-x-2">
+            <div className="h-2 w-32 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" />
+            <span className="text-sm font-medium">{strategy.volatility}</span>
           </div>
         </div>
       </div>
