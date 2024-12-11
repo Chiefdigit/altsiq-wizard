@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { StrategyPieChart } from "../StrategyPieChart";
@@ -8,7 +8,6 @@ import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import type { AllocationValues } from "@/types/allocation";
 import { Card } from "@/components/ui/card";
 import { VolatilityCard } from "../VolatilityCard";
-import { toast } from "@/components/ui/use-toast";
 
 interface StrategyStepProps {
   selectedStrategy: string;
@@ -25,6 +24,8 @@ export const StrategyStep = ({
   totalCustomAllocation,
   onCustomAllocationChange,
 }: StrategyStepProps) => {
+  const [isSelected, setIsSelected] = useState(false);
+
   const handleStrategySelect = () => {
     const selectedAllocation = selectedStrategy === "advanced" 
       ? customAllocations 
@@ -33,11 +34,7 @@ export const StrategyStep = ({
     // Store the selected allocation in localStorage
     localStorage.setItem('selectedStrategyAllocation', JSON.stringify(selectedAllocation));
     localStorage.setItem('selectedStrategyName', selectedStrategy);
-    
-    toast({
-      title: "Strategy Selected",
-      description: `${selectedStrategy.charAt(0).toUpperCase() + selectedStrategy.slice(1)} strategy has been saved.`,
-    });
+    setIsSelected(true);
   };
 
   return (
@@ -46,7 +43,10 @@ export const StrategyStep = ({
         type="single"
         value={selectedStrategy}
         onValueChange={(value) => {
-          if (value) onStrategyChange(value);
+          if (value) {
+            onStrategyChange(value);
+            setIsSelected(false);
+          }
         }}
         className="flex flex-wrap justify-start gap-2 border rounded-lg p-2"
       >
@@ -111,8 +111,9 @@ export const StrategyStep = ({
         <Button 
           onClick={handleStrategySelect}
           className="bg-primary hover:bg-primary/90"
+          disabled={isSelected}
         >
-          Select Strategy
+          {isSelected ? "Selected" : "Select Strategy"}
         </Button>
       </div>
     </div>
