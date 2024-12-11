@@ -99,16 +99,8 @@ export const StrategyStep = ({
   onCustomAllocationChange,
   onComplete,
 }: StrategyStepProps) => {
-  const getVolatilityLabel = (score: number) => {
-    if (score <= 1.5) return "Very Low";
-    if (score <= 2.5) return "Low";
-    if (score <= 3.5) return "Moderate";
-    if (score <= 4.5) return "High";
-    return "Very High";
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <ToggleGroup
         type="single"
         value={selectedStrategy}
@@ -142,45 +134,30 @@ export const StrategyStep = ({
         />
       ) : (
         selectedStrategy && (
-          <div className="mt-6 space-y-4">
-            <h3 className="text-xl font-semibold">
-              {STRATEGY_DESCRIPTIONS[selectedStrategy].title}
-            </h3>
-            <div className="space-y-4">
-              <p className="text-gray-700 font-medium">
+          <div className="space-y-4">
+            <div className="flex flex-col space-y-2">
+              <h3 className="text-lg font-semibold">
+                {STRATEGY_DESCRIPTIONS[selectedStrategy].title}
+              </h3>
+              <p className="text-sm text-gray-600">
                 Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
               </p>
-              
-              <Card className="p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Volatility Score:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg">
-                      {STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      ({getVolatilityLabel(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!)})
-                    </span>
-                  </div>
-                </div>
-              </Card>
+            </div>
 
-              <div className="flex flex-col md:flex-row md:items-start gap-4">
-                <div className="md:w-1/2">
-                  <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
-                </div>
-                <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
               </div>
-              <p className="text-gray-700 font-medium">
-                {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
-              </p>
-              <ul className="list-disc pl-6 space-y-2">
-                {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
-                  <li key={index} className="text-gray-600">
-                    {point}
-                  </li>
-                ))}
-              </ul>
+              <div className="space-y-4">
+                <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
+                <ul className="text-sm space-y-2 list-disc pl-4">
+                  {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
+                    <li key={index} className="text-gray-600">
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
             <StrategyVolatilityScore allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
