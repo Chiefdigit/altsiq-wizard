@@ -40,7 +40,7 @@ export const StrategyPieChart = ({ allocation }: StrategyPieChartProps) => {
       am5percent.PieSeries.new(root, {
         valueField: "value",
         categoryField: "category",
-        radius: am5.percent(90)
+        radius: am5.percent(85)
       })
     );
 
@@ -86,10 +86,10 @@ export const StrategyPieChart = ({ allocation }: StrategyPieChartProps) => {
   }, [allocation, chartId]);
 
   return (
-    <Card className="p-4">
+    <Card className="p-2">
       <div
         id={`chartdiv-${chartId}`}
-        style={{ width: "100%", height: "200px", margin: 0, padding: 0 }}
+        style={{ width: "100%", height: "150px", margin: 0, padding: 0 }}
         className="mt-0"
       />
     </Card>
