@@ -5,6 +5,15 @@ import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { StrategyProps } from "./types";
 
+interface ChartDataItem {
+  category: string;
+  value: number;
+  fill: am5.Color;
+  labelTemplate?: {
+    text: string;
+  };
+}
+
 export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
   const chartRef = useRef<am5.Root | null>(null);
   const chartId = useId();
@@ -36,7 +45,7 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
       series.labels.template.set("visible", false);
       series.ticks.template.set("visible", false);
 
-      series.data.setAll([
+      const data: ChartDataItem[] = [
         {
           category: "Stocks",
           value: strategy.allocations.equities,
@@ -57,7 +66,7 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
           value: strategy.allocations.alternatives,
           fill: am5.color("#F97316")
         }
-      ]);
+      ];
 
       const legend = chart.children.push(
         am5.Legend.new(root, {
@@ -79,13 +88,14 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
         templateField: "labelTemplate"
       });
 
-      series.data.setAll(series.data.values.map(dataItem => ({
-        ...dataItem,
+      const dataWithLabels: ChartDataItem[] = data.map(item => ({
+        ...item,
         labelTemplate: {
-          text: `{category}: {value}%`
+          text: `${item.category}: ${item.value}%`
         }
-      })));
+      }));
 
+      series.data.setAll(dataWithLabels);
       legend.data.setAll(series.dataItems);
     }
 
