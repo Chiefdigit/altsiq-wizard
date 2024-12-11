@@ -63,11 +63,11 @@ export const RiskScoreDisplay = ({ allocations }: RiskScoreDisplayProps) => {
         <div className="flex-1">
           <div className="relative">
             {/* Gradient bar */}
-            <div className="h-2 bg-gradient-to-r from-blue-400 via-yellow-400 to-red-500 rounded-full" />
+            <div className="h-3 bg-gradient-to-r from-blue-500 via-yellow-500 to-red-500 rounded-full shadow-sm" />
             
             {/* Indicator dot */}
             <div
-              className="absolute w-4 h-4 bg-white border-2 border-gray-800 rounded-full -mt-3 transform -translate-x-1/2"
+              className="absolute w-4 h-4 bg-white border-2 border-gray-800 rounded-full -mt-3.5 transform -translate-x-1/2 shadow-md"
               style={{ left: `${Math.min(Math.max(position, 0), 100)}%` }}
             />
           </div>
