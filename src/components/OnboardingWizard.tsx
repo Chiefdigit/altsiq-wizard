@@ -56,14 +56,14 @@ export const OnboardingWizard = () => {
   );
 
   return (
-    <div className="max-w-2xl mx-auto p-6 animate-fade-in">
+    <div className="max-w-2xl mx-auto p-2">
       <Accordion
         type="single"
         value={activeStep}
         onValueChange={setActiveStep}
-        className="w-full space-y-4"
+        className="w-full space-y-2"
       >
-        <AccordionItem value="portfolio" className="border rounded-lg p-4">
+        <AccordionItem value="portfolio" className="border rounded-lg p-3">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
@@ -80,7 +80,7 @@ export const OnboardingWizard = () => {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="allocation" className="border rounded-lg p-4">
+        <AccordionItem value="allocation" className="border rounded-lg p-3">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
@@ -128,7 +128,7 @@ export const OnboardingWizard = () => {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="strategy" className="border rounded-lg p-4">
+        <AccordionItem value="strategy" className="border rounded-lg p-3">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
