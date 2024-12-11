@@ -18,7 +18,9 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
 
       const chart = root.container.children.push(
         am5percent.PieChart.new(root, {
-          layout: root.verticalLayout
+          layout: root.verticalLayout,
+          x: am5.p0,  // Left align the chart
+          centerX: am5.p0
         })
       );
 
@@ -36,7 +38,7 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
 
       series.data.setAll([
         {
-          category: "Equities",
+          category: "Stocks",
           value: strategy.allocations.equities,
           fill: am5.color("#2563eb")
         },
@@ -51,7 +53,7 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
           fill: am5.color("#22c55e")
         },
         {
-          category: "Alternatives",
+          category: "Alts",
           value: strategy.allocations.alternatives,
           fill: am5.color("#F97316")
         }
@@ -59,16 +61,30 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
 
       const legend = chart.children.push(
         am5.Legend.new(root, {
-          centerX: am5.p50,
-          x: am5.p50,
+          x: am5.p0,
+          centerX: am5.p0,
           y: am5.p100,
-          layout: root.horizontalLayout,
-          height: am5.percent(20),
+          layout: root.verticalLayout,
+          height: am5.percent(30),
           verticalScrollbar: am5.Scrollbar.new(root, {
             orientation: "vertical"
           })
         })
       );
+
+      // Customize legend labels to include percentages
+      legend.labels.template.setAll({
+        fontSize: 12,
+        fontWeight: "400",
+        templateField: "labelTemplate"
+      });
+
+      series.data.setAll(series.data.values.map(dataItem => ({
+        ...dataItem,
+        labelTemplate: {
+          text: `{category}: {value}%`
+        }
+      })));
 
       legend.data.setAll(series.dataItems);
     }
