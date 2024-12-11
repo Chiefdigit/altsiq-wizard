@@ -33,6 +33,10 @@ export const StrategyStep = ({
     return "Very High";
   };
 
+  const getVolatilityWidth = (score: number) => {
+    return `${(score / 5) * 100}%`;
+  };
+
   return (
     <div className="space-y-6">
       <ToggleGroup
@@ -77,16 +81,21 @@ export const StrategyStep = ({
                 Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
               </p>
               
-              <Card className="p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Volatility Score:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg">
-                      {STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      ({getVolatilityLabel(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!)})
-                    </span>
+              <Card className="p-3">
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-gray-600">
+                    {getVolatilityLabel(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!)}
+                  </span>
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-violet-500"
+                      style={{ 
+                        width: getVolatilityWidth(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!) 
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-500 text-right">
+                    {STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore}/5
                   </div>
                 </div>
               </Card>
