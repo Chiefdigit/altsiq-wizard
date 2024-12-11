@@ -163,10 +163,10 @@ export const OnboardingWizard = () => {
                     {STRATEGY_DESCRIPTIONS[selectedStrategy].description && (
                       <>
                         <div className="flex flex-col md:flex-row md:items-start gap-4">
-                          <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
                           <div className="md:w-1/2">
                             <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
                           </div>
+                          <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
                         </div>
                         <p className="text-gray-700 font-medium">
                           {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
