@@ -3,10 +3,17 @@ import { Input } from "@/components/ui/input";
 import { StrategyPieChart } from "./StrategyPieChart";
 import { StrategyLegend } from "./StrategyLegend";
 
+interface AllocationValues {
+  equities: number;
+  bonds: number;
+  cash: number;
+  alternatives: number;
+}
+
 interface AdvancedAllocationProps {
-  customAllocations: Record<string, number>;
+  customAllocations: AllocationValues;
   totalCustomAllocation: number;
-  onCustomAllocationChange: (key: string, value: string) => void;
+  onCustomAllocationChange: (key: keyof AllocationValues, value: string) => void;
 }
 
 export const AdvancedAllocation = ({
@@ -28,7 +35,7 @@ export const AdvancedAllocation = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex-1 flex flex-col gap-4">
-          {Object.entries(customAllocations).map(([key, value]) => (
+          {(Object.entries(customAllocations) as [keyof AllocationValues, number][]).map(([key, value]) => (
             <div key={key} className="space-y-2">
               <label className="text-sm font-medium text-gray-700 capitalize">
                 {key}

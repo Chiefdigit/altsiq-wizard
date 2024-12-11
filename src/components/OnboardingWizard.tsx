@@ -32,12 +32,19 @@ const DEFAULT_CUSTOM_ALLOCATIONS = {
   alternatives: 25,
 };
 
+interface AllocationValues {
+  equities: number;
+  bonds: number;
+  cash: number;
+  alternatives: number;
+}
+
 export const OnboardingWizard = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(500000);
-  const [allocations, setAllocations] = useState(DEFAULT_ALLOCATIONS);
+  const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
-  const [customAllocations, setCustomAllocations] = useState(DEFAULT_CUSTOM_ALLOCATIONS);
+  const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
   useEffect(() => {
     setAllocations(DEFAULT_ALLOCATIONS);
@@ -60,7 +67,7 @@ export const OnboardingWizard = () => {
     }
   };
 
-  const handleCustomAllocationChange = (type: string, value: string) => {
+  const handleCustomAllocationChange = (type: keyof AllocationValues, value: string) => {
     const numericValue = Math.min(100, Math.max(0, Number(value) || 0));
     setCustomAllocations(prev => ({ ...prev, [type]: numericValue }));
   };
