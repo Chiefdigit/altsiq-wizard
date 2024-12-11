@@ -81,7 +81,7 @@ export const StrategyStep = ({
                 Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
               </p>
               
-              <Card className="p-3">
+              <Card className="p-3 max-w-sm">
                 <div className="space-y-1">
                   <span className="text-sm font-medium text-gray-600">
                     Volatility:
