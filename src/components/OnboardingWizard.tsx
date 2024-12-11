@@ -5,8 +5,8 @@ import { AllocationChart } from "./AllocationChart";
 import { RiskScoreDisplay } from "./RiskScoreDisplay";
 import { StrategyLegend } from "./StrategyLegend";
 import { StrategyPieChart } from "./StrategyPieChart";
+import { AdvancedAllocation } from "./AdvancedAllocation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import {
@@ -60,7 +60,7 @@ export const OnboardingWizard = () => {
     }
   };
 
-  const handleCustomAllocationChange = (type: keyof typeof customAllocations, value: string) => {
+  const handleCustomAllocationChange = (type: string, value: string) => {
     const numericValue = Math.min(100, Math.max(0, Number(value) || 0));
     setCustomAllocations(prev => ({ ...prev, [type]: numericValue }));
   };
