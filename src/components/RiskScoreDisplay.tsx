@@ -21,16 +21,16 @@ export const RiskScoreDisplay = ({ allocations }: RiskScoreDisplayProps) => {
   const calculateRiskScore = () => {
     const { equities, bonds, cash, alternatives } = allocations;
     return (
-      (equities * 5 + bonds * 2 + cash * 1 + alternatives * 4) / 100
+      (equities * 4 + bonds * 2 + cash * 1 + alternatives * 3) / 100
     ).toFixed(1);
   };
 
   const getRiskProfile = (score: number) => {
-    if (score <= 2.0) return "Cautious";
-    if (score <= 3.0) return "Conservative";
-    if (score <= 4.0) return "Moderate";
-    if (score <= 4.5) return "Aggressive";
-    return "Speculative";
+    if (score <= 1.5) return "VERY LOW";
+    if (score <= 2.5) return "LOW";
+    if (score <= 3.5) return "MODERATE";
+    if (score <= 4.5) return "HIGH";
+    return "VERY HIGH";
   };
 
   const score = Number(calculateRiskScore());
@@ -49,10 +49,10 @@ export const RiskScoreDisplay = ({ allocations }: RiskScoreDisplayProps) => {
             <TooltipContent className="max-w-[300px]">
               <p>Risk score calculation based on asset allocation weights:</p>
               <ul className="list-disc pl-4 mt-2">
-                <li>Equities: 5 (High risk)</li>
+                <li>Equities: 4 (High risk)</li>
                 <li>Bonds: 2 (Low risk)</li>
                 <li>Cash: 1 (Very low risk)</li>
-                <li>Alternatives: 4 (Moderate-high risk)</li>
+                <li>Alternatives: 3 (Moderate-high risk)</li>
               </ul>
             </TooltipContent>
           </Tooltip>
@@ -62,23 +62,25 @@ export const RiskScoreDisplay = ({ allocations }: RiskScoreDisplayProps) => {
       <div className="space-y-2">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold">{score}</span>
-          <span className="text-lg text-gray-600 uppercase">{profile}</span>
         </div>
 
-        <div className="relative h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full">
+        <div className="relative">
+          {/* Colored bar background */}
+          <div className="h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" />
+          
+          {/* Indicator dot */}
           <div
-            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-full -mt-0.5 transform -translate-x-1/2"
+            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-full -mt-2.5 transform -translate-x-1/2"
             style={{ left: `${Math.min(Math.max(position, 0), 100)}%` }}
           />
+          
+          {/* Risk level text */}
+          <div className="absolute -bottom-6 left-0 text-xs font-semibold text-gray-600">
+            {profile}
+          </div>
         </div>
 
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>1.0</span>
-          <span>2.0</span>
-          <span>3.0</span>
-          <span>4.0</span>
-          <span>5.0</span>
-        </div>
+        <div className="h-6" /> {/* Spacer for the text below the slider */}
       </div>
     </Card>
   );
