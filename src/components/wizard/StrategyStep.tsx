@@ -34,7 +34,7 @@ export const StrategyStep = ({
   };
 
   const getVolatilityWidth = (score: number) => {
-    return `${(score / 5) * 100}%`;
+    return `${((score - 1) / 4) * 100}%`; // Scale from 1-5 to 0-100%
   };
 
   return (
@@ -86,13 +86,14 @@ export const StrategyStep = ({
                   <span className="text-sm font-medium text-gray-600">
                     Volatility:
                   </span>
-                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full rounded-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500"
-                      style={{ 
-                        width: getVolatilityWidth(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!) 
-                      }}
-                    />
+                  <div className="h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" />
+                  <div 
+                    className="relative"
+                    style={{ 
+                      left: getVolatilityWidth(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!) 
+                    }}
+                  >
+                    <div className="absolute w-3 h-3 bg-white border-2 border-primary rounded-full -mt-2.5 transform -translate-x-1/2" />
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600 font-medium">
