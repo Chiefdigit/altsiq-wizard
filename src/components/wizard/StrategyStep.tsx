@@ -151,7 +151,7 @@ export const StrategyStep = ({
                 Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
               </p>
               
-              <Card className="p-4 bg-gray-50">
+              <Card className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-600">Volatility Score:</span>
                   <div className="flex items-center gap-2">
