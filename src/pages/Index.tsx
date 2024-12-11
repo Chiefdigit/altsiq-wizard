@@ -13,9 +13,7 @@ const Index = () => {
             private market alternatives in your portfolio.
           </p>
         </div>
-        <div className="space-y-12">
-          <OnboardingWizard />
-        </div>
+        <OnboardingWizard />
       </div>
     </div>
   );

@@ -55,14 +55,14 @@ export const OnboardingWizard = () => {
   );
 
   return (
-    <div className="max-w-2xl mx-auto p-2">
+    <div className="max-w-2xl mx-auto p-6 animate-fade-in">
       <Accordion
         type="single"
         value={activeStep}
         onValueChange={setActiveStep}
-        className="w-full space-y-2"
+        className="w-full space-y-4"
       >
-        <AccordionItem value="portfolio" className="border rounded-lg p-3">
+        <AccordionItem value="portfolio" className="border rounded-lg p-4">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
@@ -79,11 +79,11 @@ export const OnboardingWizard = () => {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="allocation" className="border rounded-lg p-3">
+        <AccordionItem value="allocation" className="border rounded-lg p-4">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                <Check size={14} />
+                {activeStep === "complete" ? <Check size={14} /> : "2"}
               </div>
               <span>Asset Allocation</span>
             </div>
@@ -121,7 +121,7 @@ export const OnboardingWizard = () => {
               <AllocationChart allocations={allocations} />
               <RiskScoreDisplay allocations={allocations} />
               <div className="flex justify-end">
-                <Button onClick={handleComplete}>Complete</Button>
+                <Button onClick={handleComplete}>Continue</Button>
               </div>
             </div>
           </AccordionContent>
