@@ -90,6 +90,22 @@ export const OnboardingWizard = () => {
             />
           </AccordionContent>
         </AccordionItem>
+
+        <AccordionItem value="alternatives" className="border rounded-lg p-4">
+          <AccordionTrigger className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+                {activeStep === "complete" ? <Check size={14} /> : "4"}
+              </div>
+              <span>Alternatives Allocation</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-6">
+            <div className="text-center text-gray-500">
+              Coming soon: Alternative investment allocation options
+            </div>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
     </div>
   );
