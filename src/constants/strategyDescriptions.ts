@@ -9,6 +9,18 @@ type StrategyDescription = {
     cash: number;
     alternatives: number;
   };
+  volatilityScore?: number;
+};
+
+const calculateVolatilityScore = (allocation: { equities: number; bonds: number; cash: number; alternatives: number; }) => {
+  const weights = {
+    equities: allocation.equities / 100,
+    bonds: allocation.bonds / 100,
+    cash: allocation.cash / 100,
+    alternatives: allocation.alternatives / 100
+  };
+
+  return Number(((weights.equities * 4) + (weights.bonds * 2) + (weights.cash * 1) + (weights.alternatives * 3)).toFixed(2));
 };
 
 export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
@@ -28,6 +40,9 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       bonds: 20,
       cash: 5,
       alternatives: 40
+    },
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
     }
   },
   income: {
@@ -46,6 +61,9 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       bonds: 35,
       cash: 5,
       alternatives: 45
+    },
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
     }
   },
   growth: {
@@ -64,6 +82,9 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       bonds: 10,
       cash: 5,
       alternatives: 35
+    },
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
     }
   },
   preservation: {
@@ -82,6 +103,9 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       bonds: 50,
       cash: 10,
       alternatives: 30
+    },
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
     }
   },
   advanced: {
@@ -94,6 +118,9 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       bonds: 25,
       cash: 25,
       alternatives: 25
+    },
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
     }
   }
 };

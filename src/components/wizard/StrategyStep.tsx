@@ -6,6 +6,7 @@ import { StrategyLegend } from "../StrategyLegend";
 import { AdvancedAllocation } from "../AdvancedAllocation";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import type { AllocationValues } from "@/types/allocation";
+import { Card } from "@/components/ui/card";
 
 interface StrategyStepProps {
   selectedStrategy: string;
@@ -24,6 +25,14 @@ export const StrategyStep = ({
   onCustomAllocationChange,
   onComplete,
 }: StrategyStepProps) => {
+  const getVolatilityLabel = (score: number) => {
+    if (score <= 1.5) return "Very Low";
+    if (score <= 2.5) return "Low";
+    if (score <= 3.5) return "Moderate";
+    if (score <= 4.5) return "High";
+    return "Very High";
+  };
+
   return (
     <div className="space-y-6">
       <ToggleGroup
@@ -68,6 +77,20 @@ export const StrategyStep = ({
                 Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
               </p>
               
+              <Card className="p-4 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Volatility Score:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-lg">
+                      {STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      ({getVolatilityLabel(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!)})
+                    </span>
+                  </div>
+                </div>
+              </Card>
+
               <div className="flex flex-col md:flex-row md:items-start gap-4">
                 <div className="md:w-1/2">
                   <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
