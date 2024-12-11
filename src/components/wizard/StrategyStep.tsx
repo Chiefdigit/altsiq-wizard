@@ -111,7 +111,7 @@ export const StrategyStep = ({
       <div className="flex justify-between items-center">
         <Button 
           onClick={handleStrategySelect}
-          className="rounded-full bg-primary hover:bg-primary/90"
+          className={`rounded-full ${isSelected ? 'bg-primary hover:bg-primary/90' : 'bg-black hover:bg-black/90'} text-white`}
           disabled={isSelected}
         >
           {isSelected ? "Selected" : "Select"}
