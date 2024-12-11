@@ -6,32 +6,30 @@ import { strategies } from "./strategy/types";
 
 export const InvestmentStrategy = () => {
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="diversification" className="w-full">
-        <TabsList className="w-full justify-start overflow-x-auto">
-          {strategies.map((strategy, index) => (
-            <TabsTrigger
-              key={index}
-              value={strategy.title.toLowerCase().replace(/\s+/g, '-')}
-              className={cn(
-                "flex-shrink-0",
-                index === strategies.length - 1 && "border-l"
-              )}
-            >
-              {strategy.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
+    <Tabs defaultValue="diversification" className="w-full">
+      <TabsList className="w-full justify-start overflow-x-auto">
         {strategies.map((strategy, index) => (
-          <TabsContent
+          <TabsTrigger
             key={index}
             value={strategy.title.toLowerCase().replace(/\s+/g, '-')}
+            className={cn(
+              "flex-shrink-0",
+              index === strategies.length - 1 && "border-l"
+            )}
           >
-            <StrategyCard strategy={strategy} />
-          </TabsContent>
+            {strategy.title}
+          </TabsTrigger>
         ))}
-      </Tabs>
-    </div>
+      </TabsList>
+
+      {strategies.map((strategy, index) => (
+        <TabsContent
+          key={index}
+          value={strategy.title.toLowerCase().replace(/\s+/g, '-')}
+        >
+          <StrategyCard strategy={strategy} />
+        </TabsContent>
+      ))}
+    </Tabs>
   );
 };
