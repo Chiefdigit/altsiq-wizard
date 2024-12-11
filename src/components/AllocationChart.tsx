@@ -25,17 +25,32 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       root.setThemes([am5themes_Animated.new(root)]);
 
       const chart = root.container.children.push(
-        am5percent.PieChart.new(root, {
+        am5percent.GaugeChart.new(root, {
+          startAngle: 180,
+          endAngle: 360,
           layout: root.verticalLayout,
-          innerRadius: am5.percent(50)
+          innerRadius: -20
+        })
+      );
+
+      const axis = chart.xAxes.push(
+        am5percent.ValueAxis.new(root, {
+          min: 0,
+          max: 100,
+          strictMinMax: true,
+          layout: "vertical",
+          renderer: am5percent.AxisRendererCircular.new(root, {
+            strokeOpacity: 0.1
+          })
         })
       );
 
       const series = chart.series.push(
-        am5percent.PieSeries.new(root, {
+        am5percent.ClockHandSeries.new(root, {
+          xAxis: axis,
           valueField: "value",
           categoryField: "category",
-          alignLabels: false
+          value: 0
         })
       );
 
@@ -90,9 +105,9 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         root.dispose();
       };
     } else {
-      const chart = chartRef.current.container.children.getIndex(0) as am5percent.PieChart;
+      const chart = chartRef.current.container.children.getIndex(0) as am5percent.GaugeChart;
       if (chart) {
-        const series = chart.series.getIndex(0) as am5percent.PieSeries;
+        const series = chart.series.getIndex(0) as am5percent.ClockHandSeries;
         if (series) {
           const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
           const unallocated = Math.max(0, 100 - totalAllocation);
