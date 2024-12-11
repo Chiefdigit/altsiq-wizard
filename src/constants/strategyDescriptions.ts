@@ -24,10 +24,10 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       "Prioritizing risk management and balanced exposure over maximizing returns."
     ],
     allocation: {
-      equities: 40,
-      bonds: 30,
-      cash: 10,
-      alternatives: 20
+      equities: 35,
+      bonds: 20,
+      cash: 5,
+      alternatives: 40
     }
   },
   income: {
@@ -42,10 +42,10 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       "Income-focused, preferring stable, cash-flow-generating assets over risky investments."
     ],
     allocation: {
-      equities: 30,
-      bonds: 40,
-      cash: 15,
-      alternatives: 15
+      equities: 15,
+      bonds: 35,
+      cash: 5,
+      alternatives: 45
     }
   },
   growth: {
@@ -60,10 +60,10 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       "Primarily growth-oriented, willing to take on significant risk for potential future gains."
     ],
     allocation: {
-      equities: 60,
-      bonds: 15,
+      equities: 50,
+      bonds: 10,
       cash: 5,
-      alternatives: 20
+      alternatives: 35
     }
   },
   preservation: {
@@ -78,10 +78,10 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       "Highly conservative, more concerned with avoiding losses than seeking gains."
     ],
     allocation: {
-      equities: 20,
+      equities: 10,
       bonds: 50,
-      cash: 20,
-      alternatives: 10
+      cash: 10,
+      alternatives: 30
     }
   },
   advanced: {
@@ -90,10 +90,10 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
     description: "",
     points: [],
     allocation: {
-      equities: 0,
-      bonds: 0,
-      cash: 0,
-      alternatives: 0
+      equities: 25,
+      bonds: 25,
+      cash: 25,
+      alternatives: 25
     }
   }
 };
