@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useId } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
+import * as am5radar from "@amcharts/amcharts5/radar"; // Add this import for GaugeChart
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 interface AllocationChartProps {
@@ -25,7 +26,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       root.setThemes([am5themes_Animated.new(root)]);
 
       const chart = root.container.children.push(
-        am5percent.GaugeChart.new(root, {
+        am5radar.GaugeChart.new(root, {
           startAngle: 180,
           endAngle: 360,
           layout: root.verticalLayout,
@@ -34,19 +35,19 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       );
 
       const axis = chart.xAxes.push(
-        am5percent.ValueAxis.new(root, {
+        am5radar.ValueAxis.new(root, {
           min: 0,
           max: 100,
           strictMinMax: true,
           layout: "vertical",
-          renderer: am5percent.AxisRendererCircular.new(root, {
+          renderer: am5radar.AxisRendererCircular.new(root, {
             strokeOpacity: 0.1
           })
         })
       );
 
       const series = chart.series.push(
-        am5percent.ClockHandSeries.new(root, {
+        am5radar.ClockHandSeries.new(root, {
           xAxis: axis,
           valueField: "value",
           categoryField: "category",
@@ -105,9 +106,9 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         root.dispose();
       };
     } else {
-      const chart = chartRef.current.container.children.getIndex(0) as am5percent.GaugeChart;
+      const chart = chartRef.current.container.children.getIndex(0) as am5radar.GaugeChart;
       if (chart) {
-        const series = chart.series.getIndex(0) as am5percent.ClockHandSeries;
+        const series = chart.series.getIndex(0) as am5radar.ClockHandSeries;
         if (series) {
           const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
           const unallocated = Math.max(0, 100 - totalAllocation);
