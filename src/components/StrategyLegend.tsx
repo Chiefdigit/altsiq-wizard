@@ -18,7 +18,7 @@ export const StrategyLegend = ({ allocation }: StrategyLegendProps) => {
   ];
 
   return (
-    <div className="flex flex-wrap gap-4 mt-4">
+    <div className="flex-1 flex flex-wrap gap-4 mt-4">
       {items.map((item) => (
         <div key={item.label} className="flex items-center gap-2">
           <div
