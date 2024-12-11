@@ -84,7 +84,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         settings: { fill: am5.color("#22c55e") }
       },
       {
-        category: "Private Alternatives)",
+        category: "Private Alternatives",
         value: allocations.alternatives,
         settings: { fill: am5.color("#F97316") }
       }
@@ -108,7 +108,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">My Current Portfolio Mix</h3>
+      <h3 className="text-lg font-semibold mb-4">Portfolio Mix</h3>
       <div
         id="chartdiv"
         style={{ width: "100%", height: "300px", margin: 0, padding: 0 }}
