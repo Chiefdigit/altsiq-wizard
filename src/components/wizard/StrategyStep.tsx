@@ -84,7 +84,7 @@ export const StrategyStep = ({
               <Card className="p-3">
                 <div className="space-y-1">
                   <span className="text-sm font-medium text-gray-600">
-                    {getVolatilityLabel(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!)}
+                    Volatility:
                   </span>
                   <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                     <div 
@@ -94,8 +94,13 @@ export const StrategyStep = ({
                       }}
                     />
                   </div>
-                  <div className="text-xs text-gray-500 text-right">
-                    {STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore}/5
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600 font-medium">
+                      {getVolatilityLabel(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!)}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore}/5
+                    </span>
                   </div>
                 </div>
               </Card>
