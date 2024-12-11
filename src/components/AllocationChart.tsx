@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useId } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5radar from "@amcharts/amcharts5/radar";
+import * as am5xy from "@amcharts/amcharts5/xy"; // Add this import for CategoryAxis and ValueAxis
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 interface AllocationChartProps {
@@ -38,7 +39,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
       // Create X axis
       const xAxis = chart.xAxes.push(
-        am5radar.CategoryAxis.new(root, {
+        am5xy.CategoryAxis.new(root, {
           maxDeviation: 0,
           categoryField: "category",
           renderer: axisRenderer
@@ -47,7 +48,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
       // Create Y axis
       const yAxis = chart.yAxes.push(
-        am5radar.ValueAxis.new(root, {
+        am5xy.ValueAxis.new(root, {
           maxDeviation: 0,
           min: 0,
           max: 100,
