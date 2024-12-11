@@ -4,6 +4,7 @@ import { AllocationSlider } from "./AllocationSlider";
 import { AllocationChart } from "./AllocationChart";
 import { RiskScoreDisplay } from "./RiskScoreDisplay";
 import { StrategyLegend } from "./StrategyLegend";
+import { StrategyPieChart } from "./StrategyPieChart";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
@@ -162,6 +163,7 @@ export const OnboardingWizard = () => {
                     {STRATEGY_DESCRIPTIONS[selectedStrategy].description && (
                       <>
                         <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
+                        <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
                         <p className="text-gray-700 font-medium">
                           {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
                         </p>
