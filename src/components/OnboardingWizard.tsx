@@ -53,11 +53,7 @@ export const OnboardingWizard = () => {
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-6">
-            <PortfolioStep
-              portfolioSize={portfolioSize}
-              onPortfolioSizeChange={setPortfolioSize}
-              onContinue={() => setActiveStep("allocation")}
-            />
+            <PortfolioStep onContinue={() => setActiveStep("allocation")} />
           </AccordionContent>
         </AccordionItem>
 
