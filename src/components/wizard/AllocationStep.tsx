@@ -1,0 +1,45 @@
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { AllocationSlider } from "../AllocationSlider";
+import { AllocationChart } from "../AllocationChart";
+import { RiskScoreDisplay } from "../RiskScoreDisplay";
+import type { AllocationValues } from "@/types/allocation";
+
+interface AllocationStepProps {
+  allocations: AllocationValues;
+  updateAllocation: (type: keyof AllocationValues, value: number) => void;
+  totalAllocation: number;
+  portfolioSize: number;
+  onContinue: () => void;
+}
+
+export const AllocationStep = ({
+  allocations,
+  updateAllocation,
+  totalAllocation,
+  portfolioSize,
+  onContinue,
+}: AllocationStepProps) => {
+  return (
+    <div className="space-y-6">
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+        <span className="text-sm text-gray-600">Total Allocation: </span>
+        <span className="font-semibold">{totalAllocation}%</span>
+      </div>
+      {Object.entries(allocations).map(([key, value]) => (
+        <AllocationSlider
+          key={key}
+          label={key.charAt(0).toUpperCase() + key.slice(1)}
+          value={value}
+          onChange={(value) => updateAllocation(key as keyof AllocationValues, value)}
+          portfolioSize={portfolioSize}
+        />
+      ))}
+      <AllocationChart allocations={allocations} />
+      <RiskScoreDisplay allocations={allocations} />
+      <div className="flex justify-end">
+        <Button onClick={onContinue}>Continue</Button>
+      </div>
+    </div>
+  );
+};

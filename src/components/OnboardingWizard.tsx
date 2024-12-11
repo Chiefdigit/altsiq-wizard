@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { PortfolioSlider } from "./PortfolioSlider";
-import { AllocationSlider } from "./AllocationSlider";
-import { AllocationChart } from "./AllocationChart";
-import { RiskScoreDisplay } from "./RiskScoreDisplay";
-import { StrategyLegend } from "./StrategyLegend";
-import { StrategyPieChart } from "./StrategyPieChart";
-import { AdvancedAllocation } from "./AdvancedAllocation";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import {
   Accordion,
   AccordionContent,
@@ -17,7 +7,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Check } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import type { AllocationValues } from "@/types/allocation";
+import { PortfolioStep } from "./wizard/PortfolioStep";
+import { AllocationStep } from "./wizard/AllocationStep";
+import { StrategyStep } from "./wizard/StrategyStep";
 
 const DEFAULT_ALLOCATIONS = {
   equities: 60,
@@ -32,13 +25,6 @@ const DEFAULT_CUSTOM_ALLOCATIONS = {
   cash: 25,
   alternatives: 25,
 };
-
-interface AllocationValues {
-  equities: number;
-  bonds: number;
-  cash: number;
-  alternatives: number;
-}
 
 export const OnboardingWizard = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
@@ -58,7 +44,7 @@ export const OnboardingWizard = () => {
     });
   };
 
-  const updateAllocation = (type: keyof typeof allocations, value: number) => {
+  const updateAllocation = (type: keyof AllocationValues, value: number) => {
     const total = Object.entries(allocations)
       .filter(([key]) => key !== type)
       .reduce((sum, [_, val]) => sum + val, 0);
@@ -83,14 +69,6 @@ export const OnboardingWizard = () => {
     0
   );
 
-  const renderAdvancedContent = () => (
-    <AdvancedAllocation
-      customAllocations={customAllocations}
-      totalCustomAllocation={totalCustomAllocation}
-      onCustomAllocationChange={handleCustomAllocationChange}
-    />
-  );
-
   return (
     <div className="max-w-2xl mx-auto p-6 animate-fade-in">
       <Accordion
@@ -109,10 +87,11 @@ export const OnboardingWizard = () => {
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-6">
-            <PortfolioSlider value={portfolioSize} onChange={setPortfolioSize} />
-            <div className="mt-6 flex justify-end">
-              <Button onClick={() => setActiveStep("allocation")}>Continue</Button>
-            </div>
+            <PortfolioStep
+              portfolioSize={portfolioSize}
+              onPortfolioSizeChange={setPortfolioSize}
+              onContinue={() => setActiveStep("allocation")}
+            />
           </AccordionContent>
         </AccordionItem>
 
@@ -126,26 +105,13 @@ export const OnboardingWizard = () => {
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-6">
-            <div className="space-y-6">
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
-                <span className="text-sm text-gray-600">Total Allocation: </span>
-                <span className="font-semibold">{totalAllocation}%</span>
-              </div>
-              {Object.entries(allocations).map(([key, value]) => (
-                <AllocationSlider
-                  key={key}
-                  label={key.charAt(0).toUpperCase() + key.slice(1)}
-                  value={value}
-                  onChange={(value) => updateAllocation(key as keyof typeof allocations, value)}
-                  portfolioSize={portfolioSize}
-                />
-              ))}
-              <AllocationChart allocations={allocations} />
-              <RiskScoreDisplay allocations={allocations} />
-              <div className="flex justify-end">
-                <Button onClick={() => setActiveStep("strategy")}>Continue</Button>
-              </div>
-            </div>
+            <AllocationStep
+              allocations={allocations}
+              updateAllocation={updateAllocation}
+              totalAllocation={totalAllocation}
+              portfolioSize={portfolioSize}
+              onContinue={() => setActiveStep("strategy")}
+            />
           </AccordionContent>
         </AccordionItem>
 
@@ -159,74 +125,14 @@ export const OnboardingWizard = () => {
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-6">
-            <div className="space-y-6">
-              <ToggleGroup
-                type="single"
-                value={selectedStrategy}
-                onValueChange={(value) => {
-                  if (value) setSelectedStrategy(value);
-                }}
-                className="flex flex-wrap justify-start gap-2 border rounded-lg p-2"
-              >
-                <ToggleGroupItem value="diversification" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
-                  Diversification
-                </ToggleGroupItem>
-                <ToggleGroupItem value="income" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
-                  Income
-                </ToggleGroupItem>
-                <ToggleGroupItem value="growth" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
-                  Growth
-                </ToggleGroupItem>
-                <ToggleGroupItem value="preservation" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
-                  Preservation
-                </ToggleGroupItem>
-                <ToggleGroupItem value="advanced" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
-                  + Advanced
-                </ToggleGroupItem>
-              </ToggleGroup>
-
-              {selectedStrategy === "advanced" ? (
-                renderAdvancedContent()
-              ) : (
-                selectedStrategy && (
-                  <div className="mt-6 space-y-4">
-                    <h3 className="text-xl font-semibold">
-                      {STRATEGY_DESCRIPTIONS[selectedStrategy].title}
-                    </h3>
-                    <div className="space-y-4">
-                      <p className="text-gray-700 font-medium">
-                        Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
-                      </p>
-                      
-                      {STRATEGY_DESCRIPTIONS[selectedStrategy].description && (
-                        <>
-                          <div className="flex flex-col md:flex-row md:items-start gap-4">
-                            <div className="md:w-1/2">
-                              <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
-                            </div>
-                            <StrategyLegend allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
-                          </div>
-                          <p className="text-gray-700 font-medium">
-                            {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
-                          </p>
-                          <ul className="list-disc pl-6 space-y-2">
-                            {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
-                              <li key={index} className="text-gray-600">
-                                {point}
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )
-              )}
-
-              <div className="flex justify-end">
-                <Button onClick={handleComplete}>Complete</Button>
-              </div>
-            </div>
+            <StrategyStep
+              selectedStrategy={selectedStrategy}
+              onStrategyChange={setSelectedStrategy}
+              customAllocations={customAllocations}
+              totalCustomAllocation={totalCustomAllocation}
+              onCustomAllocationChange={handleCustomAllocationChange}
+              onComplete={handleComplete}
+            />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
