@@ -88,7 +88,7 @@ export const StrategyStep = ({
                   </span>
                   <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                     <div 
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-violet-500"
+                      className="h-full rounded-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500"
                       style={{ 
                         width: getVolatilityWidth(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!) 
                       }}
