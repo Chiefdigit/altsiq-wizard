@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Check } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const DEFAULT_ALLOCATIONS = {
   equities: 60,
@@ -24,6 +25,7 @@ export const OnboardingWizard = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(500000);
   const [allocations, setAllocations] = useState(DEFAULT_ALLOCATIONS);
+  const [selectedStrategy, setSelectedStrategy] = useState("diversification");
 
   useEffect(() => {
     setAllocations(DEFAULT_ALLOCATIONS);
@@ -120,9 +122,30 @@ export const OnboardingWizard = () => {
           </AccordionTrigger>
           <AccordionContent className="pt-6">
             <div className="space-y-6">
-              <div className="text-center">
-                <p className="text-gray-600">Configure your alternatives investment strategy</p>
-              </div>
+              <ToggleGroup
+                type="single"
+                value={selectedStrategy}
+                onValueChange={(value) => {
+                  if (value) setSelectedStrategy(value);
+                }}
+                className="flex flex-wrap justify-start gap-2 border rounded-lg p-2"
+              >
+                <ToggleGroupItem value="diversification" className="flex-1">
+                  Diversification
+                </ToggleGroupItem>
+                <ToggleGroupItem value="income" className="flex-1">
+                  Income
+                </ToggleGroupItem>
+                <ToggleGroupItem value="growth" className="flex-1">
+                  Growth
+                </ToggleGroupItem>
+                <ToggleGroupItem value="preservation" className="flex-1">
+                  Preservation
+                </ToggleGroupItem>
+                <ToggleGroupItem value="advanced" className="flex-1">
+                  + Advanced
+                </ToggleGroupItem>
+              </ToggleGroup>
               <div className="flex justify-end">
                 <Button onClick={handleComplete}>Complete</Button>
               </div>
