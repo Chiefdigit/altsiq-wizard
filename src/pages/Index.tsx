@@ -1,5 +1,4 @@
 import { OnboardingWizard } from "@/components/OnboardingWizard";
-import { InvestmentStrategy } from "@/components/InvestmentStrategy";
 
 const Index = () => {
   return (
@@ -16,7 +15,6 @@ const Index = () => {
         </div>
         <div className="space-y-12">
           <OnboardingWizard />
-          <InvestmentStrategy />
         </div>
       </div>
     </div>
