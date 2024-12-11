@@ -18,8 +18,7 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
 
       const chart = root.container.children.push(
         am5percent.PieChart.new(root, {
-          layout: root.verticalLayout,
-          innerRadius: am5.percent(50)
+          layout: root.verticalLayout
         })
       );
 
@@ -31,11 +30,9 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
         })
       );
 
-      series.labels.template.setAll({
-        textType: "circular",
-        centerX: 0,
-        centerY: 0
-      });
+      // Remove labels and ticks
+      series.labels.template.set("visible", false);
+      series.ticks.template.set("visible", false);
 
       series.data.setAll([
         {
@@ -62,10 +59,14 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
 
       const legend = chart.children.push(
         am5.Legend.new(root, {
-          centerX: am5.percent(50),
-          x: am5.percent(50),
-          y: am5.percent(100),
-          layout: root.horizontalLayout
+          centerX: am5.p50,
+          x: am5.p50,
+          y: am5.p100,
+          layout: root.horizontalLayout,
+          height: am5.percent(20),
+          verticalScrollbar: am5.Scrollbar.new(root, {
+            orientation: "vertical"
+          })
         })
       );
 
