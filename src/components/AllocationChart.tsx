@@ -1,8 +1,7 @@
-import React, { useLayoutEffect, useRef, useId } from "react";
+import { useLayoutEffect, useRef, useId } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import { Card } from "@/components/ui/card";
 
 interface AllocationChartProps {
   allocations: {
@@ -22,21 +21,13 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       const root = am5.Root.new(`chartdiv-${chartId}`, {
         useSafeResolution: false
       });
-      
-      chartRef.current = root;
 
       root.setThemes([am5themes_Animated.new(root)]);
 
       const chart = root.container.children.push(
         am5percent.PieChart.new(root, {
           layout: root.verticalLayout,
-          innerRadius: am5.percent(70),
-          startAngle: 180,
-          endAngle: 360,
-          paddingTop: 0,
-          paddingBottom: 0,
-          paddingLeft: 0,
-          paddingRight: 0
+          innerRadius: am5.percent(50)
         })
       );
 
@@ -44,20 +35,14 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         am5percent.PieSeries.new(root, {
           valueField: "value",
           categoryField: "category",
-          startAngle: 180,
-          endAngle: 360,
-          radius: am5.percent(100),
-          innerRadius: am5.percent(70)
+          alignLabels: false
         })
       );
 
       series.slices.template.setAll({
-        cornerRadius: 5,
-        templateField: "settings",
-        stroke: am5.color(0x000000),
-        strokeWidth: 0,
-        strokeOpacity: 0,
-        fillOpacity: 1
+        strokeWidth: 2,
+        stroke: am5.color(0xffffff),
+        templateField: "settings"
       });
 
       series.labels.template.set("visible", false);
@@ -98,6 +83,12 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       }
 
       series.data.setAll(data);
+
+      chartRef.current = root;
+
+      return () => {
+        root.dispose();
+      };
     } else {
       const chart = chartRef.current.container.children.getIndex(0) as am5percent.PieChart;
       if (chart) {
@@ -141,23 +132,9 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         }
       }
     }
-
-    return () => {
-      if (chartRef.current) {
-        chartRef.current.dispose();
-        chartRef.current = null;
-      }
-    };
   }, [allocations, chartId]);
 
   return (
-    <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Portfolio Mix</h3>
-      <div
-        id={`chartdiv-${chartId}`}
-        style={{ width: "100%", height: "300px", margin: 0, padding: 0 }}
-        className="mt-0"
-      />
-    </Card>
+    <div id={`chartdiv-${chartId}`} style={{ width: "100%", height: "300px" }} />
   );
 };
