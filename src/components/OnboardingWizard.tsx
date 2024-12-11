@@ -76,7 +76,7 @@ export const OnboardingWizard = () => {
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
                 {activeStep === "complete" ? <Check size={14} /> : "3"}
               </div>
-              <span>Alts Investment Strategy</span>
+              <span>Investment Strategy</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-6">
