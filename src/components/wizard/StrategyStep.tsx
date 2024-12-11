@@ -8,6 +8,7 @@ import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import type { AllocationValues } from "@/types/allocation";
 import { Card } from "@/components/ui/card";
 import { VolatilityCard } from "../VolatilityCard";
+import { toast } from "@/components/ui/use-toast";
 
 interface StrategyStepProps {
   selectedStrategy: string;
@@ -15,7 +16,6 @@ interface StrategyStepProps {
   customAllocations: AllocationValues;
   totalCustomAllocation: number;
   onCustomAllocationChange: (key: keyof AllocationValues, value: string) => void;
-  onComplete: () => void;
 }
 
 export const StrategyStep = ({
@@ -24,8 +24,22 @@ export const StrategyStep = ({
   customAllocations,
   totalCustomAllocation,
   onCustomAllocationChange,
-  onComplete,
 }: StrategyStepProps) => {
+  const handleStrategySelect = () => {
+    const selectedAllocation = selectedStrategy === "advanced" 
+      ? customAllocations 
+      : STRATEGY_DESCRIPTIONS[selectedStrategy].allocation;
+    
+    // Store the selected allocation in localStorage
+    localStorage.setItem('selectedStrategyAllocation', JSON.stringify(selectedAllocation));
+    localStorage.setItem('selectedStrategyName', selectedStrategy);
+    
+    toast({
+      title: "Strategy Selected",
+      description: `${selectedStrategy.charAt(0).toUpperCase() + selectedStrategy.slice(1)} strategy has been saved.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <ToggleGroup
@@ -94,7 +108,12 @@ export const StrategyStep = ({
       )}
 
       <div className="flex justify-end">
-        <Button onClick={onComplete}>Complete</Button>
+        <Button 
+          onClick={handleStrategySelect}
+          className="bg-primary hover:bg-primary/90"
+        >
+          Select Strategy
+        </Button>
       </div>
     </div>
   );

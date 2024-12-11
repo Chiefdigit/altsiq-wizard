@@ -28,13 +28,6 @@ export const OnboardingWizard = () => {
     totalCustomAllocation,
   } = useWizardState();
 
-  const handleComplete = () => {
-    toast({
-      title: "Portfolio Created!",
-      description: "Your portfolio has been successfully configured.",
-    });
-  };
-
   return (
     <div className="max-w-2xl mx-auto p-6 animate-fade-in">
       <Accordion
@@ -93,7 +86,6 @@ export const OnboardingWizard = () => {
               customAllocations={customAllocations}
               totalCustomAllocation={totalCustomAllocation}
               onCustomAllocationChange={handleCustomAllocationChange}
-              onComplete={handleComplete}
             />
           </AccordionContent>
         </AccordionItem>
