@@ -1,4 +1,5 @@
 import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { InvestmentStrategy } from "@/components/InvestmentStrategy";
 
 const Index = () => {
   return (
@@ -13,7 +14,10 @@ const Index = () => {
             private market alternatives in your portfolio.
           </p>
         </div>
-        <OnboardingWizard />
+        <div className="space-y-12">
+          <OnboardingWizard />
+          <InvestmentStrategy />
+        </div>
       </div>
     </div>
   );
