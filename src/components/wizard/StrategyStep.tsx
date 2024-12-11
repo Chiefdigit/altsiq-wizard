@@ -114,7 +114,7 @@ export const StrategyStep = ({
           className="rounded-full bg-primary hover:bg-primary/90"
           disabled={isSelected}
         >
-          {isSelected ? "Selected" : "Select Strategy"}
+          {isSelected ? "Selected" : "Select"}
         </Button>
         <Button 
           onClick={() => setActiveStep("complete")}
