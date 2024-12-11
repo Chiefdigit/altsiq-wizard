@@ -15,6 +15,7 @@ interface StrategyStepProps {
   customAllocations: AllocationValues;
   totalCustomAllocation: number;
   onCustomAllocationChange: (key: keyof AllocationValues, value: string) => void;
+  setActiveStep: (step: string) => void;
 }
 
 export const StrategyStep = ({
@@ -23,6 +24,7 @@ export const StrategyStep = ({
   customAllocations,
   totalCustomAllocation,
   onCustomAllocationChange,
+  setActiveStep,
 }: StrategyStepProps) => {
   const [isSelected, setIsSelected] = useState(false);
 
@@ -116,7 +118,7 @@ export const StrategyStep = ({
         </Button>
         <Button 
           onClick={() => setActiveStep("complete")}
-          className="rounded-full bg-primary hover:bg-primary/90"
+          className="bg-primary hover:bg-primary/90"
           disabled={!isSelected}
         >
           Continue
