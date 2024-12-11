@@ -7,6 +7,7 @@ import { AdvancedAllocation } from "../AdvancedAllocation";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import type { AllocationValues } from "@/types/allocation";
 import { Card } from "@/components/ui/card";
+import { VolatilityCard } from "../VolatilityCard";
 
 interface StrategyStepProps {
   selectedStrategy: string;
@@ -25,18 +26,6 @@ export const StrategyStep = ({
   onCustomAllocationChange,
   onComplete,
 }: StrategyStepProps) => {
-  const getVolatilityLabel = (score: number) => {
-    if (score <= 1.5) return "Very Low";
-    if (score <= 2.5) return "Low";
-    if (score <= 3.5) return "Moderate";
-    if (score <= 4.5) return "High";
-    return "Very High";
-  };
-
-  const getVolatilityWidth = (score: number) => {
-    return `${((score - 1) / 4) * 100}%`; // Scale from 1-5 to 0-100%
-  };
-
   return (
     <div className="space-y-6">
       <ToggleGroup
@@ -98,30 +87,7 @@ export const StrategyStep = ({
                 ))}
               </ul>
 
-              <Card className="p-3 max-w-sm">
-                <div className="space-y-1">
-                  <span className="text-sm font-medium text-gray-600">
-                    Volatility:
-                  </span>
-                  <div className="relative">
-                    <div className="h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" />
-                    <div 
-                      className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-primary rounded-full transform -translate-x-1/2"
-                      style={{ 
-                        left: getVolatilityWidth(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!) 
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600 font-medium">
-                      {getVolatilityLabel(STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!)}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore}/5
-                    </span>
-                  </div>
-                </div>
-              </Card>
+              <VolatilityCard score={STRATEGY_DESCRIPTIONS[selectedStrategy].volatilityScore!} />
             </div>
           </div>
         )
