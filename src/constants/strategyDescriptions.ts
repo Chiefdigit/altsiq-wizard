@@ -10,6 +10,7 @@ type StrategyDescription = {
     alternatives: number;
   };
   volatilityScore?: number;
+  rationale: string;
 };
 
 const calculateVolatilityScore = (allocation: { equities: number; bonds: number; cash: number; alternatives: number; }) => {
@@ -43,7 +44,8 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
     },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
-    }
+    },
+    rationale: "A diversified portfolio would emphasize real assets and commodities due to their defensive nature and low correlation to public equities. Hedge funds and private equity provide alternative sources of returns, while collectibles and cryptocurrencies offer diversification due to their niche status."
   },
   income: {
     title: "Income Generation",
@@ -64,7 +66,8 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
     },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
-    }
+    },
+    rationale: "Private credit and debt dominate this strategy due to their ability to provide regular, predictable income. Real assets and commodities offer tangible backing for income generation, while hedge funds can be used selectively for fixed-income strategies."
   },
   growth: {
     title: "Long-term Growth",
@@ -85,7 +88,8 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
     },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
-    }
+    },
+    rationale: "The long-term growth strategy focuses on private equity for high-growth potential, with cryptocurrencies and collectibles for capital gains. Hedge funds add tactical growth, while real assets and commodities provide inflation protection without sacrificing growth."
   },
   preservation: {
     title: "Asset Preservation",
@@ -106,7 +110,8 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
     },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
-    }
+    },
+    rationale: "Asset preservation focuses heavily on real assets and debt instruments, which provide stability, regular income, and low risk. Hedge funds are employed for conservative strategies that minimize drawdowns. Collectibles and commodities can act as stores of value, particularly in uncertain markets."
   },
   advanced: {
     title: "+ Advanced",
@@ -121,6 +126,7 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
     },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
-    }
+    },
+    rationale: ""
   }
 };
