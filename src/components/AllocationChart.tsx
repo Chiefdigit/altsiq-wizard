@@ -18,10 +18,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
   useLayoutEffect(() => {
     if (!chartRef.current) {
-      const root = am5.Root.new(`chartdiv-${chartId}`, {
-        useSafeResolution: false
-      });
-
+      const root = am5.Root.new(`chartdiv-${chartId}`);
       root.setThemes([am5themes_Animated.new(root)]);
 
       // Create chart
@@ -39,13 +36,23 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         strokeOpacity: 0.1
       });
 
+      // Create X axis
       const xAxis = chart.xAxes.push(
+        am5radar.CategoryAxis.new(root, {
+          maxDeviation: 0,
+          categoryField: "category",
+          renderer: axisRenderer
+        })
+      );
+
+      // Create Y axis
+      const yAxis = chart.yAxes.push(
         am5radar.ValueAxis.new(root, {
           maxDeviation: 0,
           min: 0,
           max: 100,
           strictMinMax: true,
-          renderer: axisRenderer
+          renderer: am5radar.AxisRendererRadial.new(root, {})
         })
       );
 
@@ -53,15 +60,16 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       const series = chart.series.push(
         am5radar.RadarColumnSeries.new(root, {
           xAxis: xAxis,
-          valueXField: "value",
-          categoryYField: "category",
+          yAxis: yAxis,
+          valueYField: "value",
+          categoryXField: "category",
           clustered: false
         })
       );
 
       series.columns.template.setAll({
         width: am5.percent(80),
-        tooltipText: "{category}: {valueX}%",
+        tooltipText: "{category}: {valueY}%",
         cornerRadius: 4,
         templateField: "columnSettings"
       });
@@ -100,6 +108,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         });
       }
 
+      xAxis.data.setAll(data);
       series.data.setAll(data);
 
       chartRef.current = root;
@@ -146,6 +155,10 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
             });
           }
 
+          const xAxis = chart.xAxes.getIndex(0);
+          if (xAxis) {
+            xAxis.data.setAll(data);
+          }
           series.data.setAll(data);
         }
       }
