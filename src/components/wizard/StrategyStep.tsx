@@ -31,7 +31,6 @@ export const StrategyStep = ({
       ? customAllocations 
       : STRATEGY_DESCRIPTIONS[selectedStrategy].allocation;
     
-    // Store the selected allocation in localStorage
     localStorage.setItem('selectedStrategyAllocation', JSON.stringify(selectedAllocation));
     localStorage.setItem('selectedStrategyName', selectedStrategy);
     setIsSelected(true);
@@ -107,13 +106,20 @@ export const StrategyStep = ({
         )
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
         <Button 
           onClick={handleStrategySelect}
-          className="bg-primary hover:bg-primary/90"
+          className="rounded-full bg-primary hover:bg-primary/90"
           disabled={isSelected}
         >
           {isSelected ? "Selected" : "Select Strategy"}
+        </Button>
+        <Button 
+          onClick={() => setActiveStep("complete")}
+          className="rounded-full bg-primary hover:bg-primary/90"
+          disabled={!isSelected}
+        >
+          Continue
         </Button>
       </div>
     </div>
