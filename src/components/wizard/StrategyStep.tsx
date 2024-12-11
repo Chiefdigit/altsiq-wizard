@@ -27,7 +27,7 @@ interface StrategyStepProps {
 const StrategyVolatilityScore = ({ allocation }: { allocation: AllocationValues }) => {
   const calculateScore = () => {
     const { equities, bonds, cash, alternatives } = allocation;
-    return ((equities * 4 + bonds * 2 + cash * 1 + alternatives * 3) / 100).toFixed(1);
+    return ((equities * 4 + bonds * 2 + cash * 1 + alternatives * 3) / 100).toFixed(2);
   };
 
   const getRiskProfile = (score: number) => {
@@ -45,7 +45,7 @@ const StrategyVolatilityScore = ({ allocation }: { allocation: AllocationValues 
   return (
     <Card className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Strategy Volatility Score</h3>
+        <h3 className="text-lg font-semibold">Volatility</h3>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -165,8 +165,6 @@ export const StrategyStep = ({
                 </div>
               </Card>
 
-              <StrategyVolatilityScore allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
-
               <div className="flex flex-col md:flex-row md:items-start gap-4">
                 <div className="md:w-1/2">
                   <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
@@ -184,6 +182,8 @@ export const StrategyStep = ({
                 ))}
               </ul>
             </div>
+
+            <StrategyVolatilityScore allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
           </div>
         )
       )}
