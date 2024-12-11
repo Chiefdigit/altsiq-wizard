@@ -218,8 +218,6 @@ const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
 export const InvestmentStrategy = () => {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Investment Strategy with Alts</h2>
-      
       <Tabs defaultValue="diversification" className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto">
           {strategies.map((strategy, index) => (
