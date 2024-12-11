@@ -15,10 +15,9 @@ interface AllocationChartProps {
 
 export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   const chartRef = useRef<am5.Root | null>(null);
-  const chartId = useId(); // Generate unique ID for each chart instance
+  const chartId = useId();
 
   useLayoutEffect(() => {
-    // Only create root if it doesn't exist
     if (!chartRef.current) {
       const root = am5.Root.new(`chartdiv-${chartId}`, {
         useSafeResolution: false
@@ -64,10 +63,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
       series.labels.template.set("visible", false);
       series.ticks.template.set("visible", false);
 
-      // Calculate total allocation
       const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
-      
-      // Calculate unallocated amount
       const unallocated = Math.max(0, 100 - totalAllocation);
 
       const data = [
@@ -93,7 +89,6 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         }
       ];
 
-      // Only add unallocated segment if there is any unallocated amount
       if (unallocated > 0) {
         data.push({
           category: "Unallocated",
@@ -104,44 +99,46 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
 
       series.data.setAll(data);
     } else {
-      // If root exists, just update the data
-      const series = chartRef.current.container.children.getIndex(0)?.series.getIndex(0);
-      if (series) {
-        const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
-        const unallocated = Math.max(0, 100 - totalAllocation);
-        
-        const data = [
-          {
-            category: "Stocks (Equities)",
-            value: allocations.equities,
-            settings: { fill: am5.color("#2563eb") }
-          },
-          {
-            category: "Bonds (Fixed Income)",
-            value: allocations.bonds,
-            settings: { fill: am5.color("#000000") }
-          },
-          {
-            category: "Cash (and Equivalents)",
-            value: allocations.cash,
-            settings: { fill: am5.color("#22c55e") }
-          },
-          {
-            category: "Private Alternatives",
-            value: allocations.alternatives,
-            settings: { fill: am5.color("#F97316") }
+      const chart = chartRef.current.container.children.getIndex(0) as am5percent.PieChart;
+      if (chart) {
+        const series = chart.series.getIndex(0) as am5percent.PieSeries;
+        if (series) {
+          const totalAllocation = Object.values(allocations).reduce((sum, val) => sum + val, 0);
+          const unallocated = Math.max(0, 100 - totalAllocation);
+          
+          const data = [
+            {
+              category: "Stocks (Equities)",
+              value: allocations.equities,
+              settings: { fill: am5.color("#2563eb") }
+            },
+            {
+              category: "Bonds (Fixed Income)",
+              value: allocations.bonds,
+              settings: { fill: am5.color("#000000") }
+            },
+            {
+              category: "Cash (and Equivalents)",
+              value: allocations.cash,
+              settings: { fill: am5.color("#22c55e") }
+            },
+            {
+              category: "Private Alternatives",
+              value: allocations.alternatives,
+              settings: { fill: am5.color("#F97316") }
+            }
+          ];
+
+          if (unallocated > 0) {
+            data.push({
+              category: "Unallocated",
+              value: unallocated,
+              settings: { fill: am5.color("#64748b") }
+            });
           }
-        ];
 
-        if (unallocated > 0) {
-          data.push({
-            category: "Unallocated",
-            value: unallocated,
-            settings: { fill: am5.color("#64748b") }
-          });
+          series.data.setAll(data);
         }
-
-        series.data.setAll(data);
       }
     }
 
