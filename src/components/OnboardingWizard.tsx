@@ -64,8 +64,8 @@ export const OnboardingWizard = () => {
         onValueChange={setActiveStep}
         className="w-full space-y-4"
       >
-        <AccordionItem value="portfolio" className="border rounded-lg p-4">
-          <AccordionTrigger className="flex items-center justify-between">
+        <AccordionItem value="portfolio" className="border rounded-lg p-4 bg-white shadow-sm">
+          <AccordionTrigger className="flex items-center justify-between hover:bg-gray-50 rounded-md px-2 data-[state=open]:bg-primary data-[state=open]:text-primary-foreground">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
                 {activeStep !== "portfolio" ? <Check size={14} /> : "1"}
@@ -81,8 +81,8 @@ export const OnboardingWizard = () => {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="allocation" className="border rounded-lg p-4">
-          <AccordionTrigger className="flex items-center justify-between">
+        <AccordionItem value="allocation" className="border rounded-lg p-4 bg-white shadow-sm">
+          <AccordionTrigger className="flex items-center justify-between hover:bg-gray-50 rounded-md px-2 data-[state=open]:bg-primary data-[state=open]:text-primary-foreground">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
                 {activeStep === "complete" ? <Check size={14} /> : "2"}
@@ -114,8 +114,8 @@ export const OnboardingWizard = () => {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="strategy" className="border rounded-lg p-4">
-          <AccordionTrigger className="flex items-center justify-between">
+        <AccordionItem value="strategy" className="border rounded-lg p-4 bg-white shadow-sm">
+          <AccordionTrigger className="flex items-center justify-between hover:bg-gray-50 rounded-md px-2 data-[state=open]:bg-primary data-[state=open]:text-primary-foreground">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
                 {activeStep === "complete" ? <Check size={14} /> : "3"}
@@ -133,19 +133,19 @@ export const OnboardingWizard = () => {
                 }}
                 className="flex flex-wrap justify-start gap-2 border rounded-lg p-2"
               >
-                <ToggleGroupItem value="diversification" className="flex-1">
+                <ToggleGroupItem value="diversification" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
                   Diversification
                 </ToggleGroupItem>
-                <ToggleGroupItem value="income" className="flex-1">
+                <ToggleGroupItem value="income" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
                   Income
                 </ToggleGroupItem>
-                <ToggleGroupItem value="growth" className="flex-1">
+                <ToggleGroupItem value="growth" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
                   Growth
                 </ToggleGroupItem>
-                <ToggleGroupItem value="preservation" className="flex-1">
+                <ToggleGroupItem value="preservation" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
                   Preservation
                 </ToggleGroupItem>
-                <ToggleGroupItem value="advanced" className="flex-1">
+                <ToggleGroupItem value="advanced" className="flex-1 data-[state=on]:bg-primary data-[state=on]:text-white">
                   + Advanced
                 </ToggleGroupItem>
               </ToggleGroup>
