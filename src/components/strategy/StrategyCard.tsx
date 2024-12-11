@@ -18,6 +18,13 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
   const chartRef = useRef<am5.Root | null>(null);
   const chartId = useId();
 
+  const legendItems = [
+    { label: "Stocks", value: strategy.allocations.equities, color: "#2563eb" },
+    { label: "Bonds", value: strategy.allocations.bonds, color: "#000000" },
+    { label: "Cash", value: strategy.allocations.cash, color: "#22c55e" },
+    { label: "Alts", value: strategy.allocations.alternatives, color: "#F97316" },
+  ];
+
   useLayoutEffect(() => {
     if (!chartRef.current) {
       const root = am5.Root.new(`chartdiv-${chartId}`);
@@ -49,54 +56,26 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
         {
           category: "Stocks",
           value: strategy.allocations.equities,
-          fill: am5.color("#2563eb")
+          fill: am5.color(legendItems[0].color)
         },
         {
           category: "Bonds",
           value: strategy.allocations.bonds,
-          fill: am5.color("#000000")
+          fill: am5.color(legendItems[1].color)
         },
         {
           category: "Cash",
           value: strategy.allocations.cash,
-          fill: am5.color("#22c55e")
+          fill: am5.color(legendItems[2].color)
         },
         {
           category: "Alts",
           value: strategy.allocations.alternatives,
-          fill: am5.color("#F97316")
+          fill: am5.color(legendItems[3].color)
         }
       ];
 
-      const legend = chart.children.push(
-        am5.Legend.new(root, {
-          x: am5.p0,
-          centerX: am5.p0,
-          y: am5.p100,
-          layout: root.verticalLayout,
-          height: am5.percent(30),
-          verticalScrollbar: am5.Scrollbar.new(root, {
-            orientation: "vertical"
-          })
-        })
-      );
-
-      // Customize legend labels to include percentages
-      legend.labels.template.setAll({
-        fontSize: 12,
-        fontWeight: "400",
-        templateField: "labelTemplate"
-      });
-
-      const dataWithLabels: ChartDataItem[] = data.map(item => ({
-        ...item,
-        labelTemplate: {
-          text: `${item.category}: ${item.value}%`
-        }
-      }));
-
-      series.data.setAll(dataWithLabels);
-      legend.data.setAll(series.dataItems);
+      series.data.setAll(data);
     }
 
     return () => {
@@ -105,14 +84,7 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
         chartRef.current = null;
       }
     };
-  }, [strategy.allocations, chartId]);
-
-  const legendItems = [
-    { label: "Stocks", value: strategy.allocations.equities, color: "#2563eb" },
-    { label: "Bonds", value: strategy.allocations.bonds, color: "#000000" },
-    { label: "Cash", value: strategy.allocations.cash, color: "#22c55e" },
-    { label: "Alts", value: strategy.allocations.alternatives, color: "#F97316" },
-  ];
+  }, [strategy.allocations, chartId, legendItems]);
 
   return (
     <Card className="p-6 space-y-6">
