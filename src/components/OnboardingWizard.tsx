@@ -21,6 +21,63 @@ const DEFAULT_ALLOCATIONS = {
   alternatives: 0,
 };
 
+const STRATEGY_DESCRIPTIONS = {
+  diversification: {
+    title: "Asset Diversification",
+    objective: "Spread risk across uncorrelated assets, balancing exposure to traditional asset classes and alternatives.",
+    description: "Typically, an investor seeking diversification is:",
+    points: [
+      "Focused on reducing overall portfolio risk through exposure to uncorrelated assets.",
+      "Expecting moderate volatility, willing to accept some risk but avoids large swings.",
+      "Seeking steady, risk-adjusted returns that outpace inflation.",
+      "Comfortable with a medium to long-term horizon, with moderate liquidity needs.",
+      "Prioritizing risk management and balanced exposure over maximizing returns."
+    ]
+  },
+  income: {
+    title: "Income Generation",
+    objective: "Maximize income generation through assets that provide regular cash flow.",
+    description: "Typically, an investor looking to generate income is:",
+    points: [
+      "Focused on maximizing regular income through interest, dividends, or rent.",
+      "Expecting low to moderate volatility and seeks stability in returns.",
+      "Looking for steady income generation with modest capital growth.",
+      "Has a medium-term horizon, with a need for liquidity to fund regular expenses.",
+      "Income-focused, preferring stable, cash-flow-generating assets over risky investments."
+    ]
+  },
+  growth: {
+    title: "Long-term Growth",
+    objective: "Maximize capital appreciation, willing to take on more risk for higher potential returns.",
+    description: "Typically, an investor seeking long-term growth is:",
+    points: [
+      "Focused on maximizing capital appreciation by investing in high-growth assets.",
+      "Expecting high volatility and comfortable with large fluctuations in portfolio value.",
+      "Seeking above-average returns, with an emphasis on long-term wealth creation.",
+      "Comfortable with a long-term horizon, often in illiquid assets with delayed payouts.",
+      "Primarily growth-oriented, willing to take on significant risk for potential future gains."
+    ]
+  },
+  preservation: {
+    title: "Asset Preservation",
+    objective: "Preserve capital with low volatility and minimal risk.",
+    description: "Typically, an investor aiming to preserve assets is:",
+    points: [
+      "Focused on preserving capital and minimizing risk, with low volatility expectations.",
+      "Expecting very low volatility and values stability and predictability in returns.",
+      "Seeking modest returns, mainly to protect against inflation without eroding principal.",
+      "Prefers a short to medium-term horizon, with a high demand for liquidity.",
+      "Highly conservative, more concerned with avoiding losses than seeking gains."
+    ]
+  },
+  advanced: {
+    title: "+ Advanced",
+    objective: "Let's build a personalized allocation for you.",
+    description: "",
+    points: []
+  }
+};
+
 export const OnboardingWizard = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(500000);
@@ -146,6 +203,32 @@ export const OnboardingWizard = () => {
                   + Advanced
                 </ToggleGroupItem>
               </ToggleGroup>
+
+              {selectedStrategy && (
+                <div className="mt-6 space-y-4">
+                  <h3 className="text-xl font-semibold">
+                    {STRATEGY_DESCRIPTIONS[selectedStrategy].title}
+                  </h3>
+                  <p className="text-gray-700 font-medium">
+                    Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
+                  </p>
+                  {STRATEGY_DESCRIPTIONS[selectedStrategy].description && (
+                    <>
+                      <p className="text-gray-700 font-medium mt-4">
+                        {STRATEGY_DESCRIPTIONS[selectedStrategy].description}
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2">
+                        {STRATEGY_DESCRIPTIONS[selectedStrategy].points.map((point, index) => (
+                          <li key={index} className="text-gray-600">
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end">
                 <Button onClick={handleComplete}>Complete</Button>
               </div>
