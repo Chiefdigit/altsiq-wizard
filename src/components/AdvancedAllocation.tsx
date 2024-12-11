@@ -85,14 +85,14 @@ export const AdvancedAllocation = ({
           <span className="text-sm font-medium text-gray-600">
             Volatility:
           </span>
-          <div className="h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" />
-          <div 
-            className="relative"
-            style={{ 
-              left: getVolatilityWidth(score)
-            }}
-          >
-            <div className="absolute w-3 h-3 bg-white border-2 border-primary rounded-full -mt-2.5 transform -translate-x-1/2" />
+          <div className="relative">
+            <div className="h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" />
+            <div 
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-primary rounded-full transform -translate-x-1/2"
+              style={{ 
+                left: getVolatilityWidth(score)
+              }}
+            />
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-600 font-medium">
