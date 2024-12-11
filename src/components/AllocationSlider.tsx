@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import * as Slider from "@radix-ui/react-slider";
 import { Input } from "@/components/ui/input";
+import { formatDollarValue, getSliderColor } from "@/utils/formatters";
 
 interface AllocationSliderProps {
   label: string;
@@ -19,26 +20,10 @@ export const AllocationSlider = ({
 }: AllocationSliderProps) => {
   const [inputValue, setInputValue] = useState<string>("");
 
-  // Update dollar value whenever percentage or portfolio size changes
   useEffect(() => {
     const dollarValue = (value / 100) * portfolioSize;
-    setInputValue(`$${dollarValue.toLocaleString()}`);
+    setInputValue(formatDollarValue(dollarValue));
   }, [value, portfolioSize]);
-
-  const getSliderColor = (label: string) => {
-    switch (label) {
-      case "Equities":
-        return "#2563eb"; // blue-600
-      case "Bonds":
-        return "#000000"; // black
-      case "Cash":
-        return "#22c55e"; // green-500
-      case "Alternatives":
-        return "#F97316"; // orange-500
-      default:
-        return "#2563eb"; // blue-600
-    }
-  };
 
   const handleDollarInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -54,9 +39,8 @@ export const AllocationSlider = ({
       const clampedPercentage = Math.max(0, Math.min(100, percentage));
       onChange(clampedPercentage);
     }
-    // Update the input value to reflect the current state
     const dollarValue = (value / 100) * portfolioSize;
-    setInputValue(`$${dollarValue.toLocaleString()}`);
+    setInputValue(formatDollarValue(dollarValue));
   };
 
   const sliderColor = getSliderColor(label);

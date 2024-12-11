@@ -13,23 +13,20 @@ import {
 } from "@/components/ui/accordion";
 import { Check } from "lucide-react";
 
+const DEFAULT_ALLOCATIONS = {
+  equities: 60,
+  bonds: 40,
+  cash: 0,
+  alternatives: 0,
+};
+
 export const OnboardingWizard = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(500000);
-  const [allocations, setAllocations] = useState({
-    equities: 60,
-    bonds: 40,
-    cash: 0,
-    alternatives: 0,
-  });
+  const [allocations, setAllocations] = useState(DEFAULT_ALLOCATIONS);
 
   useEffect(() => {
-    setAllocations({
-      equities: 60,
-      bonds: 40,
-      cash: 0,
-      alternatives: 0,
-    });
+    setAllocations(DEFAULT_ALLOCATIONS);
   }, [portfolioSize]);
 
   const handleComplete = () => {
@@ -94,30 +91,15 @@ export const OnboardingWizard = () => {
                 <span className="text-sm text-gray-600">Total Allocation: </span>
                 <span className="font-semibold">{totalAllocation}%</span>
               </div>
-              <AllocationSlider
-                label="Equities"
-                value={allocations.equities}
-                onChange={(value) => updateAllocation("equities", value)}
-                portfolioSize={portfolioSize}
-              />
-              <AllocationSlider
-                label="Bonds"
-                value={allocations.bonds}
-                onChange={(value) => updateAllocation("bonds", value)}
-                portfolioSize={portfolioSize}
-              />
-              <AllocationSlider
-                label="Cash"
-                value={allocations.cash}
-                onChange={(value) => updateAllocation("cash", value)}
-                portfolioSize={portfolioSize}
-              />
-              <AllocationSlider
-                label="Alternatives"
-                value={allocations.alternatives}
-                onChange={(value) => updateAllocation("alternatives", value)}
-                portfolioSize={portfolioSize}
-              />
+              {Object.entries(allocations).map(([key, value]) => (
+                <AllocationSlider
+                  key={key}
+                  label={key.charAt(0).toUpperCase() + key.slice(1)}
+                  value={value}
+                  onChange={(value) => updateAllocation(key as keyof typeof allocations, value)}
+                  portfolioSize={portfolioSize}
+                />
+              ))}
               <AllocationChart allocations={allocations} />
               <RiskScoreDisplay allocations={allocations} />
               <div className="flex justify-end">
