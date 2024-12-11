@@ -9,9 +9,6 @@ interface ChartDataItem {
   category: string;
   value: number;
   fill: am5.Color;
-  labelTemplate?: {
-    text: string;
-  };
 }
 
 export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
@@ -19,10 +16,10 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
   const chartId = useId();
 
   const legendItems = [
-    { label: "Stocks", value: strategy.allocations.equities, color: "#2563eb" },
-    { label: "Bonds", value: strategy.allocations.bonds, color: "#000000" },
-    { label: "Cash", value: strategy.allocations.cash, color: "#22c55e" },
-    { label: "Alts", value: strategy.allocations.alternatives, color: "#F97316" },
+    { label: "Stocks", value: strategy.allocations.equities, color: "#9b87f5" },
+    { label: "Bonds", value: strategy.allocations.bonds, color: "#7E69AB" },
+    { label: "Cash", value: strategy.allocations.cash, color: "#6E59A5" },
+    { label: "Alts", value: strategy.allocations.alternatives, color: "#D6BCFA" },
   ];
 
   useLayoutEffect(() => {
@@ -35,7 +32,7 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
       const chart = root.container.children.push(
         am5percent.PieChart.new(root, {
           layout: root.verticalLayout,
-          x: am5.p0,  // Left align the chart
+          x: am5.p0,
           centerX: am5.p0
         })
       );
@@ -48,7 +45,6 @@ export const StrategyCard = ({ strategy }: { strategy: StrategyProps }) => {
         })
       );
 
-      // Remove labels and ticks
       series.labels.template.set("visible", false);
       series.ticks.template.set("visible", false);
 
