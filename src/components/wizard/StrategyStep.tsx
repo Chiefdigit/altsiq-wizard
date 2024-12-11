@@ -70,7 +70,7 @@ export const StrategyStep = ({
                 Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
               </p>
 
-              <div className="flex flex-col md:flex-row md:items-start gap-4">
+              <div className="flex flex-col md:flex-row md:items-start gap-4 pb-6 md:pb-0">
                 <div className="md:w-1/2">
                   <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
                 </div>
