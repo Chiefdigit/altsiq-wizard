@@ -3,6 +3,7 @@ import { PortfolioSlider } from "./PortfolioSlider";
 import { AllocationSlider } from "./AllocationSlider";
 import { AllocationChart } from "./AllocationChart";
 import { RiskScoreDisplay } from "./RiskScoreDisplay";
+import { InvestmentStrategy } from "./InvestmentStrategy";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -83,7 +84,7 @@ export const OnboardingWizard = () => {
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                {activeStep === "complete" ? <Check size={14} /> : "2"}
+                {activeStep === "strategy" ? <Check size={14} /> : "2"}
               </div>
               <span>Asset Allocation</span>
             </div>
@@ -121,8 +122,25 @@ export const OnboardingWizard = () => {
               <AllocationChart allocations={allocations} />
               <RiskScoreDisplay allocations={allocations} />
               <div className="flex justify-end">
-                <Button onClick={handleComplete}>Continue</Button>
+                <Button onClick={() => setActiveStep("strategy")}>Continue</Button>
               </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="strategy" className="border rounded-lg p-4">
+          <AccordionTrigger className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+                {activeStep === "complete" ? <Check size={14} /> : "3"}
+              </div>
+              <span>Investment Strategy</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-6">
+            <InvestmentStrategy />
+            <div className="mt-6 flex justify-end">
+              <Button onClick={handleComplete}>Complete</Button>
             </div>
           </AccordionContent>
         </AccordionItem>
