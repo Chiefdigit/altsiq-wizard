@@ -105,7 +105,7 @@ export const OnboardingWizard = () => {
           <AccordionContent className="pt-6">
             {selectedStrategy && selectedStrategy !== 'advanced' && (
               <>
-                <h3 className="text-xl font-semibold mb-4 text-center text-primary">
+                <h3 className="text-xl font-semibold mb-4">
                   {selectedStrategy.toUpperCase()}
                 </h3>
                 <Card className="p-4 bg-gray-50 mb-4">
