@@ -150,13 +150,16 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     );
 
     // Update line position when charts are ready
-    mainSeries.events.on("datavalidated", () => {
+    mainSeries.events.on("datavalidated", function() {
       const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
       if (altSlice) {
         const bounds = altSlice._getBounds();
         if (bounds) {
           const startPoint = { x: bounds.right, y: bounds.centerY };
-          const endPoint = { x: alternativesSeries.x() - alternativesSeries.radius(), y: chart.height() * 0.5 };
+          const endPoint = { 
+            x: alternativesSeries.get("x") - (alternativesSeries.get("radius") as number), 
+            y: chart.height() * 0.5 
+          };
           line.set("points", [startPoint, endPoint]);
         }
       }
