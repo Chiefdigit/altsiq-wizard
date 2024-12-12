@@ -66,7 +66,6 @@ export const AlternativesBreakdown = ({ selectedStrategy }: AlternativesBreakdow
 
     root.setThemes([am5themes_Animated.new(root)]);
 
-    // Create chart
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.horizontalLayout,
@@ -74,7 +73,6 @@ export const AlternativesBreakdown = ({ selectedStrategy }: AlternativesBreakdow
       })
     );
 
-    // Create main series
     const mainSeries = chart.series.push(
       am5percent.PieSeries.new(root, {
         valueField: "value",
@@ -86,7 +84,6 @@ export const AlternativesBreakdown = ({ selectedStrategy }: AlternativesBreakdow
       })
     );
 
-    // Create second series
     const detailSeries = chart.series.push(
       am5percent.PieSeries.new(root, {
         valueField: "value",
@@ -98,7 +95,6 @@ export const AlternativesBreakdown = ({ selectedStrategy }: AlternativesBreakdow
       })
     );
 
-    // Set up main series data
     const mainData = [
       { category: "Equities", value: 35, fill: am5.color("#2563eb") },
       { category: "Bonds", value: 20, fill: am5.color("#000000") },
@@ -106,7 +102,6 @@ export const AlternativesBreakdown = ({ selectedStrategy }: AlternativesBreakdow
       { category: "Alternatives", value: 40, fill: am5.color("#F97316") }
     ];
 
-    // Get alternatives breakdown data
     const breakdownData = ALTERNATIVES_BREAKDOWN[selectedStrategy as keyof typeof ALTERNATIVES_BREAKDOWN] || ALTERNATIVES_BREAKDOWN.diversification;
     const detailData = Object.entries(breakdownData).map(([category, value], index) => ({
       category,
@@ -114,7 +109,6 @@ export const AlternativesBreakdown = ({ selectedStrategy }: AlternativesBreakdow
       fill: am5.color(getColorForIndex(index))
     }));
 
-    // Configure series
     mainSeries.slices.template.setAll({
       templateField: "fill",
       strokeWidth: 2,
@@ -127,32 +121,32 @@ export const AlternativesBreakdown = ({ selectedStrategy }: AlternativesBreakdow
       stroke: am5.color(0xffffff)
     });
 
-    // Hide labels and ticks
     mainSeries.labels.template.set("visible", false);
     mainSeries.ticks.template.set("visible", false);
     detailSeries.labels.template.set("visible", false);
     detailSeries.ticks.template.set("visible", false);
 
-    // Set data
     mainSeries.data.setAll(mainData);
     detailSeries.data.setAll(detailData);
 
-    // Create connector line
     const connector = am5.Line.new(root, {
       stroke: am5.color(0xb2b2b2),
       strokeDasharray: [2, 2]
     });
 
-    // Update connector position when slices move
     mainSeries.slices.template.events.on("boundschanged", function(e) {
       const slice = e.target;
-      const point = am5.utils.getPointOnCircle(
-        slice.get("radius") as number,
-        (slice.get("startAngle") as number + slice.get("endAngle") as number) / 2,
-        { x: 0, y: 0 }
-      );
+      const radius = slice.get("radius", 0);
+      const startAngle = slice.get("startAngle", 0);
+      const endAngle = slice.get("endAngle", 0);
+      const centerAngle = (startAngle + endAngle) / 2;
+
+      const point = {
+        x: radius * Math.cos(centerAngle * Math.PI / 180),
+        y: radius * Math.sin(centerAngle * Math.PI / 180)
+      };
       
-      if (slice.dataItem?.get("category") === "Alternatives") {
+      if (slice.dataItem?.get("categoryY") === "Alternatives") {
         const line = connector;
         line.set("points", [
           { x: point.x, y: point.y },
