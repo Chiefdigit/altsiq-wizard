@@ -99,16 +99,22 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
       cornerRadius: 5
     });
 
-    // Add click listener to only alternatives slice
+    // Add click listener
     series.slices.template.events.on("click", (ev) => {
       const slice = ev.target;
       const dataItem = slice.dataItem;
       
       if (dataItem.dataContext["children"]) {
         if (slice.get("active")) {
+          // Return to main view
           series.data.setAll(data);
+          // Update chart title
+          chartTitle.set("text", "Portfolio Allocation");
         } else {
+          // Show alternatives breakdown
           series.data.setAll(dataItem.dataContext["children"]);
+          // Update chart title
+          chartTitle.set("text", "Alternatives Breakdown (Click any slice to return)");
         }
       }
     });
@@ -119,6 +125,20 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         centerX: am5.percent(50),
         x: am5.percent(50),
         layout: root.verticalLayout
+      })
+    );
+
+    // Add chart title
+    const chartTitle = chart.children.unshift(
+      am5.Label.new(root, {
+        text: "Portfolio Allocation",
+        fontSize: 16,
+        fontWeight: "500",
+        textAlign: "center",
+        x: am5.percent(50),
+        centerX: am5.percent(50),
+        paddingTop: 0,
+        paddingBottom: 20
       })
     );
 
@@ -137,7 +157,6 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
 
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Portfolio Allocation & Alternatives Breakdown</h3>
       <div
         id={`chartdiv-${chartId}`}
         style={{ width: "100%", height: "400px" }}
