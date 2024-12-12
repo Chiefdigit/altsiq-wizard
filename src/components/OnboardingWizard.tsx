@@ -99,37 +99,6 @@ export const OnboardingWizard = () => {
             />
           </AccordionContent>
         </AccordionItem>
-
-        <AccordionItem value="alternatives" className="border rounded-lg p-4">
-          <AccordionTrigger className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                {activeStep === "complete" ? <Check size={14} /> : "4"}
-              </div>
-              <span>Alternatives Allocation</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-6">
-            {selectedStrategy && selectedStrategy !== 'advanced' && (
-              <>
-                <h3 className="text-xl font-semibold mb-4">
-                  {selectedStrategy.toUpperCase()}
-                </h3>
-                <Card className="p-4 bg-gray-50 mb-4">
-                  <p className="text-gray-700">
-                    <span className="font-semibold">Strategy Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
-                  </p>
-                </Card>
-                <div className="mt-6">
-                  <PieOfPieChart 
-                    mainAllocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} 
-                    alternativesBreakdown={STRATEGY_DESCRIPTIONS[selectedStrategy].alternativesBreakdown}
-                  />
-                </div>
-              </>
-            )}
-          </AccordionContent>
-        </AccordionItem>
       </Accordion>
     </div>
   );
