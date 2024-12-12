@@ -147,11 +147,11 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         const bounds = altSlice.bounds();
         if (bounds) {
           const startPoint = { 
-            x: chart.width() * 0.5, 
+            x: chart.width() / 2, 
             y: bounds.bottom
           };
           const endPoint = { 
-            x: chart.width() * 0.5,
+            x: chart.width() / 2,
             y: alternativesSeries.get("centerY", 0) - alternativesSeries.get("radius", 0)
           };
           line.set("points", [startPoint, endPoint]);
