@@ -154,13 +154,14 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
       const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
       if (altSlice) {
         const bounds = altSlice._getBounds();
-        if (bounds && typeof bounds === 'object') {
+        if (bounds) {
+          const boundsObj = bounds as { right: number; centerY: number };
           const startPoint = { 
-            x: bounds.right || 0, 
-            y: bounds.centerY || 0 
+            x: boundsObj.right, 
+            y: boundsObj.centerY 
           };
           const endPoint = { 
-            x: (alternativesSeries.get("x") as number) - (alternativesSeries.get("radius") as number), 
+            x: Number(alternativesSeries.get("x")) - Number(alternativesSeries.get("radius")), 
             y: chart.height() * 0.5 
           };
           line.set("points", [startPoint, endPoint]);
