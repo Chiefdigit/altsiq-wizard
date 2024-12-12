@@ -99,23 +99,23 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
       cornerRadius: 5
     });
 
+    let isShowingAlternatives = false;
+
     // Add click listener
     series.slices.template.events.on("click", (ev) => {
       const slice = ev.target;
       const dataItem = slice.dataItem;
       
-      if (dataItem.dataContext["children"]) {
-        if (slice.get("active")) {
-          // Return to main view
-          series.data.setAll(data);
-          // Update chart title
-          chartTitle.set("text", "Portfolio Allocation");
-        } else {
-          // Show alternatives breakdown
-          series.data.setAll(dataItem.dataContext["children"]);
-          // Update chart title
-          chartTitle.set("text", "Alternatives Breakdown (Click any slice to return)");
-        }
+      if (dataItem.dataContext["children"] && !isShowingAlternatives) {
+        // Show alternatives breakdown
+        series.data.setAll(dataItem.dataContext["children"]);
+        chartTitle.set("text", "Alternatives Breakdown (Click any slice to return)");
+        isShowingAlternatives = true;
+      } else if (isShowingAlternatives) {
+        // Return to main view
+        series.data.setAll(data);
+        chartTitle.set("text", "Portfolio Allocation");
+        isShowingAlternatives = false;
       }
     });
 
