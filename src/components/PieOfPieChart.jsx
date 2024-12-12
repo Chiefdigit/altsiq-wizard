@@ -143,23 +143,17 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     mainSeries.events.on("datavalidated", function() {
       const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
       if (altSlice) {
-        const dataItem = altSlice.dataItem;
-        if (dataItem) {
-          const slice = dataItem.get("slice");
-          if (slice) {
-            const bounds = slice.getBounds();
-            if (bounds) {
-              const startPoint = { 
-                x: chart.width() * 0.5, 
-                y: bounds.bottom
-              };
-              const endPoint = { 
-                x: chart.width() * 0.5,
-                y: Number(alternativesSeries.get("centerY")) - Number(alternativesSeries.get("radius"))
-              };
-              line.set("points", [startPoint, endPoint]);
-            }
-          }
+        const bounds = altSlice.bounds();
+        if (bounds) {
+          const startPoint = { 
+            x: chart.width() * 0.5, 
+            y: bounds.bottom
+          };
+          const endPoint = { 
+            x: chart.width() * 0.5,
+            y: Number(alternativesSeries.get("centerY")) - Number(alternativesSeries.get("radius"))
+          };
+          line.set("points", [startPoint, endPoint]);
         }
       }
     });
