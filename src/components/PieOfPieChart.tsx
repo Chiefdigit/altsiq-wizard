@@ -48,19 +48,21 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         valueField: "value",
         categoryField: "category",
         radius: am5.percent(70),
+        x: am5.percent(0),
         tooltip: am5.Tooltip.new(root, {
           labelText: "{category}: {value}%"
         })
       })
     );
 
-    // Create linked series for alternatives breakdown
-    const linkedSeries = chart.series.push(
+    // Create alternatives series
+    const alternativesSeries = chart.series.push(
       am5percent.PieSeries.new(root, {
         name: "AlternativesSeries",
         valueField: "value",
         categoryField: "category",
         radius: am5.percent(70),
+        x: am5.percent(100),
         tooltip: am5.Tooltip.new(root, {
           labelText: "{category}: {value}%"
         })
@@ -122,7 +124,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
       stroke: am5.color(0xffffff)
     });
 
-    linkedSeries.slices.template.setAll({
+    alternativesSeries.slices.template.setAll({
       templateField: "settings",
       strokeWidth: 2,
       stroke: am5.color(0xffffff)
@@ -131,29 +133,38 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     // Hide labels and ticks
     mainSeries.labels.template.set("visible", false);
     mainSeries.ticks.template.set("visible", false);
-    linkedSeries.labels.template.set("visible", false);
-    linkedSeries.ticks.template.set("visible", false);
+    alternativesSeries.labels.template.set("visible", false);
+    alternativesSeries.ticks.template.set("visible", false);
 
     // Set data
     mainSeries.data.setAll(mainData);
-    linkedSeries.data.setAll(alternativesData);
+    alternativesSeries.data.setAll(alternativesData);
 
-    // Create link between main "alternatives" slice and breakdown chart
-    mainSeries.events.on("datavalidated", () => {
-      const alternativesSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
-      if (alternativesSlice) {
-        const percentage = alternativesSlice.dataItem.get("valuePercentTotal");
-        const endAngle = alternativesSlice.get("startAngle") + alternativesSlice.get("arc") * percentage;
-        const startAngle = alternativesSlice.get("startAngle");
+    // Create connecting line between the charts
+    const alternativesSlice = mainSeries.slices.template.get("slice");
+    if (alternativesSlice) {
+      const line = chart.plotContainer.children.push(
+        am5.Line.new(root, {
+          stroke: am5.color("#F97316"),
+          strokeWidth: 2,
+          strokeDasharray: [5, 5]
+        })
+      );
 
-        linkedSeries.set("startAngle", startAngle);
-        linkedSeries.set("endAngle", endAngle);
-      }
-    });
+      // Update line position when charts are ready
+      mainSeries.events.on("datavalidated", () => {
+        const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
+        if (altSlice) {
+          const startPoint = altSlice.get("startPoint");
+          const endPoint = { x: chart.width() * 0.5, y: chart.height() * 0.5 };
+          line.set("points", [startPoint, endPoint]);
+        }
+      });
+    }
 
     // Animate chart
     mainSeries.appear(1000, 100);
-    linkedSeries.appear(1000, 100);
+    alternativesSeries.appear(1000, 100);
 
     return () => {
       root.dispose();
