@@ -34,7 +34,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     // Create chart
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
-        layout: root.horizontalLayout,
+        layout: root.verticalLayout,
         width: am5.percent(100),
         height: am5.percent(100)
       })
@@ -46,8 +46,8 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         name: "MainSeries",
         valueField: "value",
         categoryField: "category",
-        radius: am5.percent(70),
-        centerX: am5.percent(25),
+        radius: am5.percent(35),
+        centerY: am5.percent(25),
         tooltip: am5.Tooltip.new(root, {
           labelText: "{category}: {value}%"
         })
@@ -60,8 +60,8 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         name: "AlternativesSeries",
         valueField: "value",
         categoryField: "category",
-        radius: am5.percent(70),
-        centerX: am5.percent(75),
+        radius: am5.percent(35),
+        centerY: am5.percent(75),
         tooltip: am5.Tooltip.new(root, {
           labelText: "{category}: {value}%"
         })
@@ -157,12 +157,12 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         const bounds = altSlice.get("bounds");
         if (bounds) {
           const startPoint = { 
-            x: bounds.right, 
-            y: bounds.centerY 
+            x: chart.width() * 0.5, 
+            y: bounds.bottom
           };
           const endPoint = { 
-            x: Number(alternativesSeries.get("centerX")) - Number(alternativesSeries.get("radius")), 
-            y: chart.height() * 0.5 
+            x: chart.width() * 0.5,
+            y: Number(alternativesSeries.get("centerY")) - Number(alternativesSeries.get("radius"))
           };
           line.set("points", [startPoint, endPoint]);
         }
