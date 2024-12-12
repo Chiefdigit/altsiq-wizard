@@ -141,26 +141,28 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     alternativesSeries.data.setAll(alternativesData);
 
     // Create connecting line between the charts
-    const alternativesSlice = mainSeries.slices.template.get("slice");
-    if (alternativesSlice) {
-      const line = chart.plotContainer.children.push(
-        am5.Line.new(root, {
-          stroke: am5.color("#F97316"),
-          strokeWidth: 2,
-          strokeDasharray: [5, 5]
-        })
-      );
+    const container = chart.seriesContainer;
+    
+    const line = container.children.push(
+      am5.Line.new(root, {
+        stroke: am5.color("#F97316"),
+        strokeWidth: 2,
+        strokeDasharray: [5, 5]
+      })
+    );
 
-      // Update line position when charts are ready
-      mainSeries.events.on("datavalidated", () => {
-        const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
-        if (altSlice) {
-          const startPoint = altSlice.get("startPoint");
+    // Update line position when charts are ready
+    mainSeries.events.on("datavalidated", () => {
+      const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
+      if (altSlice) {
+        const bounds = altSlice.get("bounds");
+        if (bounds) {
+          const startPoint = { x: bounds.right, y: bounds.centerY };
           const endPoint = { x: chart.width() * 0.5, y: chart.height() * 0.5 };
           line.set("points", [startPoint, endPoint]);
         }
-      });
-    }
+      }
+    });
 
     // Animate chart
     mainSeries.appear(1000, 100);
