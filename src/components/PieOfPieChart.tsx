@@ -14,6 +14,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
   const chartId = React.useId();
 
   useLayoutEffect(() => {
+    // Create root element
     const root = am5.Root.new(`chartdiv-${chartId}`);
     
     chartRef.current = root;
@@ -22,28 +23,42 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     // Create chart
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
-        layout: root.horizontalLayout,
+        layout: root.verticalLayout,
         width: am5.percent(100),
         height: am5.percent(100)
       })
     );
 
-    // Create series
-    const series = chart.series.push(
+    // Create main series
+    const mainSeries = chart.series.push(
       am5percent.PieSeries.new(root, {
-        name: "Series",
+        name: "MainSeries",
         valueField: "value",
         categoryField: "category",
-        radius: am5.percent(80),
-        centerX: am5.percent(50),
+        radius: am5.percent(35),
+        centerY: am5.percent(25),
         tooltip: am5.Tooltip.new(root, {
           labelText: "{category}: {value}%"
         })
       })
     );
 
-    // Set up data
-    const data = [
+    // Create alternatives series
+    const alternativesSeries = chart.series.push(
+      am5percent.PieSeries.new(root, {
+        name: "AlternativesSeries",
+        valueField: "value",
+        categoryField: "category",
+        radius: am5.percent(35),
+        centerY: am5.percent(75),
+        tooltip: am5.Tooltip.new(root, {
+          labelText: "{category}: {value}%"
+        })
+      })
+    );
+
+    // Set up main series data
+    const mainData = [
       {
         category: "Stocks (Equities)",
         value: mainAllocation.equities,
@@ -58,104 +73,94 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         category: "Cash (and Equivalents)",
         value: mainAllocation.cash,
         settings: { fill: am5.color("#22c55e") }
+      },
+      {
+        category: "Private Alternatives",
+        value: mainAllocation.alternatives,
+        settings: { fill: am5.color("#F97316") }
       }
     ];
 
-    // Add alternatives data with children
-    const alternativesData = {
-      category: "Private Alternatives",
-      value: mainAllocation.alternatives,
-      settings: { fill: am5.color("#F97316") },
-      children: [
-        {
-          category: "Private Equity",
-          value: (alternativesBreakdown.privateEquity * mainAllocation.alternatives) / 100,
-          settings: { fill: am5.color("#FB923C") }
-        },
-        {
-          category: "Real Estate",
-          value: (alternativesBreakdown.realEstate * mainAllocation.alternatives) / 100,
-          settings: { fill: am5.color("#FDBA74") }
-        },
-        {
-          category: "Hedge Funds",
-          value: (alternativesBreakdown.hedge * mainAllocation.alternatives) / 100,
-          settings: { fill: am5.color("#FED7AA") }
-        },
-        {
-          category: "Venture Capital",
-          value: (alternativesBreakdown.venture * mainAllocation.alternatives) / 100,
-          settings: { fill: am5.color("#FFEDD5") }
-        }
-      ]
-    };
-
-    data.push(alternativesData);
+    // Set up alternatives breakdown data
+    const alternativesData = [
+      {
+        category: "Private Equity",
+        value: alternativesBreakdown.privateEquity,
+        settings: { fill: am5.color("#FB923C") }
+      },
+      {
+        category: "Real Estate",
+        value: alternativesBreakdown.realEstate,
+        settings: { fill: am5.color("#FDBA74") }
+      },
+      {
+        category: "Hedge Funds",
+        value: alternativesBreakdown.hedge,
+        settings: { fill: am5.color("#FED7AA") }
+      },
+      {
+        category: "Venture Capital",
+        value: alternativesBreakdown.venture,
+        settings: { fill: am5.color("#FFEDD5") }
+      }
+    ];
 
     // Configure series
-    series.slices.template.setAll({
+    mainSeries.slices.template.setAll({
       templateField: "settings",
       strokeWidth: 2,
-      stroke: am5.color(0xffffff),
-      cornerRadius: 5
+      stroke: am5.color(0xffffff)
     });
 
-    let isShowingAlternatives = false;
+    alternativesSeries.slices.template.setAll({
+      templateField: "settings",
+      strokeWidth: 2,
+      stroke: am5.color(0xffffff)
+    });
 
-    // Add click listener
-    series.slices.template.events.on("click", (ev) => {
-      const slice = ev.target;
-      const dataItem = slice.dataItem;
-      
-      if (dataItem.dataContext["children"] && !isShowingAlternatives) {
-        // Show alternatives breakdown
-        series.data.setAll(dataItem.dataContext["children"]);
-        series.set("innerRadius", am5.percent(40)); // Add inner radius for alternatives view
-        chartTitle.set("text", "Alternatives Breakdown (Click any slice to return)");
-        isShowingAlternatives = true;
-      } else if (isShowingAlternatives) {
-        // Return to main view
-        series.data.setAll(data);
-        series.set("innerRadius", 0); // Remove inner radius for main view
-        chartTitle.set("text", "Portfolio Allocation");
-        isShowingAlternatives = false;
+    // Hide labels and ticks
+    mainSeries.labels.template.set("visible", false);
+    mainSeries.ticks.template.set("visible", false);
+    alternativesSeries.labels.template.set("visible", false);
+    alternativesSeries.ticks.template.set("visible", false);
+
+    // Set data
+    mainSeries.data.setAll(mainData);
+    alternativesSeries.data.setAll(alternativesData);
+
+    // Create connecting line between the charts
+    const container = chart.seriesContainer;
+    
+    const line = container.children.push(
+      am5.Line.new(root, {
+        stroke: am5.color("#F97316"),
+        strokeWidth: 2,
+        strokeDasharray: [5, 5]
+      })
+    );
+
+    // Update line position when charts are ready
+    mainSeries.events.on("datavalidated", function() {
+      const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
+      if (altSlice) {
+        const bounds = altSlice.bounds();
+        if (bounds) {
+          const startPoint = { 
+            x: chart.width() * 0.5, 
+            y: bounds.bottom
+          };
+          const endPoint = { 
+            x: chart.width() * 0.5,
+            y: Number(alternativesSeries.get("centerY")) - Number(alternativesSeries.get("radius"))
+          };
+          line.set("points", [startPoint, endPoint]);
+        }
       }
     });
 
-    // Create legend
-    const legend = chart.children.push(
-      am5.Legend.new(root, {
-        centerX: am5.percent(50),
-        x: am5.percent(50),
-        layout: root.verticalLayout
-      })
-    );
-
-    // Add chart title
-    const chartTitle = chart.children.unshift(
-      am5.Label.new(root, {
-        text: "Portfolio Allocation",
-        fontSize: 16,
-        fontWeight: "500",
-        textAlign: "center",
-        x: am5.percent(50),
-        centerX: am5.percent(50),
-        paddingTop: 0,
-        paddingBottom: 20
-      })
-    );
-
-    legend.data.setAll(series.dataItems);
-
-    // Hide labels and ticks
-    series.labels.template.set("visible", false);
-    series.ticks.template.set("visible", false);
-
-    // Set data
-    series.data.setAll(data);
-
     // Animate chart
-    series.appear(1000, 100);
+    mainSeries.appear(1000, 100);
+    alternativesSeries.appear(1000, 100);
 
     return () => {
       root.dispose();
@@ -164,6 +169,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
 
   return (
     <Card className="p-4">
+      <h3 className="text-lg font-semibold mb-4">Portfolio Allocation & Alternatives Breakdown</h3>
       <div
         id={`chartdiv-${chartId}`}
         style={{ width: "100%", height: "400px" }}
