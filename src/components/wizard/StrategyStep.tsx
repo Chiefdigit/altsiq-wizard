@@ -85,12 +85,6 @@ export const StrategyStep = ({
                 Objective: {STRATEGY_DESCRIPTIONS[selectedStrategy].objective}
               </p>
 
-              <Card className="p-4 bg-gray-50">
-                <p className="text-gray-700">
-                  <span className="font-semibold">Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
-                </p>
-              </Card>
-
               <div className="flex flex-col md:flex-row md:items-start gap-4 pb-6 md:pb-0">
                 <div className="md:w-1/2">
                   <StrategyPieChart allocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} />
@@ -123,7 +117,7 @@ export const StrategyStep = ({
           {isSelected ? "Selected" : "Select"}
         </Button>
         <Button 
-          onClick={() => setActiveStep("complete")}
+          onClick={() => setActiveStep("alternatives")}
           className="bg-primary hover:bg-primary/90"
           disabled={!isSelected}
         >

@@ -11,6 +11,8 @@ import { PortfolioStep } from "./wizard/PortfolioStep";
 import { AllocationStep } from "./wizard/AllocationStep";
 import { StrategyStep } from "./wizard/StrategyStep";
 import { useWizardState } from "@/hooks/useWizardState";
+import { Card } from "@/components/ui/card";
+import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 
 export const OnboardingWizard = () => {
   const {
@@ -101,6 +103,13 @@ export const OnboardingWizard = () => {
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-6">
+            {selectedStrategy && selectedStrategy !== 'advanced' && (
+              <Card className="p-4 bg-gray-50 mb-4">
+                <p className="text-gray-700">
+                  <span className="font-semibold">Strategy Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
+                </p>
+              </Card>
+            )}
             <div className="text-center text-gray-500">
               Coming soon: Alternative investment allocation options
             </div>
