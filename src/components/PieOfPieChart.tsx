@@ -23,7 +23,8 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.horizontalLayout,
-        innerRadius: am5.percent(40)
+        width: am5.percent(100),
+        height: am5.percent(100)
       })
     );
 
@@ -34,6 +35,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         valueField: "value",
         categoryField: "category",
         radius: am5.percent(80),
+        centerX: am5.percent(50),
         tooltip: am5.Tooltip.new(root, {
           labelText: "{category}: {value}%"
         })
@@ -95,7 +97,6 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
       templateField: "settings",
       strokeWidth: 2,
       stroke: am5.color(0xffffff),
-      toggleKey: "active",
       cornerRadius: 5
     });
 
@@ -109,11 +110,13 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
       if (dataItem.dataContext["children"] && !isShowingAlternatives) {
         // Show alternatives breakdown
         series.data.setAll(dataItem.dataContext["children"]);
+        series.set("innerRadius", am5.percent(40)); // Add inner radius for alternatives view
         chartTitle.set("text", "Alternatives Breakdown (Click any slice to return)");
         isShowingAlternatives = true;
       } else if (isShowingAlternatives) {
         // Return to main view
         series.data.setAll(data);
+        series.set("innerRadius", 0); // Remove inner radius for main view
         chartTitle.set("text", "Portfolio Allocation");
         isShowingAlternatives = false;
       }
@@ -143,6 +146,10 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     );
 
     legend.data.setAll(series.dataItems);
+
+    // Hide labels and ticks
+    series.labels.template.set("visible", false);
+    series.ticks.template.set("visible", false);
 
     // Set data
     series.data.setAll(data);
