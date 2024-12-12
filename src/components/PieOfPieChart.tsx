@@ -154,7 +154,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     mainSeries.events.on("datavalidated", function() {
       const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
       if (altSlice) {
-        const bounds = altSlice.get("bounds");
+        const bounds = altSlice.dataItem?.get("slice")?.getBounds();
         if (bounds) {
           const startPoint = { 
             x: chart.width() * 0.5, 
