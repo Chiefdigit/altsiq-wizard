@@ -26,9 +26,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
 
   useLayoutEffect(() => {
     // Create root element
-    const root = am5.Root.new(`chartdiv-${chartId}`, {
-      useSafeResolution: false
-    });
+    const root = am5.Root.new(`chartdiv-${chartId}`);
     
     chartRef.current = root;
     root.setThemes([am5themes_Animated.new(root)]);
@@ -37,7 +35,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.horizontalLayout,
-        radius: am5.percent(95)
+        width: am5.percent(100)
       })
     );
 
@@ -48,7 +46,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         valueField: "value",
         categoryField: "category",
         radius: am5.percent(70),
-        x: am5.percent(0),
+        x: am5.percent(25),
         tooltip: am5.Tooltip.new(root, {
           labelText: "{category}: {value}%"
         })
@@ -62,7 +60,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
         valueField: "value",
         categoryField: "category",
         radius: am5.percent(70),
-        x: am5.percent(100),
+        x: am5.percent(75),
         tooltip: am5.Tooltip.new(root, {
           labelText: "{category}: {value}%"
         })
@@ -155,10 +153,10 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     mainSeries.events.on("datavalidated", () => {
       const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
       if (altSlice) {
-        const bounds = altSlice.getBounds();
+        const bounds = altSlice._getBounds();
         if (bounds) {
           const startPoint = { x: bounds.right, y: bounds.centerY };
-          const endPoint = { x: chart.width() * 0.5, y: chart.height() * 0.5 };
+          const endPoint = { x: alternativesSeries.x() - alternativesSeries.radius(), y: chart.height() * 0.5 };
           line.set("points", [startPoint, endPoint]);
         }
       }
