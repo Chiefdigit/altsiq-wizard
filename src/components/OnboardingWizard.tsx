@@ -13,6 +13,9 @@ import { StrategyStep } from "./wizard/StrategyStep";
 import { useWizardState } from "@/hooks/useWizardState";
 import { Card } from "@/components/ui/card";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
+import { AllocationChart } from "./AllocationChart";
+import { AlternativesBreakdown } from "./AlternativesBreakdown";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const OnboardingWizard = () => {
   const {
@@ -29,6 +32,8 @@ export const OnboardingWizard = () => {
     totalAllocation,
     totalCustomAllocation,
   } = useWizardState();
+
+  const isMobile = useIsMobile();
 
   return (
     <div className="max-w-2xl mx-auto p-6 animate-fade-in">
@@ -113,11 +118,12 @@ export const OnboardingWizard = () => {
                     <span className="font-semibold">Strategy Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
                   </p>
                 </Card>
+                <div className={`${isMobile ? 'flex flex-col' : 'grid grid-cols-2 gap-4'}`}>
+                  <AllocationChart allocations={allocations} />
+                  <AlternativesBreakdown selectedStrategy={selectedStrategy} />
+                </div>
               </>
             )}
-            <div className="text-center text-gray-500">
-              Coming soon: Alternative investment allocation options
-            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
