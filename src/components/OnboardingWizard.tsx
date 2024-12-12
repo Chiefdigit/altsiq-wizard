@@ -14,6 +14,7 @@ import { useWizardState } from "@/hooks/useWizardState";
 import { Card } from "@/components/ui/card";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { PieOfPieChart } from "./PieOfPieChart";
 
 export const OnboardingWizard = () => {
   const {
@@ -72,6 +73,9 @@ export const OnboardingWizard = () => {
               portfolioSize={portfolioSize}
               onContinue={() => setActiveStep("strategy")}
             />
+            <div className="mt-6">
+              <PieOfPieChart mainAllocation={allocations} />
+            </div>
           </AccordionContent>
         </AccordionItem>
 
@@ -116,6 +120,12 @@ export const OnboardingWizard = () => {
                     <span className="font-semibold">Strategy Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
                   </p>
                 </Card>
+                <div className="mt-6">
+                  <PieOfPieChart 
+                    mainAllocation={STRATEGY_DESCRIPTIONS[selectedStrategy].allocation} 
+                    alternativesBreakdown={STRATEGY_DESCRIPTIONS[selectedStrategy].alternativesBreakdown}
+                  />
+                </div>
               </>
             )}
           </AccordionContent>
