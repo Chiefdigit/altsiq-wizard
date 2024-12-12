@@ -3,25 +3,14 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { Card } from "@/components/ui/card";
-import type { AllocationValues } from "@/types/allocation";
-
-interface PieOfPieChartProps {
-  mainAllocation: AllocationValues;
-  alternativesBreakdown?: {
-    privateEquity: number;
-    realEstate: number;
-    hedge: number;
-    venture: number;
-  };
-}
 
 export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
   privateEquity: 25,
   realEstate: 25,
   hedge: 25,
   venture: 25
-} }: PieOfPieChartProps) => {
-  const chartRef = useRef<am5.Root | null>(null);
+}}) => {
+  const chartRef = useRef(null);
   const chartId = React.useId();
 
   useLayoutEffect(() => {
@@ -154,7 +143,7 @@ export const PieOfPieChart = ({ mainAllocation, alternativesBreakdown = {
     mainSeries.events.on("datavalidated", function() {
       const altSlice = mainSeries.slices.getIndex(3); // Index of alternatives slice
       if (altSlice) {
-        const bounds = altSlice.dataItem?.get("slice")?.getBounds();
+        const bounds = altSlice.bounds();
         if (bounds) {
           const startPoint = { 
             x: chart.width() * 0.5, 
