@@ -104,11 +104,16 @@ export const OnboardingWizard = () => {
           </AccordionTrigger>
           <AccordionContent className="pt-6">
             {selectedStrategy && selectedStrategy !== 'advanced' && (
-              <Card className="p-4 bg-gray-50 mb-4">
-                <p className="text-gray-700">
-                  <span className="font-semibold">Strategy Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
-                </p>
-              </Card>
+              <>
+                <h3 className="text-xl font-semibold mb-4 text-center text-primary">
+                  {selectedStrategy.toUpperCase()}
+                </h3>
+                <Card className="p-4 bg-gray-50 mb-4">
+                  <p className="text-gray-700">
+                    <span className="font-semibold">Strategy Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
+                  </p>
+                </Card>
+              </>
             )}
             <div className="text-center text-gray-500">
               Coming soon: Alternative investment allocation options
