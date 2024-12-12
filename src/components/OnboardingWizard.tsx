@@ -13,8 +13,6 @@ import { StrategyStep } from "./wizard/StrategyStep";
 import { useWizardState } from "@/hooks/useWizardState";
 import { Card } from "@/components/ui/card";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
-import { AllocationChart } from "./AllocationChart";
-import { AlternativesBreakdown } from "./AlternativesBreakdown";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const OnboardingWizard = () => {
@@ -118,10 +116,6 @@ export const OnboardingWizard = () => {
                     <span className="font-semibold">Strategy Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
                   </p>
                 </Card>
-                <div className={`${isMobile ? 'flex flex-col' : 'grid grid-cols-2 gap-4'}`}>
-                  <AllocationChart allocations={allocations} />
-                  <AlternativesBreakdown selectedStrategy={selectedStrategy} />
-                </div>
               </>
             )}
           </AccordionContent>
