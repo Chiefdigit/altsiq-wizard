@@ -22,12 +22,14 @@ export const useWizardState = () => {
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
-  // Effect to update dollar values when portfolio size changes
+  // Effect to update allocations when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size changed to:", portfolioSize);
     
-    // Calculate new dollar values based on percentages and new portfolio size
-    Object.entries(allocations).forEach(([key, percentage]) => {
+    // Update allocations while maintaining percentages
+    const updatedAllocations = { ...allocations };
+    
+    Object.entries(updatedAllocations).forEach(([key, percentage]) => {
       const dollarValue = (percentage / 100) * portfolioSize;
       console.log(`${key} allocation updated:`, {
         percentage,
@@ -39,8 +41,8 @@ export const useWizardState = () => {
       });
     });
 
-    // Force a re-render with the new portfolio size
-    setAllocations({...allocations});
+    // Force a re-render with the updated allocations
+    setAllocations(updatedAllocations);
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
