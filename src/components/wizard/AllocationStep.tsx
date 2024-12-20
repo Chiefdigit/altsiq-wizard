@@ -4,6 +4,7 @@ import { AllocationSlider } from "../AllocationSlider";
 import { AllocationChart } from "../AllocationChart";
 import { RiskScoreDisplay } from "../RiskScoreDisplay";
 import type { AllocationValues } from "@/types/allocation";
+import { formatDollarValue } from "@/utils/formatters";
 
 interface AllocationStepProps {
   allocations: AllocationValues;
@@ -25,6 +26,8 @@ export const AllocationStep = ({
     return (percentage / 100) * portfolioSize;
   };
 
+  const totalDollarValue = calculateDollarValue(totalAllocation);
+
   return (
     <div className="space-y-6">
       <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
@@ -33,7 +36,7 @@ export const AllocationStep = ({
           {totalAllocation}%
         </span>
         <span className="text-sm text-gray-600 ml-2">
-          (${new Intl.NumberFormat().format(calculateDollarValue(totalAllocation))})
+          ({formatDollarValue(totalDollarValue)})
         </span>
       </div>
 

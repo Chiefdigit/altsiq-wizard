@@ -44,9 +44,6 @@ export const WizardProvider = ({ children }: { children: React.ReactNode }) => {
   // Effect to update allocations when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size updated in context:", portfolioSize);
-    // Keep the current percentage allocations but recalculate dollar values
-    const updatedAllocations = { ...allocations };
-    setAllocations(updatedAllocations);
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
