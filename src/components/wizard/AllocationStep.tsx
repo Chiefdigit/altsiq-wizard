@@ -49,30 +49,15 @@ export const AllocationStep = ({
       </div>
 
       <div className="grid gap-6">
-        <AllocationSlider
-          label="Equities"
-          value={allocations.equities}
-          onChange={(value) => updateAllocation("equities", value)}
-          portfolioSize={portfolioSize}
-        />
-        <AllocationSlider
-          label="Bonds"
-          value={allocations.bonds}
-          onChange={(value) => updateAllocation("bonds", value)}
-          portfolioSize={portfolioSize}
-        />
-        <AllocationSlider
-          label="Cash"
-          value={allocations.cash}
-          onChange={(value) => updateAllocation("cash", value)}
-          portfolioSize={portfolioSize}
-        />
-        <AllocationSlider
-          label="Alternatives"
-          value={allocations.alternatives}
-          onChange={(value) => updateAllocation("alternatives", value)}
-          portfolioSize={portfolioSize}
-        />
+        {Object.entries(allocations).map(([key, value]) => (
+          <AllocationSlider
+            key={key}
+            label={key.charAt(0).toUpperCase() + key.slice(1)}
+            value={value}
+            onChange={(newValue) => updateAllocation(key as keyof AllocationValues, newValue)}
+            portfolioSize={portfolioSize}
+          />
+        ))}
       </div>
 
       <AllocationChart allocations={allocations} />

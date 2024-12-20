@@ -18,11 +18,12 @@ const DEFAULT_CUSTOM_ALLOCATIONS = {
 
 export const useWizardState = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
-  const [portfolioSize, setPortfolioSize] = useState(500000);
+  const [portfolioSize, setPortfolioSize] = useState(50000);
   const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
+  // Effect to log portfolio size changes
   useEffect(() => {
     console.log("Portfolio size updated:", portfolioSize);
     
