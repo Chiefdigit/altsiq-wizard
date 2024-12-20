@@ -26,37 +26,35 @@ export const useWizardState = () => {
   useEffect(() => {
     console.log("Portfolio size changed in useWizardState:", portfolioSize);
     
-    // Calculate dollar values based on current percentages and new portfolio size
-    const currentDollarValues = Object.entries(allocations).reduce((acc, [key, percentage]) => {
-      acc[key as keyof AllocationValues] = (percentage / 100) * portfolioSize;
-      return acc;
-    }, {} as Record<keyof AllocationValues, number>);
-
-    console.log("Updated dollar values:", currentDollarValues);
-    
-    // Keep the same percentages but ensure they reflect the new portfolio size
+    // Recalculate dollar values while maintaining percentages
     const updatedAllocations = { ...allocations };
-    setAllocations(updatedAllocations);
+    Object.entries(updatedAllocations).forEach(([key, percentage]) => {
+      const dollarValue = (percentage / 100) * portfolioSize;
+      console.log(`Recalculated ${key} allocation:`, {
+        percentage,
+        portfolioSize,
+        dollarValue
+      });
+    });
+    
+    // Force a re-render with the new portfolio size
+    setAllocations({ ...updatedAllocations });
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
-    console.log(`Updating allocation for ${type}:`, value, "Current portfolio size:", portfolioSize);
-    
-    // Calculate the remaining allocation excluding the current type
     const remainingTotal = Object.entries(allocations)
       .filter(([key]) => key !== type)
       .reduce((sum, [_, val]) => sum + val, 0);
 
-    // Only update if the new total would not exceed 100%
     if (remainingTotal + value <= 100) {
+      const dollarValue = (value / 100) * portfolioSize;
+      console.log(`Updating allocation for ${type}:`, value, "Current portfolio size:", portfolioSize);
+      console.log(`Dollar value for ${type}:`, dollarValue);
+
       const newAllocations = {
         ...allocations,
         [type]: value
       };
-      
-      // Calculate and log the actual dollar value for this allocation
-      const dollarValue = (value / 100) * portfolioSize;
-      console.log(`Dollar value for ${type}:`, dollarValue);
       
       setAllocations(newAllocations);
       console.log("Updated allocations:", newAllocations, "Portfolio size:", portfolioSize);
