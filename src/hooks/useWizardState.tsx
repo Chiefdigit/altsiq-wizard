@@ -22,8 +22,11 @@ export const useWizardState = () => {
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
+  // Update allocations when portfolio size changes
   useEffect(() => {
-    setAllocations(DEFAULT_ALLOCATIONS);
+    // Keep the same percentages but recalculate based on new portfolio size
+    const updatedAllocations = { ...allocations };
+    setAllocations(updatedAllocations);
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
@@ -32,7 +35,8 @@ export const useWizardState = () => {
       .reduce((sum, [_, val]) => sum + val, 0);
 
     if (total + value <= 100) {
-      setAllocations({ ...allocations, [type]: value });
+      const newAllocations = { ...allocations, [type]: value };
+      setAllocations(newAllocations);
     }
   };
 
