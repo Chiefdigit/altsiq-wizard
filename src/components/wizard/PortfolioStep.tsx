@@ -1,16 +1,18 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { PortfolioSlider } from "../PortfolioSlider";
-import { useWizardState } from "@/hooks/useWizardState";
+import { useWizard } from "./WizardContext";
 
 interface PortfolioStepProps {
   onContinue: () => void;
 }
 
 export const PortfolioStep = ({ onContinue }: PortfolioStepProps) => {
-  const { portfolioSize, setPortfolioSize } = useWizardState();
+  const { portfolioSize, setPortfolioSize } = useWizard();
 
   const handleContinue = () => {
+    // Ensure the current portfolioSize is set before continuing
+    setPortfolioSize(portfolioSize);
     console.log("Portfolio size on continue:", portfolioSize);
     onContinue();
   };
