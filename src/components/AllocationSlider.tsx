@@ -19,8 +19,8 @@ export const AllocationSlider = ({
 }: PortfolioSliderProps) => {
   const [inputValue, setInputValue] = useState("");
 
+  // Update dollar value whenever portfolio size or percentage changes
   useEffect(() => {
-    // Update dollar value whenever portfolio size or percentage changes
     const dollarValue = (value / 100) * portfolioSize;
     console.log(`${label} allocation updated:`, {
       percentage: value,
