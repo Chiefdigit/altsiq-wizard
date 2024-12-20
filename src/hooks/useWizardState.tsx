@@ -24,14 +24,14 @@ export const useWizardState = () => {
 
   // Update allocations when portfolio size changes
   useEffect(() => {
-    console.log("Portfolio size changed:", portfolioSize);
-    // Maintain the current allocation percentages
+    console.log("Portfolio size changed in useWizardState:", portfolioSize);
+    // Maintain the current allocation percentages but update based on new portfolio size
     const updatedAllocations = { ...allocations };
     setAllocations(updatedAllocations);
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
-    console.log(`Updating allocation for ${type}:`, value, "Portfolio size:", portfolioSize);
+    console.log(`Updating allocation for ${type}:`, value, "Current portfolio size:", portfolioSize);
     
     // Calculate the remaining allocation excluding the current type
     const remainingTotal = Object.entries(allocations)
@@ -40,10 +40,12 @@ export const useWizardState = () => {
 
     // Only update if the new total would not exceed 100%
     if (remainingTotal + value <= 100) {
-      setAllocations(prev => ({
-        ...prev,
+      const newAllocations = {
+        ...allocations,
         [type]: value
-      }));
+      };
+      setAllocations(newAllocations);
+      console.log("Updated allocations:", newAllocations, "Portfolio size:", portfolioSize);
     }
   };
 
