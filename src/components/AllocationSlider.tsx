@@ -1,37 +1,35 @@
 import React, { useState, useEffect } from "react";
 import * as Slider from "@radix-ui/react-slider";
 import { Input } from "@/components/ui/input";
-import { formatDollarValue, getSliderColor } from "@/utils/formatters";
+import { formatDollarValue } from "@/utils/formatters";
 
-interface AllocationSliderProps {
+interface PortfolioSliderProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
-  disabled?: boolean;
   portfolioSize: number;
 }
 
-export const AllocationSlider = ({
-  label,
-  value,
+export const AllocationSlider = ({ 
+  label, 
+  value, 
   onChange,
-  disabled = false,
-  portfolioSize,
-}: AllocationSliderProps) => {
-  const [inputValue, setInputValue] = useState<string>("");
+  portfolioSize 
+}: PortfolioSliderProps) => {
+  const [inputValue, setInputValue] = useState("");
 
-  // Update dollar value whenever portfolio size or percentage changes
   useEffect(() => {
+    // Update dollar value whenever portfolio size or percentage changes
     const dollarValue = (value / 100) * portfolioSize;
     setInputValue(formatDollarValue(dollarValue));
   }, [value, portfolioSize]);
 
-  const handleDollarInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue.startsWith('$') ? newValue : `$${newValue}`);
   };
 
-  const handleDollarBlur = () => {
+  const handleBlur = () => {
     const numericValue = parseFloat(inputValue.replace(/[$,]/g, ''));
     
     if (!isNaN(numericValue)) {
@@ -47,10 +45,8 @@ export const AllocationSlider = ({
     setInputValue(formatDollarValue(dollarValue));
   };
 
-  const sliderColor = getSliderColor(label);
-
   return (
-    <div className="w-full mb-6">
+    <div className="w-full">
       <div className="flex justify-between mb-2">
         <span className="text-sm font-medium">{label}</span>
         <div className="w-20">
@@ -70,17 +66,12 @@ export const AllocationSlider = ({
         max={100}
         min={0}
         step={1}
-        disabled={disabled}
       >
         <Slider.Track className="bg-gray-200 relative grow rounded-full h-2">
-          <Slider.Range 
-            className="absolute rounded-full h-full" 
-            style={{ backgroundColor: sliderColor }}
-          />
+          <Slider.Range className="absolute bg-primary rounded-full h-full" />
         </Slider.Track>
         <Slider.Thumb
-          className="block w-5 h-5 bg-white shadow-lg rounded-full border-2 hover:bg-gray-50 focus:outline-none disabled:opacity-50"
-          style={{ borderColor: sliderColor }}
+          className="block w-5 h-5 bg-white shadow-lg rounded-full border-2 border-primary hover:bg-gray-50 focus:outline-none"
           aria-label={`${label} allocation`}
         />
       </Slider.Root>
@@ -89,8 +80,8 @@ export const AllocationSlider = ({
           <Input
             type="text"
             value={inputValue}
-            onChange={handleDollarInputChange}
-            onBlur={handleDollarBlur}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
             className="text-lg font-medium text-center"
           />
         </div>

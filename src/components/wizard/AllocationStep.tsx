@@ -20,23 +20,36 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
+  // Calculate dollar values based on current portfolio size
+  const calculateDollarValue = (percentage: number) => {
+    return (percentage / 100) * portfolioSize;
+  };
+
   return (
     <div className="space-y-6">
       <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
         <span className="text-sm text-gray-600">Total Allocation: </span>
-        <span className="font-semibold">{totalAllocation}%</span>
+        <span className={`font-semibold ${totalAllocation !== 100 ? 'text-red-500' : 'text-green-500'}`}>
+          {totalAllocation}%
+        </span>
+        <span className="text-sm text-gray-600 ml-2">
+          (${new Intl.NumberFormat().format(calculateDollarValue(totalAllocation))})
+        </span>
       </div>
+
       {Object.entries(allocations).map(([key, value]) => (
         <AllocationSlider
           key={key}
           label={key.charAt(0).toUpperCase() + key.slice(1)}
           value={value}
-          onChange={(value) => updateAllocation(key as keyof AllocationValues, value)}
+          onChange={(newValue) => updateAllocation(key as keyof AllocationValues, newValue)}
           portfolioSize={portfolioSize}
         />
       ))}
+
       <AllocationChart allocations={allocations} />
       <RiskScoreDisplay allocations={allocations} />
+
       <div className="flex justify-end">
         <Button onClick={onContinue}>Continue</Button>
       </div>

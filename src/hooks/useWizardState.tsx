@@ -24,12 +24,14 @@ export const useWizardState = () => {
 
   // Update allocations when portfolio size changes
   useEffect(() => {
-    // Maintain the current percentage allocations
+    console.log("Portfolio size changed:", portfolioSize);
+    // Keep the current percentage allocations but recalculate dollar values
     const currentPercentages = { ...allocations };
     setAllocations(currentPercentages);
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
+    console.log(`Updating allocation for ${type}:`, value, "Portfolio size:", portfolioSize);
     const total = Object.entries(allocations)
       .filter(([key]) => key !== type)
       .reduce((sum, [_, val]) => sum + val, 0);
