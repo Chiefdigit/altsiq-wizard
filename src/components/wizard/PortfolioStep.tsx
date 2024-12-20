@@ -10,6 +10,13 @@ interface PortfolioStepProps {
 export const PortfolioStep = ({ onContinue }: PortfolioStepProps) => {
   const { portfolioSize, setPortfolioSize } = useWizard();
 
+  const handleContinue = () => {
+    // Ensure the current portfolioSize is set before continuing
+    setPortfolioSize(portfolioSize);
+    console.log("Portfolio size on continue:", portfolioSize);
+    onContinue();
+  };
+
   return (
     <div className="space-y-6">
       <PortfolioSlider
@@ -17,7 +24,7 @@ export const PortfolioStep = ({ onContinue }: PortfolioStepProps) => {
         onChange={setPortfolioSize}
       />
       <div className="flex justify-end">
-        <Button onClick={onContinue}>Continue</Button>
+        <Button onClick={handleContinue}>Continue</Button>
       </div>
     </div>
   );

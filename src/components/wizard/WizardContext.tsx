@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import type { AllocationValues } from "@/types/allocation";
 
 const DEFAULT_ALLOCATIONS = {
@@ -41,13 +41,23 @@ export const WizardProvider = ({ children }: { children: React.ReactNode }) => {
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
+  // Effect to update allocations when portfolio size changes
+  useEffect(() => {
+    console.log("Portfolio size updated in context:", portfolioSize);
+    // Keep the current percentage allocations but recalculate dollar values
+    const updatedAllocations = { ...allocations };
+    setAllocations(updatedAllocations);
+  }, [portfolioSize]);
+
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
+    console.log(`Updating allocation for ${type}:`, value, "Portfolio size:", portfolioSize);
     const total = Object.entries(allocations)
       .filter(([key]) => key !== type)
       .reduce((sum, [_, val]) => sum + val, 0);
 
     if (total + value <= 100) {
-      setAllocations({ ...allocations, [type]: value });
+      const newAllocations = { ...allocations, [type]: value };
+      setAllocations(newAllocations);
     }
   };
 
