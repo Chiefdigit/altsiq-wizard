@@ -22,14 +22,15 @@ export const useWizardState = () => {
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
-  // Effect to update allocations when portfolio size changes
+  // Update allocations when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size changed to:", portfolioSize);
     
-    // Recalculate dollar values for each allocation based on the new portfolio size
-    const updatedAllocations = { ...allocations };
+    // Create new allocations object with the same percentages
+    const newAllocations = { ...DEFAULT_ALLOCATIONS };
     
-    Object.entries(updatedAllocations).forEach(([key, percentage]) => {
+    // Log the new dollar values based on the updated portfolio size
+    Object.entries(newAllocations).forEach(([key, percentage]) => {
       const dollarValue = (percentage / 100) * portfolioSize;
       console.log(`${key} allocation updated:`, {
         percentage,
@@ -41,8 +42,8 @@ export const useWizardState = () => {
       });
     });
 
-    // Update allocations to trigger re-render with new portfolio size
-    setAllocations(updatedAllocations);
+    // Update the allocations state with the new values
+    setAllocations(newAllocations);
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
@@ -54,15 +55,14 @@ export const useWizardState = () => {
       const dollarValue = (value / 100) * portfolioSize;
       console.log(`${type} allocation updated:`, {
         newPercentage: value,
-        currentPortfolioSize: portfolioSize,
+        portfolioSize,
         newDollarValue: new Intl.NumberFormat('en-US', { 
           style: 'currency', 
           currency: 'USD' 
         }).format(dollarValue)
       });
 
-      const newAllocations = { ...allocations, [type]: value };
-      setAllocations(newAllocations);
+      setAllocations(prev => ({ ...prev, [type]: value }));
     }
   };
 

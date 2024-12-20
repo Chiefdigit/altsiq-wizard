@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { AllocationSlider } from "../AllocationSlider";
 import { AllocationChart } from "../AllocationChart";
@@ -21,26 +21,6 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
-  // Calculate dollar values based on current portfolio size
-  const calculateDollarValue = (percentage: number) => {
-    return (percentage / 100) * portfolioSize;
-  };
-
-  const totalDollarValue = portfolioSize;
-
-  // Update allocations when portfolio size changes
-  useEffect(() => {
-    // Update each allocation to maintain percentages with new portfolio size
-    Object.entries(allocations).forEach(([key, value]) => {
-      const dollarValue = calculateDollarValue(value);
-      console.log(`${key} allocation updated for new portfolio size:`, {
-        percentage: value,
-        portfolioSize,
-        dollarValue: formatDollarValue(dollarValue)
-      });
-    });
-  }, [portfolioSize, allocations]);
-
   return (
     <div className="space-y-6">
       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
@@ -50,7 +30,7 @@ export const AllocationStep = ({
             {totalAllocation}%
           </span>
           <span className="text-sm text-gray-600 ml-2">
-            ({formatDollarValue(totalDollarValue)})
+            ({formatDollarValue(portfolioSize)})
           </span>
         </div>
       </div>
