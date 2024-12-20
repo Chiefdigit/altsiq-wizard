@@ -22,29 +22,22 @@ export const useWizardState = () => {
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
-  // Update allocations when portfolio size changes
+  // Effect to update dollar values when portfolio size changes
   useEffect(() => {
-    console.log("Portfolio size changed:", {
-      newSize: portfolioSize,
-      currentAllocations: allocations
-    });
+    console.log("Portfolio size changed to:", portfolioSize);
     
-    // Calculate new dollar values based on current percentages and new portfolio size
-    const updatedAllocations = { ...allocations };
+    // Keep the same percentages but update dollar values based on new portfolio size
     Object.entries(allocations).forEach(([key, percentage]) => {
       const dollarValue = (percentage / 100) * portfolioSize;
-      console.log(`${key} allocation updated:`, {
+      console.log(`${key} allocation dollar value updated:`, {
         percentage,
-        portfolioSize,
-        dollarValue: new Intl.NumberFormat('en-US', { 
+        newPortfolioSize: portfolioSize,
+        newDollarValue: new Intl.NumberFormat('en-US', { 
           style: 'currency', 
           currency: 'USD' 
         }).format(dollarValue)
       });
     });
-
-    // Force a re-render with updated portfolio size
-    setAllocations(updatedAllocations);
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
@@ -63,12 +56,9 @@ export const useWizardState = () => {
         }).format(dollarValue)
       });
 
-      const newAllocations = {
-        ...allocations,
-        [type]: value
-      };
-      
+      const newAllocations = { ...allocations, [type]: value };
       setAllocations(newAllocations);
+      
       console.log("Updated allocations:", {
         allocations: newAllocations,
         portfolioSize
@@ -100,6 +90,7 @@ export const useWizardState = () => {
     selectedStrategy,
     setSelectedStrategy,
     customAllocations,
+    setCustomAllocations,
     updateAllocation,
     handleCustomAllocationChange,
     totalAllocation,
