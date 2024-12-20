@@ -68,11 +68,11 @@ export const AllocationSlider = ({
         min={0}
         step={1}
       >
-        <Slider.Track className="bg-gray-200 relative grow rounded-full h-2">
-          <Slider.Range className="absolute bg-primary rounded-full h-full" />
+        <Slider.Track className="bg-[#F1F0FB] relative grow rounded-full h-2">
+          <Slider.Range className="absolute bg-[#9b87f5] rounded-full h-full" />
         </Slider.Track>
         <Slider.Thumb
-          className="block w-5 h-5 bg-white shadow-lg rounded-full border-2 border-primary hover:bg-gray-50 focus:outline-none"
+          className="block w-5 h-5 bg-white shadow-lg rounded-full border-2 border-[#9b87f5] hover:bg-gray-50 focus:outline-none"
           aria-label={`${label} allocation`}
         />
       </Slider.Root>
