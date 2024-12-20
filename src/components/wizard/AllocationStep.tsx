@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { AllocationSlider } from "../AllocationSlider";
 import { AllocationChart } from "../AllocationChart";
-import { RiskScoreDisplay } from "../RiskScoreDisplay";
+import { StrategyLegend } from "../StrategyLegend";
 import type { AllocationValues } from "@/types/allocation";
 import { formatDollarValue } from "@/utils/formatters";
 
@@ -21,9 +21,6 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
-  // Calculate the actual dollar value based on current portfolio size
-  const totalDollarValue = portfolioSize;
-
   return (
     <div className="space-y-6">
       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
@@ -33,26 +30,48 @@ export const AllocationStep = ({
             {totalAllocation}%
           </span>
           <span className="text-sm text-gray-600 ml-2">
-            ({formatDollarValue(totalDollarValue)})
+            ({formatDollarValue(portfolioSize)})
           </span>
         </div>
       </div>
 
-      {Object.entries(allocations).map(([key, value]) => (
+      <div className="grid gap-6">
         <AllocationSlider
-          key={key}
-          label={key.charAt(0).toUpperCase() + key.slice(1)}
-          value={value}
-          onChange={(newValue) => updateAllocation(key as keyof AllocationValues, newValue)}
+          label="Equities"
+          value={allocations.equities}
+          onChange={(value) => updateAllocation("equities", value)}
           portfolioSize={portfolioSize}
         />
-      ))}
+        <AllocationSlider
+          label="Bonds"
+          value={allocations.bonds}
+          onChange={(value) => updateAllocation("bonds", value)}
+          portfolioSize={portfolioSize}
+        />
+        <AllocationSlider
+          label="Cash"
+          value={allocations.cash}
+          onChange={(value) => updateAllocation("cash", value)}
+          portfolioSize={portfolioSize}
+        />
+        <AllocationSlider
+          label="Alternatives"
+          value={allocations.alternatives}
+          onChange={(value) => updateAllocation("alternatives", value)}
+          portfolioSize={portfolioSize}
+        />
+      </div>
 
       <AllocationChart allocations={allocations} />
-      <RiskScoreDisplay allocations={allocations} />
+      <StrategyLegend allocation={allocations} />
 
       <div className="flex justify-end">
-        <Button onClick={onContinue}>Continue</Button>
+        <Button 
+          onClick={onContinue}
+          disabled={totalAllocation !== 100}
+        >
+          Continue
+        </Button>
       </div>
     </div>
   );
