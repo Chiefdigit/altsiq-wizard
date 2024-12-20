@@ -24,9 +24,9 @@ export const useWizardState = () => {
 
   // Update allocations when portfolio size changes
   useEffect(() => {
-    // Keep the same percentages but recalculate based on new portfolio size
-    const updatedAllocations = { ...allocations };
-    setAllocations(updatedAllocations);
+    // Maintain the current percentage allocations
+    const currentPercentages = { ...allocations };
+    setAllocations(currentPercentages);
   }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
