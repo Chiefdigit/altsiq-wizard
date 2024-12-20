@@ -24,7 +24,10 @@ export const useWizardState = () => {
 
   // Update allocations when portfolio size changes
   useEffect(() => {
-    console.log("Portfolio size changed in useWizardState:", portfolioSize);
+    console.log("Portfolio size changed:", {
+      newSize: portfolioSize,
+      currentAllocations: allocations
+    });
     
     // Recalculate dollar values while maintaining percentages
     const updatedAllocations = { ...allocations };
@@ -33,11 +36,14 @@ export const useWizardState = () => {
       console.log(`Recalculated ${key} allocation:`, {
         percentage,
         portfolioSize,
-        dollarValue
+        dollarValue: new Intl.NumberFormat('en-US', { 
+          style: 'currency', 
+          currency: 'USD' 
+        }).format(dollarValue)
       });
     });
     
-    // Force a re-render with the new portfolio size
+    // Force a re-render with the same percentages but new portfolio size
     setAllocations({ ...updatedAllocations });
   }, [portfolioSize]);
 
@@ -48,8 +54,14 @@ export const useWizardState = () => {
 
     if (remainingTotal + value <= 100) {
       const dollarValue = (value / 100) * portfolioSize;
-      console.log(`Updating allocation for ${type}:`, value, "Current portfolio size:", portfolioSize);
-      console.log(`Dollar value for ${type}:`, dollarValue);
+      console.log(`Updating allocation for ${type}:`, {
+        newPercentage: value,
+        currentPortfolioSize: portfolioSize,
+        newDollarValue: new Intl.NumberFormat('en-US', { 
+          style: 'currency', 
+          currency: 'USD' 
+        }).format(dollarValue)
+      });
 
       const newAllocations = {
         ...allocations,
@@ -57,7 +69,10 @@ export const useWizardState = () => {
       };
       
       setAllocations(newAllocations);
-      console.log("Updated allocations:", newAllocations, "Portfolio size:", portfolioSize);
+      console.log("Updated allocations:", {
+        allocations: newAllocations,
+        portfolioSize
+      });
     }
   };
 

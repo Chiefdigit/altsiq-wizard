@@ -22,7 +22,7 @@ export const AllocationSlider = ({
   useEffect(() => {
     // Update dollar value whenever portfolio size or percentage changes
     const dollarValue = (value / 100) * portfolioSize;
-    console.log(`${label} allocation:`, {
+    console.log(`${label} allocation updated:`, {
       percentage: value,
       portfolioSize,
       dollarValue: formatDollarValue(dollarValue)
@@ -45,11 +45,10 @@ export const AllocationSlider = ({
       const clampedPercentage = Math.max(0, Math.min(100, percentage));
       onChange(clampedPercentage);
       
-      // Log the calculation for debugging
-      console.log(`${label} calculation:`, {
+      console.log(`${label} dollar input calculation:`, {
         inputValue: numericValue,
         portfolioSize,
-        percentage: clampedPercentage,
+        resultingPercentage: clampedPercentage,
         resultingDollarValue: formatDollarValue((clampedPercentage / 100) * portfolioSize)
       });
     }
