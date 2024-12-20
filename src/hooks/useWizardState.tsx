@@ -30,6 +30,7 @@ export const useWizardState = () => {
     });
     
     // Calculate new dollar values based on current percentages and new portfolio size
+    const updatedAllocations = { ...allocations };
     Object.entries(allocations).forEach(([key, percentage]) => {
       const dollarValue = (percentage / 100) * portfolioSize;
       console.log(`${key} allocation updated:`, {
@@ -41,7 +42,10 @@ export const useWizardState = () => {
         }).format(dollarValue)
       });
     });
-  }, [portfolioSize, allocations]);
+
+    // Force a re-render with updated portfolio size
+    setAllocations(updatedAllocations);
+  }, [portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
     const remainingTotal = Object.entries(allocations)
