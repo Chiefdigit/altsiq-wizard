@@ -2,17 +2,17 @@ import { useState, useEffect } from "react";
 import type { AllocationValues } from "@/types/allocation";
 
 const DEFAULT_ALLOCATIONS = {
-  equities: 60,
-  bonds: 40,
+  equities: 0,
+  bonds: 0,
   cash: 0,
   alternatives: 0,
 };
 
-const DEFAULT_CUSTOM_ALLOCATIONS = {
-  equities: 25,
-  bonds: 25,
-  cash: 25,
-  alternatives: 25,
+const STANDARD_ALLOCATION = {
+  equities: 60,
+  bonds: 40,
+  cash: 0,
+  alternatives: 0,
 };
 
 export const useWizardState = () => {
@@ -20,25 +20,29 @@ export const useWizardState = () => {
   const [portfolioSize, setPortfolioSize] = useState(500000);
   const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
-  const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
+  const [customAllocations, setCustomAllocations] = useState<AllocationValues>({
+    equities: 25,
+    bonds: 25,
+    cash: 25,
+    alternatives: 25,
+  });
 
-  // Update allocations when portfolio size changes
+  // Reset allocations when component mounts
   useEffect(() => {
-    console.log("Portfolio size changed to:", portfolioSize);
-    
-    // Recalculate dollar values for each allocation based on new portfolio size
-    Object.entries(allocations).forEach(([key, percentage]) => {
-      const dollarValue = (percentage / 100) * portfolioSize;
-      console.log(`${key} allocation updated:`, {
-        percentage,
+    setAllocations(DEFAULT_ALLOCATIONS);
+  }, []);
+
+  // Set standard allocation when moving from portfolio to allocation step
+  const handleStepChange = (newStep: string) => {
+    if (activeStep === "portfolio" && newStep === "allocation") {
+      console.log("Setting standard allocation after portfolio step", {
         portfolioSize,
-        dollarValue: new Intl.NumberFormat('en-US', { 
-          style: 'currency', 
-          currency: 'USD' 
-        }).format(dollarValue)
+        newAllocations: STANDARD_ALLOCATION
       });
-    });
-  }, [portfolioSize, allocations]);
+      setAllocations(STANDARD_ALLOCATION);
+    }
+    setActiveStep(newStep);
+  };
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
     const remainingTotal = Object.entries(allocations)
@@ -77,7 +81,7 @@ export const useWizardState = () => {
 
   return {
     activeStep,
-    setActiveStep,
+    setActiveStep: handleStepChange,
     portfolioSize,
     setPortfolioSize,
     allocations,

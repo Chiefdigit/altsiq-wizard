@@ -21,6 +21,18 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
+  // Calculate the actual total dollar value based on allocations and portfolio size
+  const totalDollarValue = Object.values(allocations).reduce((sum, percentage) => {
+    return sum + (percentage / 100) * portfolioSize;
+  }, 0);
+
+  console.log('AllocationStep calculation:', {
+    portfolioSize,
+    allocations,
+    totalAllocation,
+    totalDollarValue
+  });
+
   return (
     <div className="space-y-6">
       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
@@ -30,7 +42,7 @@ export const AllocationStep = ({
             {totalAllocation}%
           </span>
           <span className="text-sm text-gray-600 ml-2">
-            ({formatDollarValue(portfolioSize)})
+            ({formatDollarValue(totalDollarValue)})
           </span>
         </div>
       </div>
