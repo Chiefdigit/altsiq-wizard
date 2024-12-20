@@ -25,7 +25,16 @@ export const useWizardState = () => {
   // Update allocations when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size changed in useWizardState:", portfolioSize);
-    // Maintain the current allocation percentages but update based on new portfolio size
+    
+    // Calculate dollar values based on current percentages and new portfolio size
+    const currentDollarValues = Object.entries(allocations).reduce((acc, [key, percentage]) => {
+      acc[key as keyof AllocationValues] = (percentage / 100) * portfolioSize;
+      return acc;
+    }, {} as Record<keyof AllocationValues, number>);
+
+    console.log("Updated dollar values:", currentDollarValues);
+    
+    // Keep the same percentages but ensure they reflect the new portfolio size
     const updatedAllocations = { ...allocations };
     setAllocations(updatedAllocations);
   }, [portfolioSize]);
@@ -44,6 +53,11 @@ export const useWizardState = () => {
         ...allocations,
         [type]: value
       };
+      
+      // Calculate and log the actual dollar value for this allocation
+      const dollarValue = (value / 100) * portfolioSize;
+      console.log(`Dollar value for ${type}:`, dollarValue);
+      
       setAllocations(newAllocations);
       console.log("Updated allocations:", newAllocations, "Portfolio size:", portfolioSize);
     }
