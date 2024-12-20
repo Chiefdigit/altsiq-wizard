@@ -22,7 +22,7 @@ export const AllocationStep = ({
   onContinue,
 }: AllocationStepProps) => {
   // Calculate the actual dollar value based on current portfolio size
-  const totalDollarValue = (totalAllocation / 100) * portfolioSize;
+  const totalDollarValue = portfolioSize;
 
   return (
     <div className="space-y-6">
