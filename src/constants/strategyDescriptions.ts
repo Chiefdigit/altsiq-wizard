@@ -9,12 +9,6 @@ type StrategyDescription = {
     cash: number;
     alternatives: number;
   };
-  alternativesBreakdown: {
-    privateEquity: number;
-    realEstate: number;
-    hedge: number;
-    venture: number;
-  };
   volatilityScore?: number;
   rationale: string;
 };
@@ -48,12 +42,6 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       cash: 5,
       alternatives: 40
     },
-    alternativesBreakdown: {
-      privateEquity: 25,
-      realEstate: 25,
-      hedge: 25,
-      venture: 25
-    },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
     },
@@ -75,12 +63,6 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       bonds: 35,
       cash: 5,
       alternatives: 45
-    },
-    alternativesBreakdown: {
-      privateEquity: 15,
-      realEstate: 40,
-      hedge: 30,
-      venture: 15
     },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
@@ -104,12 +86,6 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       cash: 5,
       alternatives: 35
     },
-    alternativesBreakdown: {
-      privateEquity: 35,
-      realEstate: 20,
-      hedge: 15,
-      venture: 30
-    },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
     },
@@ -132,12 +108,6 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       cash: 10,
       alternatives: 30
     },
-    alternativesBreakdown: {
-      privateEquity: 15,
-      realEstate: 35,
-      hedge: 35,
-      venture: 15
-    },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
     },
@@ -153,12 +123,6 @@ export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
       bonds: 25,
       cash: 25,
       alternatives: 25
-    },
-    alternativesBreakdown: {
-      privateEquity: 25,
-      realEstate: 25,
-      hedge: 25,
-      venture: 25
     },
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
