@@ -26,18 +26,23 @@ export const AllocationStep = ({
     return (percentage / 100) * portfolioSize;
   };
 
-  const totalDollarValue = calculateDollarValue(totalAllocation);
+  const totalDollarValue = Object.values(allocations).reduce(
+    (sum, percentage) => sum + calculateDollarValue(percentage),
+    0
+  );
 
   return (
     <div className="space-y-6">
-      <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
-        <span className="text-sm text-gray-600">Total Allocation: </span>
-        <span className={`font-semibold ${totalAllocation !== 100 ? 'text-red-500' : 'text-green-500'}`}>
-          {totalAllocation}%
-        </span>
-        <span className="text-sm text-gray-600 ml-2">
-          ({formatDollarValue(totalDollarValue)})
-        </span>
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <span className="text-sm text-gray-600">Total Allocation: </span>
+          <span className={`font-semibold ${totalAllocation !== 100 ? 'text-red-500' : 'text-green-500'}`}>
+            {totalAllocation}%
+          </span>
+          <span className="text-sm text-gray-600 ml-2">
+            ({formatDollarValue(totalDollarValue)})
+          </span>
+        </div>
       </div>
 
       {Object.entries(allocations).map(([key, value]) => (
