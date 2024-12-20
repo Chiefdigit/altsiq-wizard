@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { AllocationValues } from "@/types/allocation";
+import { formatDollarValue } from "@/utils/formatters";
 
 const DEFAULT_ALLOCATIONS = {
   equities: 60,
@@ -22,7 +23,6 @@ export const useWizardState = () => {
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
-  // Effect to log portfolio size changes
   useEffect(() => {
     console.log("Portfolio size updated:", portfolioSize);
     
@@ -32,10 +32,7 @@ export const useWizardState = () => {
       console.log(`${key} allocation updated:`, {
         percentage,
         portfolioSize,
-        dollarValue: new Intl.NumberFormat('en-US', { 
-          style: 'currency', 
-          currency: 'USD' 
-        }).format(dollarValue)
+        dollarValue: formatDollarValue(dollarValue)
       });
     });
   }, [portfolioSize, allocations]);
@@ -50,10 +47,7 @@ export const useWizardState = () => {
       console.log(`${type} allocation updated:`, {
         newPercentage: value,
         portfolioSize,
-        newDollarValue: new Intl.NumberFormat('en-US', { 
-          style: 'currency', 
-          currency: 'USD' 
-        }).format(dollarValue)
+        newDollarValue: formatDollarValue(dollarValue)
       });
 
       setAllocations(prev => ({ ...prev, [type]: value }));

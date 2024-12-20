@@ -5,6 +5,7 @@ import { AllocationChart } from "../AllocationChart";
 import { StrategyLegend } from "../StrategyLegend";
 import type { AllocationValues } from "@/types/allocation";
 import { formatDollarValue } from "@/utils/formatters";
+import { toast } from "@/components/ui/use-toast";
 
 interface AllocationStepProps {
   allocations: AllocationValues;
@@ -21,6 +22,18 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
+  const handleContinue = () => {
+    if (totalAllocation !== 100) {
+      toast({
+        title: "Invalid Allocation",
+        description: "Total allocation must equal 100%",
+        variant: "destructive",
+      });
+      return;
+    }
+    onContinue();
+  };
+
   return (
     <div className="space-y-6">
       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
@@ -67,8 +80,9 @@ export const AllocationStep = ({
 
       <div className="flex justify-end">
         <Button 
-          onClick={onContinue}
+          onClick={handleContinue}
           disabled={totalAllocation !== 100}
+          className="bg-primary hover:bg-primary/90"
         >
           Continue
         </Button>
