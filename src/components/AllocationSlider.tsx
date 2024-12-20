@@ -22,7 +22,11 @@ export const AllocationSlider = ({
   useEffect(() => {
     // Update dollar value whenever portfolio size or percentage changes
     const dollarValue = (value / 100) * portfolioSize;
-    console.log(`Calculating dollar value for ${label}:`, { value, portfolioSize, dollarValue });
+    console.log(`${label} allocation:`, {
+      percentage: value,
+      portfolioSize,
+      dollarValue: formatDollarValue(dollarValue)
+    });
     setInputValue(formatDollarValue(dollarValue));
   }, [value, portfolioSize, label]);
 
@@ -40,6 +44,14 @@ export const AllocationSlider = ({
       // Ensure percentage stays within 0-100 range
       const clampedPercentage = Math.max(0, Math.min(100, percentage));
       onChange(clampedPercentage);
+      
+      // Log the calculation for debugging
+      console.log(`${label} calculation:`, {
+        inputValue: numericValue,
+        portfolioSize,
+        percentage: clampedPercentage,
+        resultingDollarValue: formatDollarValue((clampedPercentage / 100) * portfolioSize)
+      });
     }
 
     // Reset input value to match the current percentage of the current portfolio size
@@ -66,7 +78,15 @@ export const AllocationSlider = ({
       <Slider.Root
         className="relative flex items-center select-none touch-none w-full h-5"
         value={[value]}
-        onValueChange={(values) => onChange(values[0])}
+        onValueChange={(values) => {
+          const newValue = values[0];
+          onChange(newValue);
+          console.log(`${label} slider change:`, {
+            newPercentage: newValue,
+            portfolioSize,
+            newDollarValue: formatDollarValue((newValue / 100) * portfolioSize)
+          });
+        }}
         max={100}
         min={0}
         step={1}
