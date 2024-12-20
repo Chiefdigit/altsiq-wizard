@@ -35,14 +35,14 @@ export const AllocationSlider = ({
     const numericValue = parseFloat(inputValue.replace(/[$,]/g, ''));
     
     if (!isNaN(numericValue)) {
-      // Calculate percentage based on the entered dollar value
+      // Calculate percentage based on the entered dollar value and current portfolio size
       const percentage = Math.round((numericValue / portfolioSize) * 100);
       // Ensure percentage stays within 0-100 range
       const clampedPercentage = Math.max(0, Math.min(100, percentage));
       onChange(clampedPercentage);
     }
 
-    // Reset input value to match the current percentage
+    // Reset input value to match the current percentage of the current portfolio size
     const dollarValue = (value / 100) * portfolioSize;
     setInputValue(formatDollarValue(dollarValue));
   };
