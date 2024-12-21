@@ -12,8 +12,9 @@ export const getChartData = (categories: Set<string>, selectedStrategy: string):
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
   if (!currentAllocations) return [];
 
+  // Filter out zero values and categories not in the set
   return Object.entries(currentAllocations)
-    .filter(([category, value]) => categories.has(category) && value > 0) // Only include non-zero values
+    .filter(([category, value]) => categories.has(category) && value > 0)
     .map(([category, value]) => ({
       category,
       value,
