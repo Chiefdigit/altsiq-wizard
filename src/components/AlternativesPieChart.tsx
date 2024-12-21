@@ -7,6 +7,8 @@ import { LegendItem } from "./charts/LegendItem";
 import { configureChart } from "./charts/ChartConfig";
 import { STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
 
+type AlternativesCategory = keyof typeof STRATEGY_ALLOCATIONS.diversification;
+
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
@@ -27,7 +29,7 @@ export const AlternativesPieChart = () => {
         newSet.add(category);
         
         // If the category being added had a 0 value, redistribute proportionally
-        if (selectedStrategy && STRATEGY_ALLOCATIONS[selectedStrategy][category] === 0) {
+        if (selectedStrategy && STRATEGY_ALLOCATIONS[selectedStrategy][category as AlternativesCategory] === 0) {
           const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy];
           const totalNonZeroValue = Object.entries(baseAllocations)
             .filter(([key, value]) => value > 0 && newSet.has(key))
@@ -65,7 +67,7 @@ export const AlternativesPieChart = () => {
           if (value === 0 && visibleCategories.has(category)) {
             const totalNonZeroValue = Object.entries(baseAllocations)
               .filter(([key, val]) => val > 0 && visibleCategories.has(key))
-              .reduce((sum, [_, val]) => sum + val, 0);
+              .reduce((sum, [_, val]) => sum + (val as number), 0);
             
             return {
               category,
@@ -76,16 +78,16 @@ export const AlternativesPieChart = () => {
           
           return {
             category,
-            value,
+            value: value as number,
             color: getColorForCategory(category)
           };
         });
 
       // Normalize values to sum to 100%
-      const total = visibleData.reduce((sum, item) => sum + item.value, 0);
+      const total = visibleData.reduce((sum, item) => sum + (item.value as number), 0);
       return visibleData.map(item => ({
         ...item,
-        value: Math.round((item.value / total) * 100)
+        value: Math.round(((item.value as number) / total) * 100)
       }));
     };
 
