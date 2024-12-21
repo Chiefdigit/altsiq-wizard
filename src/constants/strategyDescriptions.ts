@@ -15,7 +15,6 @@ const calculateVolatilityScore = (allocation: AllocationValues) => {
   return Number(((weights.equities * 4) + (weights.bonds * 2) + (weights.cash * 1) + (weights.alternatives * 3)).toFixed(2));
 };
 
-// Add volatility scores to strategies
 const strategies = {
   diversification: {
     ...diversificationStrategy,
@@ -45,7 +44,7 @@ const strategies = {
     title: "+ Advanced",
     objective: "Let's build a personalized allocation for you.",
     description: "Create your own custom allocation strategy.",
-    points: ["Customize your portfolio allocation based on your specific needs"],
+    points: ["Customize your portfolio allocation based on your specific needs"] as string[],
     allocation: {
       equities: 25,
       bonds: 25,
