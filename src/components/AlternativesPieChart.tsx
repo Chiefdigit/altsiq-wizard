@@ -19,7 +19,7 @@ const ALTERNATIVES_COLORS = {
   "Cryptocurrencies": "#F9F871",
   "Collectibles": "#008F7A",
   "Commodities": "#4B4453"
-};
+} as const;
 
 const DEFAULT_ALLOCATIONS = {
   "Hedge Funds": 20,
@@ -30,7 +30,7 @@ const DEFAULT_ALLOCATIONS = {
   "Cryptocurrencies": 10,
   "Collectibles": 5,
   "Commodities": 10
-};
+} as const;
 
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
@@ -77,8 +77,8 @@ export const AlternativesPieChart = () => {
       })
     );
 
-    series.labels.template.set("visible", false);
-    series.ticks.template.set("visible", false);
+    series.labels.template.setAll({ visible: false });
+    series.ticks.template.setAll({ visible: false });
 
     // Create legend
     const legend = chart.children.push(
@@ -95,26 +95,29 @@ export const AlternativesPieChart = () => {
       fontWeight: "500"
     });
 
-    legend.valueLabels.template.set("visible", false);
-
+    legend.valueLabels.template.setAll({ visible: false });
     legend.data.setAll(series.dataItems);
 
     // Add click listener to toggle categories
-    legend.itemContainers.template.set("toggleKey", "active");
     legend.itemContainers.template.states.create("disabled", {
-      fill: am5.color(0x9ca3af) // Tailwind gray-400 equivalent
+      fillOpacity: 0.5
     });
 
     legend.itemContainers.template.events.on("click", (e) => {
-      const clickedCategory = e.target.dataItem.get("category");
+      const dataItem = e.target.dataItem;
+      if (!dataItem) return;
+      
+      const category = dataItem.get("category");
+      if (!category) return;
+
       const newActiveCategories = new Set(activeCategories);
 
-      if (newActiveCategories.has(clickedCategory)) {
+      if (newActiveCategories.has(category)) {
         if (newActiveCategories.size > 1) { // Prevent removing last category
-          newActiveCategories.delete(clickedCategory);
+          newActiveCategories.delete(category);
         }
       } else {
-        newActiveCategories.add(clickedCategory);
+        newActiveCategories.add(category);
       }
 
       setActiveCategories(newActiveCategories);
