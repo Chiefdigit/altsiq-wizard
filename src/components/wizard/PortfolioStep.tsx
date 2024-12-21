@@ -11,6 +11,8 @@ export const PortfolioStep = ({ onContinue }: PortfolioStepProps) => {
   const { portfolioSize, setPortfolioSize } = useWizardState();
 
   const handleContinue = () => {
+    // Store the portfolio size in localStorage to persist it
+    localStorage.setItem('portfolioSize', portfolioSize.toString());
     console.log("Portfolio size on continue:", portfolioSize);
     onContinue();
   };

@@ -23,7 +23,7 @@ export const useWizardState = () => {
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
-  // Effect to log portfolio size changes
+  // Effect to update allocations when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size updated:", portfolioSize);
     
