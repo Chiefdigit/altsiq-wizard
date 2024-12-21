@@ -65,23 +65,23 @@ export const AlternativesPieChart = () => {
       },
       {
         category: "Private Debt",
-        value: 10,  // Added value for Private Debt
-        color: am5.color("#E5E7EB")
+        value: 10,
+        color: am5.color("#D946EF") // Updated color
       },
       {
         category: "Private Credit",
-        value: 8,   // Added value for Private Credit
-        color: am5.color("#E5E7EB")
+        value: 8,
+        color: am5.color("#F97316") // Updated color
       },
       {
         category: "Commodities",
-        value: 6,   // Added value for Commodities
-        color: am5.color("#E5E7EB")
+        value: 6,
+        color: am5.color("#0EA5E9") // Updated color
       },
       {
         category: "Collectibles",
-        value: 4,   // Added value for Collectibles
-        color: am5.color("#E5E7EB")
+        value: 4,
+        color: am5.color("#8B5CF6") // Updated color
       }
     ];
 
@@ -106,7 +106,7 @@ export const AlternativesPieChart = () => {
     return () => {
       root.dispose();
     };
-  }, [selectedStrategy, visibleCategories]); // Added visibleCategories as dependency
+  }, [selectedStrategy, visibleCategories]);
 
   const getColorForCategory = (category: string) => {
     switch (category) {
@@ -114,10 +114,10 @@ export const AlternativesPieChart = () => {
       case "Hedge Funds": return "bg-[#818CF8]";
       case "Real Assets": return "bg-[#A78BFA]";
       case "Cryptocurrencies": return "bg-[#E879F9]";
-      case "Private Debt": return "bg-purple-400";
-      case "Private Credit": return "bg-purple-300";
-      case "Commodities": return "bg-pink-400";
-      case "Collectibles": return "bg-gray-300";
+      case "Private Debt": return "bg-[#D946EF]"; // Updated color
+      case "Private Credit": return "bg-[#F97316]"; // Updated color
+      case "Commodities": return "bg-[#0EA5E9]"; // Updated color
+      case "Collectibles": return "bg-[#8B5CF6]"; // Updated color
       default: return "bg-gray-200";
     }
   };
