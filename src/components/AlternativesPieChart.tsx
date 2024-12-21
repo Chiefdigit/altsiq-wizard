@@ -56,7 +56,7 @@ export const AlternativesPieChart = () => {
         y: am5.percent(100),
         layout: root.horizontalLayout,
         height: 100,
-        verticalCenter: "bottom"
+        centerY: am5.percent(100)
       })
     );
 
