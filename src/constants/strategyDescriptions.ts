@@ -44,15 +44,15 @@ const strategies = {
   advanced: {
     title: "+ Advanced",
     objective: "Let's build a personalized allocation for you.",
-    description: "",
-    points: [],
+    description: "Create your own custom allocation strategy.",
+    points: ["Customize your portfolio allocation based on your specific needs"],
     allocation: {
       equities: 25,
       bonds: 25,
       cash: 25,
       alternatives: 25
     },
-    rationale: "",
+    rationale: "Custom allocation strategy based on your specific investment goals and risk tolerance.",
     get volatilityScore() {
       return calculateVolatilityScore(this.allocation);
     }
