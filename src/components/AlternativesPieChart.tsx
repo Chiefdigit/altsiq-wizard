@@ -47,22 +47,57 @@ export const AlternativesPieChart = () => {
 
       series.labels.template.setAll({
         text: "{category}: {value.formatNumber('#.0')}%",
-        textType: "circular",
+        radius: 10,
         inside: true,
-        radius: 10
+        textType: "adjusted",
+        fill: am5.color(0xffffff)
       });
 
+      // Configure legend at the bottom
       const legend = chart.children.push(
         am5.Legend.new(root, {
           centerX: am5.percent(50),
           x: am5.percent(50),
-          marginTop: 15,
-          marginBottom: 15
+          marginTop: 30,
+          marginBottom: 15,
+          layout: root.horizontalLayout,
+          height: 50,
+          width: am5.percent(90),
+          verticalScrollbar: am5.Scrollbar.new(root, {
+            orientation: "vertical"
+          })
         })
       );
 
-      legend.data.setAll([]);
-      series.data.setAll([]);
+      legend.labels.template.setAll({
+        fontSize: 13,
+        fontWeight: "500"
+      });
+
+      legend.valueLabels.template.setAll({
+        fontSize: 13,
+        fontWeight: "500"
+      });
+
+      legend.itemContainers.template.states.create("disabled", {
+        opacity: 0.5
+      });
+
+      legend.itemContainers.template.events.on("click", (e) => {
+        const dataItem = e.target.dataItem as am5.DataItem<any>;
+        if (!dataItem) return;
+        
+        const category = dataItem.get("category");
+        if (!category) return;
+
+        const newActiveCategories = new Set(activeCategories);
+        if (newActiveCategories.has(category)) {
+          newActiveCategories.delete(category);
+        } else {
+          newActiveCategories.add(category);
+        }
+        setActiveCategories(newActiveCategories);
+      });
 
       (root as any).series = series;
       (root as any).legend = legend;
@@ -93,7 +128,7 @@ export const AlternativesPieChart = () => {
       <h3 className="text-lg font-semibold mb-4">Alternative Assets Allocation</h3>
       <div
         id="alternatives-chartdiv"
-        style={{ width: "100%", height: "400px", minHeight: "400px" }}
+        style={{ width: "100%", height: "500px" }}
       />
     </Card>
   );
