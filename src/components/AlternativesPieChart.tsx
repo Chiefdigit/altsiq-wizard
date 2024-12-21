@@ -12,7 +12,7 @@ export const AlternativesPieChart = () => {
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set([
     "Private Equity",
     "Hedge Funds",
-    "Real Assets",
+    "Real Estate",
     "Cryptocurrencies",
     "Private Debt",
     "Private Credit",
