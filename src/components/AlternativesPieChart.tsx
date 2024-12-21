@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -79,14 +79,10 @@ const STRATEGY_ALLOCATIONS = {
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
-  const [activeCategories, setActiveCategories] = useState<Set<string>>(
-    new Set(Object.keys(STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS]))
-  );
+  const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
 
   const getChartData = (categories: Set<string>): AlternativesData[] => {
     const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-    
-    // Only include categories that have a value greater than 0
     const nonZeroCategories = Array.from(categories).filter(
       category => currentAllocations[category as keyof typeof currentAllocations] > 0
     );
@@ -98,8 +94,8 @@ export const AlternativesPieChart = () => {
     }));
   };
 
-  useLayoutEffect(() => {
-    // Reset active categories when strategy changes to only include non-zero values
+  // Effect to update active categories when strategy changes
+  useEffect(() => {
     const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
     const nonZeroCategories = new Set(
       Object.entries(currentAllocations)
@@ -107,89 +103,101 @@ export const AlternativesPieChart = () => {
         .map(([key]) => key)
     );
     setActiveCategories(nonZeroCategories);
+  }, [selectedStrategy]);
 
-    const root = am5.Root.new("alternatives-chartdiv", {
-      useSafeResolution: false
-    });
-    
-    chartRef.current = root;
-    root.setThemes([am5themes_Animated.new(root)]);
-
-    const chart = root.container.children.push(
-      am5percent.PieChart.new(root, {
-        layout: root.verticalLayout,
-        innerRadius: am5.percent(50)
-      })
-    );
-
-    const series = chart.series.push(
-      am5percent.PieSeries.new(root, {
-        valueField: "value",
-        categoryField: "category",
-        fillField: "color",
-        alignLabels: false
-      })
-    );
-
-    series.labels.template.setAll({ visible: false });
-    series.ticks.template.setAll({ visible: false });
-
-    const legend = chart.children.push(
-      am5.Legend.new(root, {
-        centerX: am5.percent(50),
-        x: am5.percent(50),
-        marginTop: 15,
-        marginBottom: 15
-      })
-    );
-
-    legend.labels.template.setAll({
-      fontSize: 13,
-      fontWeight: "500"
-    });
-
-    legend.valueLabels.template.setAll({
-      visible: true,
-      fontSize: 13,
-      fontWeight: "500",
-      text: "{value}%"
-    });
-
-    legend.data.setAll(series.dataItems);
-
-    legend.itemContainers.template.states.create("disabled", {
-      opacity: 0.5
-    });
-
-    legend.itemContainers.template.events.on("click", (e) => {
-      const dataItem = e.target.dataItem as am5.DataItem<any>;
-      if (!dataItem) return;
+  // Effect to initialize and update chart
+  useLayoutEffect(() => {
+    if (!chartRef.current) {
+      const root = am5.Root.new("alternatives-chartdiv", {
+        useSafeResolution: false
+      });
       
-      const category = dataItem.get("category");
-      if (!category) return;
+      chartRef.current = root;
+      root.setThemes([am5themes_Animated.new(root)]);
 
-      const newActiveCategories = new Set(activeCategories);
+      const chart = root.container.children.push(
+        am5percent.PieChart.new(root, {
+          layout: root.verticalLayout,
+          innerRadius: am5.percent(50)
+        })
+      );
 
-      if (newActiveCategories.has(category)) {
-        if (newActiveCategories.size > 1) {
-          newActiveCategories.delete(category);
+      const series = chart.series.push(
+        am5percent.PieSeries.new(root, {
+          valueField: "value",
+          categoryField: "category",
+          fillField: "color",
+          alignLabels: false
+        })
+      );
+
+      series.labels.template.setAll({ visible: false });
+      series.ticks.template.setAll({ visible: false });
+
+      const legend = chart.children.push(
+        am5.Legend.new(root, {
+          centerX: am5.percent(50),
+          x: am5.percent(50),
+          marginTop: 15,
+          marginBottom: 15
+        })
+      );
+
+      legend.labels.template.setAll({
+        fontSize: 13,
+        fontWeight: "500"
+      });
+
+      legend.valueLabels.template.setAll({
+        visible: true,
+        fontSize: 13,
+        fontWeight: "500",
+        text: "{value}%"
+      });
+
+      legend.data.setAll(series.dataItems);
+
+      legend.itemContainers.template.states.create("disabled", {
+        opacity: 0.5
+      });
+
+      legend.itemContainers.template.events.on("click", (e) => {
+        const dataItem = e.target.dataItem as am5.DataItem<any>;
+        if (!dataItem) return;
+        
+        const category = dataItem.get("category");
+        if (!category) return;
+
+        const newActiveCategories = new Set(activeCategories);
+
+        if (newActiveCategories.has(category)) {
+          if (newActiveCategories.size > 1) {
+            newActiveCategories.delete(category);
+          }
+        } else {
+          newActiveCategories.add(category);
         }
-      } else {
-        newActiveCategories.add(category);
-      }
 
-      setActiveCategories(newActiveCategories);
-      const newData = getChartData(newActiveCategories);
-      series.data.setAll(newData);
-    });
+        setActiveCategories(newActiveCategories);
+      });
 
-    const initialData = getChartData(activeCategories);
-    series.data.setAll(initialData);
+      // Store series reference for updates
+      (chart as any).customSeries = series;
+    }
+
+    // Update data
+    const series = (chartRef.current?.container.children.getIndex(0) as any)?.customSeries;
+    if (series) {
+      const data = getChartData(activeCategories);
+      series.data.setAll(data);
+    }
 
     return () => {
-      root.dispose();
+      if (chartRef.current) {
+        chartRef.current.dispose();
+      }
     };
-  }, [activeCategories, selectedStrategy]);
+  }, [activeCategories]);
 
   return (
     <Card className="p-2 md:p-4">
