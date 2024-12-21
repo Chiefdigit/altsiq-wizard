@@ -51,7 +51,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     // Create axes
     const xAxis = chart.xAxes.push(
       am5xy.CategoryAxis.new(root, {
-        categoryXField: "category",
+        categoryField: "category",
         renderer: am5xy.AxisRendererX.new(root, {
           minGridDistance: 30
         })
