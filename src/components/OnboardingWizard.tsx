@@ -8,6 +8,7 @@ import { WizardStep } from "./wizard/WizardStep";
 import { Card } from "@/components/ui/card";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 import { WIZARD_STEPS, type WizardStepValue } from "@/constants/wizardSteps";
+import { AlternativesPieChart } from "./AlternativesPieChart";
 
 export const OnboardingWizard = () => {
   const {
@@ -58,7 +59,7 @@ export const OnboardingWizard = () => {
         );
       case "alternatives":
         return (
-          <>
+          <div className="space-y-4">
             {selectedStrategy && selectedStrategy !== 'advanced' && (
               <>
                 <h3 className="text-xl font-semibold mb-4">
@@ -72,10 +73,8 @@ export const OnboardingWizard = () => {
                 </Card>
               </>
             )}
-            <div className="text-center text-gray-500">
-              Coming soon: Alternative investment allocation options
-            </div>
-          </>
+            <AlternativesPieChart />
+          </div>
         );
     }
   };
