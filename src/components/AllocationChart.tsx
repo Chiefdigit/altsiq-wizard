@@ -13,6 +13,18 @@ interface AllocationChartProps {
   };
 }
 
+interface ChartDataItem {
+  category: string;
+  equities: number;
+  bonds: number;
+  cash: number;
+  alternatives: number;
+  unallocated?: number;
+  columnSettings: {
+    fill: am5.Color;
+  };
+}
+
 export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   const chartRef = useRef<am5.Root | null>(null);
 
@@ -39,7 +51,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     // Create axes
     const xAxis = chart.xAxes.push(
       am5xy.CategoryAxis.new(root, {
-        categoryField: "category",
+        categoryXField: "category",
         renderer: am5xy.AxisRendererX.new(root, {
           minGridDistance: 30
         })
@@ -61,8 +73,8 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         name: "Allocation",
         xAxis: xAxis,
         yAxis: yAxis,
-        valueField: "value",
-        categoryField: "category",
+        valueYField: "value",
+        categoryXField: "category",
         stacked: true
       })
     );
@@ -79,7 +91,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     // Calculate unallocated amount
     const unallocated = Math.max(0, 100 - totalAllocation);
 
-    const data = [
+    const data: ChartDataItem[] = [
       {
         category: "Portfolio",
         equities: allocations.equities,
@@ -93,15 +105,17 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     ];
 
     // Create series for each asset class
-    const createSeries = (field: string, name: string, color: string) => {
+    const createSeries = (field: keyof ChartDataItem, name: string, color: string) => {
+      if (field === 'category' || field === 'columnSettings') return;
+      
       const series = chart.series.push(
         am5xy.ColumnSeries.new(root, {
           name: name,
           stacked: true,
           xAxis: xAxis,
           yAxis: yAxis,
-          valueField: field,
-          categoryField: "category"
+          valueYField: field,
+          categoryXField: "category"
         })
       );
 
