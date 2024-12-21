@@ -22,10 +22,11 @@ export const AlternativesPieChart = () => {
   useLayoutEffect(() => {
     if (!selectedStrategy) return;
 
-    // Only create root if it doesn't exist
+    // Create root if it doesn't exist
     if (!chartRef.current) {
       const root = am5.Root.new("alternatives-chartdiv");
       root.setThemes([am5themes_Animated.new(root)]);
+      chartRef.current = root;
 
       // Create chart
       const chart = root.container.children.push(
@@ -67,25 +68,32 @@ export const AlternativesPieChart = () => {
         })
       );
 
-      legend.data.setAll(series.dataItems);
+      legend.data.setAll([]);
+      series.data.setAll([]);
 
-      chartRef.current = root;
+      // Store references
       (root as any).series = series;
       (root as any).legend = legend;
     }
 
     // Update data
     const root = chartRef.current;
-    const series = (root as any).series;
-    if (series) {
-      const data = getChartData(activeCategories, selectedStrategy);
-      series.data.setAll(data);
-      (root as any).legend.data.setAll(data);
+    if (root) {
+      const series = (root as any).series;
+      const legend = (root as any).legend;
+      if (series && legend) {
+        const data = getChartData(activeCategories, selectedStrategy);
+        console.log('Chart data:', data); // Debug log
+        series.data.setAll(data);
+        legend.data.setAll(data);
+      }
     }
 
+    // Cleanup
     return () => {
       if (chartRef.current) {
         chartRef.current.dispose();
+        chartRef.current = null;
       }
     };
   }, [activeCategories, selectedStrategy]);
@@ -95,7 +103,7 @@ export const AlternativesPieChart = () => {
       <h3 className="text-lg font-semibold mb-4">Alternative Assets Allocation</h3>
       <div
         id="alternatives-chartdiv"
-        style={{ width: "100%", height: "400px" }}
+        style={{ width: "100%", height: "400px", minHeight: "400px" }}
       />
     </Card>
   );

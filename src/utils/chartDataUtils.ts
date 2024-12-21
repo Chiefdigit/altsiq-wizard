@@ -12,6 +12,8 @@ export const getChartData = (categories: Set<string>, selectedStrategy: string):
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
   if (!currentAllocations) return [];
 
+  console.log('Current allocations:', currentAllocations); // Debug log
+
   return Object.entries(currentAllocations)
     .filter(([category, value]) => value > 0 && categories.has(category))
     .map(([category, value]) => ({
@@ -19,7 +21,7 @@ export const getChartData = (categories: Set<string>, selectedStrategy: string):
       value,
       color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
     }))
-    .sort((a, b) => b.value - a.value); // Sort by value descending
+    .sort((a, b) => b.value - a.value);
 };
 
 export const getInitialCategories = (selectedStrategy: string): Set<string> => {
