@@ -4,7 +4,7 @@ import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { Card } from "@/components/ui/card";
 import { useWizard } from "@/components/wizard/WizardContext";
-import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
@@ -159,18 +159,39 @@ export const AlternativesPieChart = () => {
             {row.map((category) => (
               <div key={category} className="flex items-center gap-2">
                 <div 
-                  className="flex items-center gap-2 cursor-pointer"
+                  className="flex items-center gap-2 cursor-pointer group"
                   onClick={() => toggleCategory(category)}
                 >
-                  <div className={`w-4 h-4 rounded ${getColorForCategory(category)}`} />
-                  <span className={`text-sm ${visibleCategories.has(category) ? 'text-gray-900' : 'text-gray-400'}`}>
+                  <div 
+                    className={cn(
+                      "w-4 h-4 rounded transition-colors",
+                      getColorForCategory(category),
+                      !visibleCategories.has(category) && "opacity-40"
+                    )} 
+                  />
+                  <span 
+                    className={cn(
+                      "text-sm transition-colors",
+                      visibleCategories.has(category) ? "text-gray-900" : "text-gray-400"
+                    )}
+                  >
                     {category}
                   </span>
                 </div>
-                <Switch
-                  checked={visibleCategories.has(category)}
-                  onCheckedChange={() => toggleCategory(category)}
-                />
+                <div 
+                  className={cn(
+                    "w-10 h-5 rounded-full relative cursor-pointer transition-colors",
+                    visibleCategories.has(category) ? "bg-blue-500" : "bg-gray-300"
+                  )}
+                  onClick={() => toggleCategory(category)}
+                >
+                  <div 
+                    className={cn(
+                      "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform",
+                      visibleCategories.has(category) ? "translate-x-5" : "translate-x-0"
+                    )}
+                  />
+                </div>
               </div>
             ))}
           </div>
