@@ -21,7 +21,8 @@ export const AlternativesPieChart = () => {
     const chart = root.container.children.push(
       am5percent.PieChart.new(root, {
         layout: root.verticalLayout,
-        innerRadius: am5.percent(50)
+        innerRadius: am5.percent(50),
+        paddingBottom: 50
       })
     );
 
@@ -48,15 +49,14 @@ export const AlternativesPieChart = () => {
       fontSize: 13
     });
 
-    // Position legend at the bottom
+    // Create legend
     const legend = chart.children.push(
       am5.Legend.new(root, {
         centerX: am5.percent(50),
         x: am5.percent(50),
-        y: am5.percent(100),
         layout: root.horizontalLayout,
-        height: 100,
-        centerY: am5.percent(100)
+        height: 50,
+        marginTop: 20
       })
     );
 
