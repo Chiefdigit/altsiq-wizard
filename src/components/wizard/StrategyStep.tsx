@@ -4,6 +4,7 @@ import { StrategyDetails } from "./strategy/StrategyDetails";
 import { StrategyActions } from "./strategy/StrategyActions";
 import { AdvancedAllocation } from "../AdvancedAllocation";
 import type { AllocationValues } from "@/types/allocation";
+import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 
 interface StrategyStepProps {
   selectedStrategy: string;
