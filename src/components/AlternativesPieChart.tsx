@@ -43,13 +43,13 @@ export const AlternativesPieChart = () => {
     if (activeCategories.length === 0) return [];
 
     const totalActiveAllocation = activeCategories.reduce(
-      (sum, category) => sum + DEFAULT_ALLOCATIONS[category], 0
+      (sum, category) => sum + DEFAULT_ALLOCATIONS[category as keyof typeof DEFAULT_ALLOCATIONS], 0
     );
 
     return activeCategories.map(category => ({
       category,
-      value: (DEFAULT_ALLOCATIONS[category] / totalActiveAllocation) * 100,
-      color: ALTERNATIVES_COLORS[category]
+      value: (DEFAULT_ALLOCATIONS[category as keyof typeof DEFAULT_ALLOCATIONS] / totalActiveAllocation) * 100,
+      color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
     }));
   };
 
@@ -100,14 +100,14 @@ export const AlternativesPieChart = () => {
 
     // Add click listener to toggle categories
     legend.itemContainers.template.states.create("disabled", {
-      fillOpacity: 0.5
+      opacity: 0.5
     });
 
     legend.itemContainers.template.events.on("click", (e) => {
-      const dataItem = e.target.dataItem;
+      const dataItem = e.target.dataItem as am5.DataItem<any>;
       if (!dataItem) return;
       
-      const category = dataItem.get("category");
+      const category = dataItem.get("category") as keyof typeof DEFAULT_ALLOCATIONS;
       if (!category) return;
 
       const newActiveCategories = new Set(activeCategories);
