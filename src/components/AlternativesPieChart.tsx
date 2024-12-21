@@ -6,6 +6,7 @@ import { useWizard } from "@/components/wizard/WizardContext";
 import { LegendItem } from "./charts/LegendItem";
 import { configureChart } from "./charts/ChartConfig";
 import { STRATEGY_ALLOCATIONS, ALTERNATIVES_COLORS } from "@/constants/alternativesConfig";
+import { AlternativesAdjustDialog } from "./AlternativesAdjustDialog";
 
 type AlternativesCategory = keyof typeof STRATEGY_ALLOCATIONS.diversification;
 
@@ -18,6 +19,8 @@ interface ChartDataItem {
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
+  const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
+  const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set([
     "Private Credit",
     "Private Debt",
@@ -33,23 +36,13 @@ export const AlternativesPieChart = () => {
         newSet.delete(category);
       } else {
         newSet.add(category);
-        
-        // If the category being added had a 0 value, redistribute proportionally
-        if (selectedStrategy && STRATEGY_ALLOCATIONS[selectedStrategy][category as AlternativesCategory] === 0) {
-          const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy];
-          const totalNonZeroValue = Object.entries(baseAllocations)
-            .filter(([key, value]) => (value as number) > 0 && newSet.has(key))
-            .reduce((sum, [_, value]) => sum + (value as number), 0);
-          
-          // Calculate a proportional value (e.g., 5-10% of total)
-          const proportionalValue = Math.round(totalNonZeroValue * 0.1); // 10% of total
-          
-          // This will trigger a re-render with the new proportional value
-          console.log(`Adding ${category} with proportional value: ${proportionalValue}%`);
-        }
       }
       return newSet;
     });
+  };
+
+  const handleSaveAllocations = (newAllocations: Record<string, number>) => {
+    setCustomAllocations(newAllocations);
   };
 
   useLayoutEffect(() => {
@@ -61,39 +54,23 @@ export const AlternativesPieChart = () => {
 
     const { series } = configureChart(root);
 
-    // Get base allocations for the selected strategy
-    const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy];
-
-    // Calculate data with proportional values for zero-value selections
     const calculateProportionalData = (): ChartDataItem[] => {
-      const visibleData = Object.entries(baseAllocations)
-        .filter(([category]) => visibleCategories.has(category))
-        .map(([category, value]) => {
-          // If original value was 0 and category is visible, assign proportional value
-          if ((value as number) === 0 && visibleCategories.has(category)) {
-            const totalNonZeroValue = Object.entries(baseAllocations)
-              .filter(([key, val]) => (val as number) > 0 && visibleCategories.has(key))
-              .reduce((sum, [_, val]) => sum + (val as number), 0);
-            
-            return {
-              category,
-              value: Math.round(totalNonZeroValue * 0.1), // 10% of total non-zero value
-              color: getColorForCategory(category)
-            };
-          }
-          
-          return {
-            category,
-            value: value as number,
-            color: getColorForCategory(category)
-          };
-        });
+      const visibleData = Array.from(visibleCategories).map(category => {
+        const baseValue = customAllocations[category] ?? 
+          (STRATEGY_ALLOCATIONS[selectedStrategy][category as AlternativesCategory] || 0);
+
+        return {
+          category,
+          value: baseValue,
+          color: getColorForCategory(category)
+        };
+      });
 
       // Normalize values to sum to 100%
       const total = visibleData.reduce((sum, item) => sum + item.value, 0);
       return visibleData.map(item => ({
         ...item,
-        value: Math.round((item.value / total) * 100)
+        value: total > 0 ? Math.round((item.value / total) * 100) : 0
       }));
     };
 
@@ -103,7 +80,7 @@ export const AlternativesPieChart = () => {
     return () => {
       root.dispose();
     };
-  }, [selectedStrategy, visibleCategories]);
+  }, [selectedStrategy, visibleCategories, customAllocations]);
 
   const getColorForCategory = (category: string): am5.Color => {
     const hexColor = ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS] || "#64748b";
@@ -125,7 +102,12 @@ export const AlternativesPieChart = () => {
       <div className="mt-4 bg-gray-50 rounded-lg p-4">
         <div className="flex justify-between items-start mb-4">
           <h4 className="text-sm font-medium text-gray-700">Select Asset Classes</h4>
-          <span className="text-sm font-medium">ADJUST</span>
+          <button 
+            className="text-sm font-medium hover:text-primary transition-colors"
+            onClick={() => setIsAdjustDialogOpen(true)}
+          >
+            ADJUST
+          </button>
         </div>
         {legendItems.map((row, rowIndex) => (
           <div key={rowIndex} className="flex flex-wrap gap-4 mb-4 last:mb-0">
@@ -141,6 +123,12 @@ export const AlternativesPieChart = () => {
           </div>
         ))}
       </div>
+      <AlternativesAdjustDialog
+        open={isAdjustDialogOpen}
+        onOpenChange={setIsAdjustDialogOpen}
+        visibleCategories={visibleCategories}
+        onSave={handleSaveAllocations}
+      />
     </Card>
   );
 };
