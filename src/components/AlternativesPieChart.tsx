@@ -41,8 +41,8 @@ export const AlternativesPieChart = () => {
 
     const { series } = configureChart(root);
 
-    // Data matching the image
-    const data = [
+    // Data with all possible categories
+    const allData = [
       {
         category: "Private Equity",
         value: 45.45,
@@ -65,31 +65,43 @@ export const AlternativesPieChart = () => {
       },
       {
         category: "Private Debt",
-        value: 0,
+        value: 10,  // Added value for Private Debt
         color: am5.color("#E5E7EB")
       },
       {
         category: "Private Credit",
-        value: 0,
+        value: 8,   // Added value for Private Credit
         color: am5.color("#E5E7EB")
       },
       {
         category: "Commodities",
-        value: 0,
+        value: 6,   // Added value for Commodities
         color: am5.color("#E5E7EB")
       },
       {
         category: "Collectibles",
-        value: 0,
+        value: 4,   // Added value for Collectibles
         color: am5.color("#E5E7EB")
       }
-    ].map(item => ({
-      ...item,
-      value: visibleCategories.has(item.category) ? item.value : 0,
-      hidden: !visibleCategories.has(item.category)
-    }));
+    ];
 
-    series.data.setAll(data);
+    // Filter and normalize data based on visible categories
+    const visibleData = allData
+      .filter(item => visibleCategories.has(item.category))
+      .map(item => ({
+        ...item,
+        hidden: !visibleCategories.has(item.category)
+      }));
+
+    // Normalize values to sum to 100%
+    if (visibleData.length > 0) {
+      const total = visibleData.reduce((sum, item) => sum + item.value, 0);
+      visibleData.forEach(item => {
+        item.value = (item.value / total) * 100;
+      });
+    }
+
+    series.data.setAll(visibleData);
 
     return () => {
       root.dispose();
