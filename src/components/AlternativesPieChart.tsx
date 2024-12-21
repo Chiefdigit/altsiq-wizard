@@ -1,10 +1,10 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import * as am5 from "@amcharts/amcharts5";
-import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { Card } from "@/components/ui/card";
 import { useWizard } from "@/components/wizard/WizardContext";
-import { cn } from "@/lib/utils";
+import { LegendItem } from "./charts/LegendItem";
+import { configureChart } from "./charts/ChartConfig";
 
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
@@ -39,38 +39,7 @@ export const AlternativesPieChart = () => {
     root.setThemes([am5themes_Animated.new(root)]);
     chartRef.current = root;
 
-    const chart = root.container.children.push(
-      am5percent.PieChart.new(root, {
-        layout: root.verticalLayout,
-        innerRadius: am5.percent(40),
-        radius: am5.percent(90)
-      })
-    );
-
-    const series = chart.series.push(
-      am5percent.PieSeries.new(root, {
-        valueField: "value",
-        categoryField: "category",
-        fillField: "color",
-        alignLabels: false
-      })
-    );
-
-    series.slices.template.setAll({
-      strokeWidth: 2,
-      stroke: am5.color(0xffffff),
-      templateField: "sliceSettings"
-    });
-
-    series.labels.template.setAll({
-      text: "{category}: {value}%",
-      radius: 30,
-      inside: false,
-      textType: "adjusted",
-      fill: am5.color(0x000000),
-      fontSize: 13,
-      fontWeight: "400"
-    });
+    const { series } = configureChart(root);
 
     // Data matching the image
     const data = [
@@ -127,11 +96,6 @@ export const AlternativesPieChart = () => {
     };
   }, [selectedStrategy, visibleCategories]);
 
-  const legendItems = [
-    ["Private Equity", "Hedge Funds", "Real Assets", "Cryptocurrencies"],
-    ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
-  ];
-
   const getColorForCategory = (category: string) => {
     switch (category) {
       case "Private Equity": return "bg-[#69B1FF]";
@@ -146,6 +110,11 @@ export const AlternativesPieChart = () => {
     }
   };
 
+  const legendItems = [
+    ["Private Equity", "Hedge Funds", "Real Assets", "Cryptocurrencies"],
+    ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
+  ];
+
   return (
     <Card className="p-4">
       <h3 className="text-lg font-semibold mb-4">Distribution Chart</h3>
@@ -157,42 +126,13 @@ export const AlternativesPieChart = () => {
         {legendItems.map((row, rowIndex) => (
           <div key={rowIndex} className="flex flex-wrap gap-4 mb-2">
             {row.map((category) => (
-              <div key={category} className="flex items-center gap-2">
-                <div 
-                  className="flex items-center gap-2 cursor-pointer group"
-                  onClick={() => toggleCategory(category)}
-                >
-                  <div 
-                    className={cn(
-                      "w-4 h-4 rounded transition-colors",
-                      getColorForCategory(category),
-                      !visibleCategories.has(category) && "opacity-40"
-                    )} 
-                  />
-                  <span 
-                    className={cn(
-                      "text-sm transition-colors",
-                      visibleCategories.has(category) ? "text-gray-900" : "text-gray-400"
-                    )}
-                  >
-                    {category}
-                  </span>
-                </div>
-                <div 
-                  className={cn(
-                    "w-10 h-5 rounded-full relative cursor-pointer transition-colors",
-                    visibleCategories.has(category) ? "bg-blue-500" : "bg-gray-300"
-                  )}
-                  onClick={() => toggleCategory(category)}
-                >
-                  <div 
-                    className={cn(
-                      "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform",
-                      visibleCategories.has(category) ? "translate-x-5" : "translate-x-0"
-                    )}
-                  />
-                </div>
-              </div>
+              <LegendItem
+                key={category}
+                category={category}
+                isVisible={visibleCategories.has(category)}
+                colorClass={getColorForCategory(category)}
+                onToggle={() => toggleCategory(category)}
+              />
             ))}
           </div>
         ))}
