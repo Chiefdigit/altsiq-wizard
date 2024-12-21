@@ -86,16 +86,28 @@ export const AlternativesPieChart = () => {
   const getChartData = (categories: Set<string>): AlternativesData[] => {
     const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
     
-    return Array.from(categories)
-      .filter(category => currentAllocations[category as keyof typeof currentAllocations] > 0)
-      .map(category => ({
-        category,
-        value: currentAllocations[category as keyof typeof currentAllocations],
-        color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
-      }));
+    // Only include categories that have a value greater than 0
+    const nonZeroCategories = Array.from(categories).filter(
+      category => currentAllocations[category as keyof typeof currentAllocations] > 0
+    );
+
+    return nonZeroCategories.map(category => ({
+      category,
+      value: currentAllocations[category as keyof typeof currentAllocations],
+      color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
+    }));
   };
 
   useLayoutEffect(() => {
+    // Reset active categories when strategy changes to only include non-zero values
+    const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+    const nonZeroCategories = new Set(
+      Object.entries(currentAllocations)
+        .filter(([_, value]) => value > 0)
+        .map(([key]) => key)
+    );
+    setActiveCategories(nonZeroCategories);
+
     const root = am5.Root.new("alternatives-chartdiv", {
       useSafeResolution: false
     });
