@@ -31,14 +31,14 @@ export const OnboardingWizard = () => {
   } = useWizardState();
 
   return (
-    <div className="max-w-2xl mx-auto px-2 sm:px-6 animate-fade-in">
+    <div className="max-w-2xl mx-auto p-6 animate-fade-in">
       <Accordion
         type="single"
         value={activeStep}
         onValueChange={setActiveStep}
         className="w-full space-y-4"
       >
-        <AccordionItem value="portfolio" className="border rounded-lg p-2 sm:p-4">
+        <AccordionItem value="portfolio" className="border rounded-lg p-4">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
@@ -47,12 +47,12 @@ export const OnboardingWizard = () => {
               <span>Portfolio Size</span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-4 sm:pt-6">
+          <AccordionContent className="pt-6">
             <PortfolioStep onContinue={() => setActiveStep("allocation")} />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="allocation" className="border rounded-lg p-2 sm:p-4">
+        <AccordionItem value="allocation" className="border rounded-lg p-4">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
@@ -61,7 +61,7 @@ export const OnboardingWizard = () => {
               <span>Asset Allocation</span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-4 sm:pt-6">
+          <AccordionContent className="pt-6">
             <AllocationStep
               allocations={allocations}
               updateAllocation={updateAllocation}
@@ -72,7 +72,7 @@ export const OnboardingWizard = () => {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="strategy" className="border rounded-lg p-2 sm:p-4">
+        <AccordionItem value="strategy" className="border rounded-lg p-4">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
@@ -81,7 +81,7 @@ export const OnboardingWizard = () => {
               <span>Investment Strategy</span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-4 sm:pt-6">
+          <AccordionContent className="pt-6">
             <StrategyStep
               selectedStrategy={selectedStrategy}
               onStrategyChange={setSelectedStrategy}
@@ -93,7 +93,7 @@ export const OnboardingWizard = () => {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="alternatives" className="border rounded-lg p-2 sm:p-4">
+        <AccordionItem value="alternatives" className="border rounded-lg p-4">
           <AccordionTrigger className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
@@ -102,7 +102,7 @@ export const OnboardingWizard = () => {
               <span>Alternatives Allocation</span>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-4 sm:pt-6">
+          <AccordionContent className="pt-6">
             {selectedStrategy && selectedStrategy !== 'advanced' && (
               <>
                 <h3 className="text-xl font-semibold mb-4">
