@@ -1,6 +1,12 @@
 import { ALTERNATIVES_COLORS, STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
 
-export const getChartData = (categories: Set<string>, selectedStrategy: string) => {
+export interface AlternativesData {
+  category: string;
+  value: number;
+  color: string;
+}
+
+export const getChartData = (categories: Set<string>, selectedStrategy: string): AlternativesData[] => {
   if (!selectedStrategy) return [];
   
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
