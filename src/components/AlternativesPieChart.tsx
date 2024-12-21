@@ -42,42 +42,42 @@ export const AlternativesPieChart = () => {
     const allData = [
       {
         category: "Private Equity",
-        value: 45,
+        value: 0,
         color: am5.color("#69B1FF")
       },
       {
         category: "Hedge Funds",
-        value: 27,
+        value: 25,
         color: am5.color("#818CF8")
       },
       {
-        category: "Real Assets",
-        value: 23,
+        category: "Real Estate",
+        value: 10,
         color: am5.color("#A78BFA")
       },
       {
         category: "Cryptocurrencies",
-        value: 5,
+        value: 0,
         color: am5.color("#E879F9")
       },
       {
         category: "Private Debt",
-        value: 10,
+        value: 25,
         color: am5.color("#D946EF")
       },
       {
         category: "Private Credit",
-        value: 8,
+        value: 25,
         color: am5.color("#F97316")
       },
       {
         category: "Commodities",
-        value: 6,
+        value: 15,
         color: am5.color("#0EA5E9")
       },
       {
         category: "Collectibles",
-        value: 4,
+        value: 0,
         color: am5.color("#8B5CF6")
       }
     ];
