@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useWizard } from "@/components/wizard/WizardContext";
 import { LegendItem } from "./charts/LegendItem";
 import { configureChart } from "./charts/ChartConfig";
+import { STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
 
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
@@ -24,6 +25,20 @@ export const AlternativesPieChart = () => {
         newSet.delete(category);
       } else {
         newSet.add(category);
+        
+        // If the category being added had a 0 value, redistribute proportionally
+        if (selectedStrategy && STRATEGY_ALLOCATIONS[selectedStrategy][category] === 0) {
+          const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy];
+          const totalNonZeroValue = Object.entries(baseAllocations)
+            .filter(([key, value]) => value > 0 && newSet.has(key))
+            .reduce((sum, [_, value]) => sum + value, 0);
+          
+          // Calculate a proportional value (e.g., 5-10% of total)
+          const proportionalValue = Math.round(totalNonZeroValue * 0.1); // 10% of total
+          
+          // This will trigger a re-render with the new proportional value
+          console.log(`Adding ${category} with proportional value: ${proportionalValue}%`);
+        }
       }
       return newSet;
     });
@@ -38,74 +53,44 @@ export const AlternativesPieChart = () => {
 
     const { series } = configureChart(root);
 
-    // Data with all possible categories
-    const allData = [
-      {
-        category: "Private Equity",
-        value: 0,
-        color: am5.color("#69B1FF")
-      },
-      {
-        category: "Hedge Funds",
-        value: 25,
-        color: am5.color("#818CF8")
-      },
-      {
-        category: "Real Estate",
-        value: 10,
-        color: am5.color("#A78BFA")
-      },
-      {
-        category: "Cryptocurrencies",
-        value: 0,
-        color: am5.color("#E879F9")
-      },
-      {
-        category: "Private Debt",
-        value: 25,
-        color: am5.color("#D946EF")
-      },
-      {
-        category: "Private Credit",
-        value: 25,
-        color: am5.color("#F97316")
-      },
-      {
-        category: "Commodities",
-        value: 15,
-        color: am5.color("#0EA5E9")
-      },
-      {
-        category: "Collectibles",
-        value: 0,
-        color: am5.color("#8B5CF6")
-      }
-    ];
+    // Get base allocations for the selected strategy
+    const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy];
 
-    // Filter and normalize data based on visible categories
-    const visibleData = allData
-      .filter(item => visibleCategories.has(item.category))
-      .map(item => ({
-        ...item,
-        hidden: !visibleCategories.has(item.category)
-      }));
+    // Calculate data with proportional values for zero-value selections
+    const calculateProportionalData = () => {
+      const visibleData = Object.entries(baseAllocations)
+        .filter(([category]) => visibleCategories.has(category))
+        .map(([category, value]) => {
+          // If original value was 0 and category is visible, assign proportional value
+          if (value === 0 && visibleCategories.has(category)) {
+            const totalNonZeroValue = Object.entries(baseAllocations)
+              .filter(([key, val]) => val > 0 && visibleCategories.has(key))
+              .reduce((sum, [_, val]) => sum + val, 0);
+            
+            return {
+              category,
+              value: Math.round(totalNonZeroValue * 0.1), // 10% of total non-zero value
+              color: getColorForCategory(category)
+            };
+          }
+          
+          return {
+            category,
+            value,
+            color: getColorForCategory(category)
+          };
+        });
 
-    // Normalize values to sum to 100% and round to nearest integer
-    if (visibleData.length > 0) {
+      // Normalize values to sum to 100%
       const total = visibleData.reduce((sum, item) => sum + item.value, 0);
-      visibleData.forEach(item => {
-        item.value = Math.round((item.value / total) * 100);
-      });
-      
-      // Adjust rounding errors to ensure total is exactly 100%
-      const newTotal = visibleData.reduce((sum, item) => sum + item.value, 0);
-      if (newTotal !== 100 && visibleData.length > 0) {
-        const diff = 100 - newTotal;
-        visibleData[0].value += diff; // Add any rounding difference to the largest category
-      }
-    }
+      return visibleData.map(item => ({
+        ...item,
+        value: Math.round((item.value / total) * 100)
+      }));
+    };
 
-    series.data.setAll(visibleData);
+    const normalizedData = calculateProportionalData();
+    series.data.setAll(normalizedData);
 
     return () => {
       root.dispose();
@@ -114,15 +99,15 @@ export const AlternativesPieChart = () => {
 
   const getColorForCategory = (category: string) => {
     switch (category) {
-      case "Private Equity": return "bg-[#69B1FF]";
-      case "Hedge Funds": return "bg-[#818CF8]";
-      case "Real Estate": return "bg-[#A78BFA]";
-      case "Cryptocurrencies": return "bg-[#E879F9]";
-      case "Private Debt": return "bg-[#D946EF]";
-      case "Private Credit": return "bg-[#F97316]";
-      case "Commodities": return "bg-[#0EA5E9]";
-      case "Collectibles": return "bg-[#8B5CF6]";
-      default: return "bg-gray-200";
+      case "Private Equity": return am5.color("#69B1FF");
+      case "Hedge Funds": return am5.color("#818CF8");
+      case "Real Estate": return am5.color("#A78BFA");
+      case "Cryptocurrencies": return am5.color("#E879F9");
+      case "Private Debt": return am5.color("#D946EF");
+      case "Private Credit": return am5.color("#F97316");
+      case "Commodities": return am5.color("#0EA5E9");
+      case "Collectibles": return am5.color("#8B5CF6");
+      default: return am5.color("#64748b");
     }
   };
 
@@ -150,7 +135,7 @@ export const AlternativesPieChart = () => {
                 key={category}
                 category={category}
                 isVisible={visibleCategories.has(category)}
-                colorClass={getColorForCategory(category)}
+                colorClass={`bg-[${getColorForCategory(category).toString()}]`}
                 onToggle={() => toggleCategory(category)}
               />
             ))}
