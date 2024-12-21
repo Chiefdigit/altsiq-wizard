@@ -4,7 +4,7 @@ import { growthStrategy } from './strategies/growth';
 import { preservationStrategy } from './strategies/preservation';
 import type { StrategyDescription, AllocationValues } from './types';
 
-const calculateVolatilityScore = (allocation: AllocationValues): number => {
+const calculateVolatilityScore = (allocation: AllocationValues) => {
   const weights = {
     equities: allocation.equities / 100,
     bonds: allocation.bonds / 100,
@@ -15,37 +15,47 @@ const calculateVolatilityScore = (allocation: AllocationValues): number => {
   return Number(((weights.equities * 4) + (weights.bonds * 2) + (weights.cash * 1) + (weights.alternatives * 3)).toFixed(2));
 };
 
-const advancedStrategy: StrategyDescription = {
-  title: "+ Advanced",
-  objective: "Let's build a personalized allocation for you.",
-  description: "Create your own custom allocation strategy.",
-  points: ["Customize your portfolio allocation based on your specific needs"],
-  allocation: {
-    equities: 25,
-    bonds: 25,
-    cash: 25,
-    alternatives: 25
-  },
-  rationale: "Custom allocation strategy based on your specific investment goals and risk tolerance.",
-  volatilityScore: 2.5 // Pre-calculated based on default allocation
-};
-
-export const STRATEGY_DESCRIPTIONS: Record<string, StrategyDescription> = {
+const strategies = {
   diversification: {
     ...diversificationStrategy,
-    volatilityScore: calculateVolatilityScore(diversificationStrategy.allocation)
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
+    }
   },
   income: {
     ...incomeStrategy,
-    volatilityScore: calculateVolatilityScore(incomeStrategy.allocation)
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
+    }
   },
   growth: {
     ...growthStrategy,
-    volatilityScore: calculateVolatilityScore(growthStrategy.allocation)
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
+    }
   },
   preservation: {
     ...preservationStrategy,
-    volatilityScore: calculateVolatilityScore(preservationStrategy.allocation)
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
+    }
   },
-  advanced: advancedStrategy
-};
+  advanced: {
+    title: "+ Advanced",
+    objective: "Let's build a personalized allocation for you.",
+    description: "Create your own custom allocation strategy.",
+    points: ["Customize your portfolio allocation based on your specific needs"] as string[],
+    allocation: {
+      equities: 25,
+      bonds: 25,
+      cash: 25,
+      alternatives: 25
+    },
+    rationale: "Custom allocation strategy based on your specific investment goals and risk tolerance.",
+    get volatilityScore() {
+      return calculateVolatilityScore(this.allocation);
+    }
+  }
+} as const;
+
+export const STRATEGY_DESCRIPTIONS: Record<keyof typeof strategies, StrategyDescription> = strategies;
