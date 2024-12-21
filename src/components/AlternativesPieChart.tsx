@@ -1,13 +1,36 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { Card } from "@/components/ui/card";
 import { useWizard } from "@/components/wizard/WizardContext";
+import { Switch } from "@/components/ui/switch";
 
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
+  const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set([
+    "Private Equity",
+    "Hedge Funds",
+    "Real Assets",
+    "Cryptocurrencies",
+    "Private Debt",
+    "Private Credit",
+    "Commodities",
+    "Collectibles"
+  ]));
+
+  const toggleCategory = (category: string) => {
+    setVisibleCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
 
   useLayoutEffect(() => {
     if (!selectedStrategy) return;
@@ -49,88 +72,79 @@ export const AlternativesPieChart = () => {
       fontWeight: "400"
     });
 
-    // Create legend
-    const legend = chart.children.push(
-      am5.Legend.new(root, {
-        centerX: am5.percent(50),
-        x: am5.percent(50),
-        y: am5.percent(102),
-        layout: root.horizontalLayout,
-        height: am5.percent(10),
-        centerY: am5.percent(100),
-        background: am5.Rectangle.new(root, {
-          fill: am5.color(0xffffff),
-          fillOpacity: 0
-        })
-      })
-    );
-
-    legend.labels.template.setAll({
-      fontSize: 13,
-      fontWeight: "400"
-    });
-
-    legend.valueLabels.template.setAll({
-      fontSize: 13,
-      fontWeight: "400"
-    });
-
-    legend.markerRectangles.template.setAll({
-      cornerRadiusTL: 0,
-      cornerRadiusTR: 0,
-      cornerRadiusBL: 0,
-      cornerRadiusBR: 0
-    });
-
     // Data matching the image
     const data = [
       {
-        category: "One",
+        category: "Private Equity",
         value: 45.45,
         color: am5.color("#69B1FF")
       },
       {
-        category: "Two",
-        value: 0,
-        color: am5.color("#E5E7EB"),
-        sliceSettings: { forceHidden: true }
-      },
-      {
-        category: "Three",
+        category: "Hedge Funds",
         value: 27.27,
         color: am5.color("#818CF8")
       },
       {
-        category: "Four",
+        category: "Real Assets",
         value: 22.73,
         color: am5.color("#A78BFA")
       },
       {
-        category: "Five",
-        value: 0,
-        color: am5.color("#E5E7EB"),
-        sliceSettings: { forceHidden: true }
-      },
-      {
-        category: "Six",
-        value: 0,
-        color: am5.color("#E5E7EB"),
-        sliceSettings: { forceHidden: true }
-      },
-      {
-        category: "Seven",
+        category: "Cryptocurrencies",
         value: 4.55,
         color: am5.color("#E879F9")
+      },
+      {
+        category: "Private Debt",
+        value: 0,
+        color: am5.color("#E5E7EB"),
+        sliceSettings: { forceHidden: true }
+      },
+      {
+        category: "Private Credit",
+        value: 0,
+        color: am5.color("#E5E7EB"),
+        sliceSettings: { forceHidden: true }
+      },
+      {
+        category: "Commodities",
+        value: 0,
+        color: am5.color("#E5E7EB"),
+        sliceSettings: { forceHidden: true }
+      },
+      {
+        category: "Collectibles",
+        value: 0,
+        color: am5.color("#E5E7EB"),
+        sliceSettings: { forceHidden: true }
       }
     ];
 
     series.data.setAll(data);
-    legend.data.setAll(data);
 
     return () => {
       root.dispose();
     };
-  }, [selectedStrategy]);
+  }, [selectedStrategy, visibleCategories]);
+
+  const legendItems = [
+    ["Private Equity", "Hedge Funds", "Real Assets", "Cryptocurrencies"],
+    ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
+  ];
+
+  const getColorForCategory = (category: string) => {
+    switch (category) {
+      case "Private Equity": return "bg-[#69B1FF]";
+      case "Hedge Funds": return "bg-[#818CF8]";
+      case "Real Assets": return "bg-[#A78BFA]";
+      case "Cryptocurrencies": return "bg-[#E879F9]";
+      case "Private Debt": return "bg-purple-400";
+      case "Private Credit": return "bg-purple-300";
+      case "Commodities": return "bg-pink-400";
+      case "Collectibles": return "bg-gray-300";
+      default: return "bg-gray-200";
+    }
+  };
 
   return (
     <Card className="p-4">
@@ -139,6 +153,27 @@ export const AlternativesPieChart = () => {
         id="alternatives-chartdiv"
         style={{ width: "100%", height: "500px" }}
       />
+      <div className="mt-4 bg-gray-50 rounded-lg p-4">
+        {legendItems.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex flex-wrap gap-4 mb-2">
+            {row.map((category) => (
+              <div key={category} className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded ${getColorForCategory(category)}`} />
+                <span className="text-sm">{category}</span>
+                <Switch
+                  checked={visibleCategories.has(category)}
+                  onCheckedChange={() => toggleCategory(category)}
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+        <div className="flex justify-end mt-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">ADJUST</span>
+          </div>
+        </div>
+      </div>
     </Card>
   );
 };
