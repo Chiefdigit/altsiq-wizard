@@ -18,7 +18,8 @@ export const getChartData = (categories: Set<string>, selectedStrategy: string):
       category,
       value,
       color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
-    }));
+    }))
+    .sort((a, b) => b.value - a.value); // Sort by value descending
 };
 
 export const getInitialCategories = (selectedStrategy: string): Set<string> => {

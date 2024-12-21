@@ -13,12 +13,16 @@ export const AlternativesPieChart = () => {
 
   // Effect to update active categories when strategy changes
   useEffect(() => {
-    setActiveCategories(getInitialCategories(selectedStrategy));
+    if (selectedStrategy) {
+      setActiveCategories(getInitialCategories(selectedStrategy));
+    }
   }, [selectedStrategy]);
 
   // Effect to initialize and update chart
   useLayoutEffect(() => {
-    // Create root element
+    if (!selectedStrategy) return;
+
+    // Only create root if it doesn't exist
     if (!chartRef.current) {
       const root = am5.Root.new("alternatives-chartdiv");
       root.setThemes([am5themes_Animated.new(root)]);
@@ -36,14 +40,22 @@ export const AlternativesPieChart = () => {
         am5percent.PieSeries.new(root, {
           valueField: "value",
           categoryField: "category",
-          fillField: "color",
-          alignLabels: false
+          fillField: "color"
         })
       );
 
-      // Disable labels and ticks
-      series.labels.template.set("visible", false);
-      series.ticks.template.set("visible", false);
+      // Configure series
+      series.slices.template.setAll({
+        strokeWidth: 2,
+        stroke: am5.color(0xffffff)
+      });
+
+      series.labels.template.setAll({
+        text: "{category}: {value}%",
+        textType: "circular",
+        inside: true,
+        radius: 10
+      });
 
       // Create legend
       const legend = chart.children.push(
@@ -54,16 +66,6 @@ export const AlternativesPieChart = () => {
           marginBottom: 15
         })
       );
-
-      legend.labels.template.setAll({
-        fontSize: 13,
-        fontWeight: "500"
-      });
-
-      legend.valueLabels.template.setAll({
-        fontSize: 13,
-        fontWeight: "500"
-      });
 
       legend.data.setAll(series.dataItems);
 
