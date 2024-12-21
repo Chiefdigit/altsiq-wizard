@@ -135,6 +135,10 @@ export const AlternativesPieChart = () => {
         style={{ width: "100%", height: "500px" }}
       />
       <div className="mt-4 bg-gray-50 rounded-lg p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h4 className="text-sm font-medium text-gray-700">Toggle Categories</h4>
+          <span className="text-sm font-medium">ADJUST</span>
+        </div>
         {legendItems.map((row, rowIndex) => (
           <div key={rowIndex} className="flex flex-wrap gap-4 mb-2">
             {row.map((category) => (
@@ -148,11 +152,6 @@ export const AlternativesPieChart = () => {
             ))}
           </div>
         ))}
-        <div className="flex justify-end mt-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">ADJUST</span>
-          </div>
-        </div>
       </div>
     </Card>
   );
