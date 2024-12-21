@@ -158,8 +158,15 @@ export const AlternativesPieChart = () => {
           <div key={rowIndex} className="flex flex-wrap gap-4 mb-2">
             {row.map((category) => (
               <div key={category} className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded ${getColorForCategory(category)}`} />
-                <span className="text-sm">{category}</span>
+                <div 
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => toggleCategory(category)}
+                >
+                  <div className={`w-4 h-4 rounded ${getColorForCategory(category)}`} />
+                  <span className={`text-sm ${visibleCategories.has(category) ? 'text-gray-900' : 'text-gray-400'}`}>
+                    {category}
+                  </span>
+                </div>
                 <Switch
                   checked={visibleCategories.has(category)}
                   onCheckedChange={() => toggleCategory(category)}
