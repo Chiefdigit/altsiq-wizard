@@ -140,7 +140,7 @@ export const AlternativesPieChart = () => {
           <span className="text-sm font-medium">ADJUST</span>
         </div>
         {legendItems.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex flex-wrap gap-4 mb-2">
+          <div key={rowIndex} className="flex flex-wrap gap-4 mb-4 last:mb-0">
             {row.map((category) => (
               <LegendItem
                 key={category}
