@@ -25,14 +25,13 @@ export const configureChart = (root: am5.Root) => {
     templateField: "sliceSettings"
   });
 
-  series.labels.template.setAll({
-    text: "{category}: {value}%",
-    radius: 30,
-    inside: false,
-    textType: "adjusted",
-    fill: am5.color(0x000000),
-    fontSize: 13,
-    fontWeight: "400"
+  // Remove external labels
+  series.labels.template.set("visible", false);
+  series.ticks.template.set("visible", false);
+
+  // Configure tooltips
+  series.slices.template.setAll({
+    tooltipText: "{category}: {value}%"
   });
 
   return { chart, series };
