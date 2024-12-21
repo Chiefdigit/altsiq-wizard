@@ -1,4 +1,10 @@
-export const getChartData = (categories: Set<string>, selectedStrategy: string) => {
+export interface AlternativesData {
+  category: string;
+  value: number;
+  color?: string;
+}
+
+export const getChartData = (categories: Set<string>, selectedStrategy: string): AlternativesData[] => {
   return [];
 };
 
