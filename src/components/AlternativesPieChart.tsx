@@ -136,7 +136,7 @@ export const AlternativesPieChart = () => {
 
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Select Asset Classes</h3>
+      <h3 className="text-lg font-semibold mb-4">Alts Distribution Chart</h3>
       <div
         id="alternatives-chartdiv"
         style={{ width: "100%", height: "500px" }}
