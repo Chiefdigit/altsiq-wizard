@@ -9,6 +9,12 @@ import { STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
 
 type AlternativesCategory = keyof typeof STRATEGY_ALLOCATIONS.diversification;
 
+interface ChartDataItem {
+  category: string;
+  value: number;
+  color: am5.Color;
+}
+
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
@@ -32,8 +38,8 @@ export const AlternativesPieChart = () => {
         if (selectedStrategy && STRATEGY_ALLOCATIONS[selectedStrategy][category as AlternativesCategory] === 0) {
           const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy];
           const totalNonZeroValue = Object.entries(baseAllocations)
-            .filter(([key, value]) => value > 0 && newSet.has(key))
-            .reduce((sum, [_, value]) => sum + value, 0);
+            .filter(([key, value]) => (value as number) > 0 && newSet.has(key))
+            .reduce((sum, [_, value]) => sum + (value as number), 0);
           
           // Calculate a proportional value (e.g., 5-10% of total)
           const proportionalValue = Math.round(totalNonZeroValue * 0.1); // 10% of total
@@ -59,14 +65,14 @@ export const AlternativesPieChart = () => {
     const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy];
 
     // Calculate data with proportional values for zero-value selections
-    const calculateProportionalData = () => {
+    const calculateProportionalData = (): ChartDataItem[] => {
       const visibleData = Object.entries(baseAllocations)
         .filter(([category]) => visibleCategories.has(category))
         .map(([category, value]) => {
           // If original value was 0 and category is visible, assign proportional value
-          if (value === 0 && visibleCategories.has(category)) {
+          if ((value as number) === 0 && visibleCategories.has(category)) {
             const totalNonZeroValue = Object.entries(baseAllocations)
-              .filter(([key, val]) => val > 0 && visibleCategories.has(key))
+              .filter(([key, val]) => (val as number) > 0 && visibleCategories.has(key))
               .reduce((sum, [_, val]) => sum + (val as number), 0);
             
             return {
@@ -84,10 +90,10 @@ export const AlternativesPieChart = () => {
         });
 
       // Normalize values to sum to 100%
-      const total = visibleData.reduce((sum, item) => sum + (item.value as number), 0);
+      const total = visibleData.reduce((sum, item) => sum + item.value, 0);
       return visibleData.map(item => ({
         ...item,
-        value: Math.round(((item.value as number) / total) * 100)
+        value: Math.round((item.value / total) * 100)
       }));
     };
 
@@ -99,7 +105,7 @@ export const AlternativesPieChart = () => {
     };
   }, [selectedStrategy, visibleCategories]);
 
-  const getColorForCategory = (category: string) => {
+  const getColorForCategory = (category: string): am5.Color => {
     switch (category) {
       case "Private Equity": return am5.color("#69B1FF");
       case "Hedge Funds": return am5.color("#818CF8");
