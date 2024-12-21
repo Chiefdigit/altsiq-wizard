@@ -31,7 +31,7 @@ export const OnboardingWizard = () => {
   } = useWizardState();
 
   return (
-    <div className="max-w-2xl mx-auto p-6 animate-fade-in">
+    <div className="w-full max-w-2xl mx-auto px-3 py-4 sm:px-4 md:px-6 animate-fade-in">
       <Accordion
         type="single"
         value={activeStep}
