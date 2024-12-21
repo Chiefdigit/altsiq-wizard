@@ -19,7 +19,7 @@ export const VolatilityCard = ({ score }: VolatilityCardProps) => {
   };
 
   return (
-    <Card className="p-3 max-w-sm">
+    <Card className="p-3 w-1/2">
       <div className="space-y-1">
         <span className="text-sm font-medium text-gray-600">
           Volatility:
