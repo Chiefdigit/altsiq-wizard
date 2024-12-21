@@ -25,53 +25,53 @@ const ALTERNATIVES_COLORS = {
 
 const STRATEGY_ALLOCATIONS = {
   diversification: {
-    "Hedge Funds": 20,
-    "Private Equity": 15,
-    "Private Credit": 15,
+    "Private Equity": 10,
+    "Hedge Funds": 15,
+    "Real Estate": 20,
+    "Private Credit": 10,
     "Private Debt": 10,
-    "Real Estate": 15,
-    "Cryptocurrencies": 10,
     "Collectibles": 5,
-    "Commodities": 10
+    "Cryptocurrencies": 5,
+    "Commodities": 25
   },
   income: {
-    "Hedge Funds": 15,
-    "Private Equity": 10,
-    "Private Credit": 25,
-    "Private Debt": 20,
+    "Private Equity": 5,
+    "Hedge Funds": 5,
     "Real Estate": 20,
-    "Cryptocurrencies": 5,
+    "Private Credit": 25,
+    "Private Debt": 25,
     "Collectibles": 0,
-    "Commodities": 5
+    "Cryptocurrencies": 0,
+    "Commodities": 20
   },
   growth: {
-    "Hedge Funds": 25,
-    "Private Equity": 25,
-    "Private Credit": 10,
-    "Private Debt": 5,
+    "Private Equity": 35,
+    "Hedge Funds": 10,
     "Real Estate": 10,
+    "Private Credit": 5,
+    "Private Debt": 5,
+    "Collectibles": 10,
     "Cryptocurrencies": 15,
-    "Collectibles": 5,
-    "Commodities": 5
+    "Commodities": 10
   },
   preservation: {
-    "Hedge Funds": 20,
-    "Private Equity": 10,
+    "Private Equity": 0,
+    "Hedge Funds": 10,
+    "Real Estate": 30,
     "Private Credit": 20,
-    "Private Debt": 15,
-    "Real Estate": 25,
-    "Cryptocurrencies": 0,
+    "Private Debt": 20,
     "Collectibles": 5,
-    "Commodities": 5
+    "Cryptocurrencies": 0,
+    "Commodities": 15
   },
   advanced: {
-    "Hedge Funds": 20,
     "Private Equity": 15,
+    "Hedge Funds": 15,
+    "Real Estate": 15,
     "Private Credit": 15,
     "Private Debt": 10,
-    "Real Estate": 15,
-    "Cryptocurrencies": 10,
-    "Collectibles": 5,
+    "Collectibles": 15,
+    "Cryptocurrencies": 5,
     "Commodities": 10
   }
 } as const;
