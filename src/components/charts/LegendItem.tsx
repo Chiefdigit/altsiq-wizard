@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 interface LegendItemProps {
   category: string;
   isVisible: boolean;
-  colorClass: string;
+  color: string;
   onToggle: () => void;
 }
 
-export const LegendItem = ({ category, isVisible, colorClass, onToggle }: LegendItemProps) => {
+export const LegendItem = ({ category, isVisible, color, onToggle }: LegendItemProps) => {
   return (
     <div className="flex items-center gap-2">
       <div 
@@ -16,10 +16,10 @@ export const LegendItem = ({ category, isVisible, colorClass, onToggle }: Legend
       >
         <div 
           className={cn(
-            "w-4 h-4 rounded transition-colors",
-            colorClass,
+            "w-3 h-3 rounded-full",
             !isVisible && "opacity-40"
-          )} 
+          )}
+          style={{ backgroundColor: color }}
         />
         <span 
           className={cn(

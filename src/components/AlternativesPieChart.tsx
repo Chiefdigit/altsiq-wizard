@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useWizard } from "@/components/wizard/WizardContext";
 import { LegendItem } from "./charts/LegendItem";
 import { configureChart } from "./charts/ChartConfig";
-import { STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
+import { STRATEGY_ALLOCATIONS, ALTERNATIVES_COLORS } from "@/constants/alternativesConfig";
 
 type AlternativesCategory = keyof typeof STRATEGY_ALLOCATIONS.diversification;
 
@@ -106,17 +106,8 @@ export const AlternativesPieChart = () => {
   }, [selectedStrategy, visibleCategories]);
 
   const getColorForCategory = (category: string): am5.Color => {
-    switch (category) {
-      case "Private Equity": return am5.color("#69B1FF");
-      case "Hedge Funds": return am5.color("#818CF8");
-      case "Real Estate": return am5.color("#A78BFA");
-      case "Cryptocurrencies": return am5.color("#E879F9");
-      case "Private Debt": return am5.color("#D946EF");
-      case "Private Credit": return am5.color("#F97316");
-      case "Commodities": return am5.color("#0EA5E9");
-      case "Collectibles": return am5.color("#8B5CF6");
-      default: return am5.color("#64748b");
-    }
+    const hexColor = ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS] || "#64748b";
+    return am5.color(hexColor);
   };
 
   const legendItems = [
@@ -143,7 +134,7 @@ export const AlternativesPieChart = () => {
                 key={category}
                 category={category}
                 isVisible={visibleCategories.has(category)}
-                colorClass={`bg-[${getColorForCategory(category).toString()}]`}
+                color={ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]}
                 onToggle={() => toggleCategory(category)}
               />
             ))}
