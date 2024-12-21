@@ -1,16 +1,10 @@
 import React from "react";
-import { toast } from "@/components/ui/use-toast";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Check } from "lucide-react";
+import { Accordion } from "@/components/ui/accordion";
 import { PortfolioStep } from "./wizard/PortfolioStep";
 import { AllocationStep } from "./wizard/AllocationStep";
 import { StrategyStep } from "./wizard/StrategyStep";
 import { useWizardState } from "@/hooks/useWizardState";
+import { WizardStep } from "./wizard/WizardStep";
 import { Card } from "@/components/ui/card";
 import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 
@@ -19,7 +13,6 @@ export const OnboardingWizard = () => {
     activeStep,
     setActiveStep,
     portfolioSize,
-    setPortfolioSize,
     allocations,
     selectedStrategy,
     setSelectedStrategy,
@@ -30,6 +23,13 @@ export const OnboardingWizard = () => {
     totalCustomAllocation,
   } = useWizardState();
 
+  const isStepComplete = (step: string) => {
+    const steps = ["portfolio", "allocation", "strategy", "alternatives"];
+    const currentIndex = steps.indexOf(activeStep);
+    const stepIndex = steps.indexOf(step);
+    return stepIndex < currentIndex;
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto px-3 py-4 sm:px-4 md:px-6 animate-fade-in">
       <Accordion
@@ -38,88 +38,69 @@ export const OnboardingWizard = () => {
         onValueChange={setActiveStep}
         className="w-full space-y-4"
       >
-        <AccordionItem value="portfolio" className="border rounded-lg p-4">
-          <AccordionTrigger className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                {activeStep !== "portfolio" ? <Check size={14} /> : "1"}
-              </div>
-              <span>Portfolio Size</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-6">
-            <PortfolioStep onContinue={() => setActiveStep("allocation")} />
-          </AccordionContent>
-        </AccordionItem>
+        <WizardStep
+          value="portfolio"
+          stepNumber="1"
+          title="Portfolio Size"
+          isComplete={isStepComplete("portfolio")}
+        >
+          <PortfolioStep onContinue={() => setActiveStep("allocation")} />
+        </WizardStep>
 
-        <AccordionItem value="allocation" className="border rounded-lg p-4">
-          <AccordionTrigger className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                {activeStep === "complete" ? <Check size={14} /> : "2"}
-              </div>
-              <span>Asset Allocation</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-6">
-            <AllocationStep
-              allocations={allocations}
-              updateAllocation={updateAllocation}
-              totalAllocation={totalAllocation}
-              portfolioSize={portfolioSize}
-              onContinue={() => setActiveStep("strategy")}
-            />
-          </AccordionContent>
-        </AccordionItem>
+        <WizardStep
+          value="allocation"
+          stepNumber="2"
+          title="Asset Allocation"
+          isComplete={isStepComplete("allocation")}
+        >
+          <AllocationStep
+            allocations={allocations}
+            updateAllocation={updateAllocation}
+            totalAllocation={totalAllocation}
+            portfolioSize={portfolioSize}
+            onContinue={() => setActiveStep("strategy")}
+          />
+        </WizardStep>
 
-        <AccordionItem value="strategy" className="border rounded-lg p-4">
-          <AccordionTrigger className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                {activeStep === "complete" ? <Check size={14} /> : "3"}
-              </div>
-              <span>Investment Strategy</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-6">
-            <StrategyStep
-              selectedStrategy={selectedStrategy}
-              onStrategyChange={setSelectedStrategy}
-              customAllocations={customAllocations}
-              totalCustomAllocation={totalCustomAllocation}
-              onCustomAllocationChange={handleCustomAllocationChange}
-              setActiveStep={setActiveStep}
-            />
-          </AccordionContent>
-        </AccordionItem>
+        <WizardStep
+          value="strategy"
+          stepNumber="3"
+          title="Investment Strategy"
+          isComplete={isStepComplete("strategy")}
+        >
+          <StrategyStep
+            selectedStrategy={selectedStrategy}
+            onStrategyChange={setSelectedStrategy}
+            customAllocations={customAllocations}
+            totalCustomAllocation={totalCustomAllocation}
+            onCustomAllocationChange={handleCustomAllocationChange}
+            setActiveStep={setActiveStep}
+          />
+        </WizardStep>
 
-        <AccordionItem value="alternatives" className="border rounded-lg p-4">
-          <AccordionTrigger className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                {activeStep === "complete" ? <Check size={14} /> : "4"}
-              </div>
-              <span>Alternatives Allocation</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pt-6">
-            {selectedStrategy && selectedStrategy !== 'advanced' && (
-              <>
-                <h3 className="text-xl font-semibold mb-4">
-                  {selectedStrategy.toUpperCase()}
-                </h3>
-                <Card className="p-4 bg-gray-50 mb-4">
-                  <p className="text-gray-700">
-                    <span className="font-semibold">Strategy Rationale:</span> {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
-                  </p>
-                </Card>
-              </>
-            )}
-            <div className="text-center text-gray-500">
-              Coming soon: Alternative investment allocation options
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+        <WizardStep
+          value="alternatives"
+          stepNumber="4"
+          title="Alternatives Allocation"
+          isComplete={isStepComplete("alternatives")}
+        >
+          {selectedStrategy && selectedStrategy !== 'advanced' && (
+            <>
+              <h3 className="text-xl font-semibold mb-4">
+                {selectedStrategy.toUpperCase()}
+              </h3>
+              <Card className="p-4 bg-gray-50 mb-4">
+                <p className="text-gray-700">
+                  <span className="font-semibold">Strategy Rationale:</span>{" "}
+                  {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
+                </p>
+              </Card>
+            </>
+          )}
+          <div className="text-center text-gray-500">
+            Coming soon: Alternative investment allocation options
+          </div>
+        </WizardStep>
       </Accordion>
     </div>
   );
