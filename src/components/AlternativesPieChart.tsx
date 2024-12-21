@@ -3,6 +3,8 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { Card } from "@/components/ui/card";
+import { useWizard } from "@/components/wizard/WizardContext";
+import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
 
 interface AlternativesData {
   category: string;
@@ -21,34 +23,78 @@ const ALTERNATIVES_COLORS = {
   "Commodities": "#4B4453"
 } as const;
 
-const DEFAULT_ALLOCATIONS = {
-  "Hedge Funds": 20,
-  "Private Equity": 15,
-  "Private Credit": 15,
-  "Private Debt": 10,
-  "Real Estate": 15,
-  "Cryptocurrencies": 10,
-  "Collectibles": 5,
-  "Commodities": 10
+const STRATEGY_ALLOCATIONS = {
+  diversification: {
+    "Hedge Funds": 20,
+    "Private Equity": 15,
+    "Private Credit": 15,
+    "Private Debt": 10,
+    "Real Estate": 15,
+    "Cryptocurrencies": 10,
+    "Collectibles": 5,
+    "Commodities": 10
+  },
+  income: {
+    "Hedge Funds": 15,
+    "Private Equity": 10,
+    "Private Credit": 25,
+    "Private Debt": 20,
+    "Real Estate": 20,
+    "Cryptocurrencies": 5,
+    "Collectibles": 0,
+    "Commodities": 5
+  },
+  growth: {
+    "Hedge Funds": 25,
+    "Private Equity": 25,
+    "Private Credit": 10,
+    "Private Debt": 5,
+    "Real Estate": 10,
+    "Cryptocurrencies": 15,
+    "Collectibles": 5,
+    "Commodities": 5
+  },
+  preservation: {
+    "Hedge Funds": 20,
+    "Private Equity": 10,
+    "Private Credit": 20,
+    "Private Debt": 15,
+    "Real Estate": 25,
+    "Cryptocurrencies": 0,
+    "Collectibles": 5,
+    "Commodities": 5
+  },
+  advanced: {
+    "Hedge Funds": 20,
+    "Private Equity": 15,
+    "Private Credit": 15,
+    "Private Debt": 10,
+    "Real Estate": 15,
+    "Cryptocurrencies": 10,
+    "Collectibles": 5,
+    "Commodities": 10
+  }
 } as const;
 
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
+  const { selectedStrategy } = useWizard();
   const [activeCategories, setActiveCategories] = useState<Set<string>>(
-    new Set(Object.keys(DEFAULT_ALLOCATIONS))
+    new Set(Object.keys(STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS]))
   );
 
   const recalculateAllocations = (categories: Set<string>): AlternativesData[] => {
     const activeCategories = Array.from(categories);
     if (activeCategories.length === 0) return [];
 
+    const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
     const totalActiveAllocation = activeCategories.reduce(
-      (sum, category) => sum + DEFAULT_ALLOCATIONS[category as keyof typeof DEFAULT_ALLOCATIONS], 0
+      (sum, category) => sum + currentAllocations[category as keyof typeof currentAllocations], 0
     );
 
     return activeCategories.map(category => ({
       category,
-      value: (DEFAULT_ALLOCATIONS[category as keyof typeof DEFAULT_ALLOCATIONS] / totalActiveAllocation) * 100,
+      value: (currentAllocations[category as keyof typeof currentAllocations] / totalActiveAllocation) * 100,
       color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
     }));
   };
@@ -107,7 +153,7 @@ export const AlternativesPieChart = () => {
       const dataItem = e.target.dataItem as am5.DataItem<any>;
       if (!dataItem) return;
       
-      const category = dataItem.get("category") as keyof typeof DEFAULT_ALLOCATIONS;
+      const category = dataItem.get("category") as keyof typeof ALTERNATIVES_COLORS;
       if (!category) return;
 
       const newActiveCategories = new Set(activeCategories);
@@ -132,7 +178,7 @@ export const AlternativesPieChart = () => {
     return () => {
       root.dispose();
     };
-  }, [activeCategories]);
+  }, [activeCategories, selectedStrategy]);
 
   return (
     <Card className="p-2 md:p-4">
