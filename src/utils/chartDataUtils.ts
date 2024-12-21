@@ -1,19 +1,13 @@
 import { ALTERNATIVES_COLORS, STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
 
-export interface AlternativesData {
-  category: string;
-  value: number;
-  color: string;
-}
-
-export const getChartData = (categories: Set<string>, selectedStrategy: string): AlternativesData[] => {
+export const getChartData = (categories: Set<string>, selectedStrategy: string) => {
   if (!selectedStrategy) return [];
   
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
   if (!currentAllocations) return [];
 
   return Object.entries(currentAllocations)
-    .filter(([category, value]) => categories.has(category))
+    .filter(([category, value]) => categories.has(category) && value > 0) // Only include non-zero values
     .map(([category, value]) => ({
       category,
       value,
@@ -28,5 +22,10 @@ export const getInitialCategories = (selectedStrategy: string): Set<string> => {
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
   if (!currentAllocations) return new Set();
 
-  return new Set(Object.keys(currentAllocations));
+  // Only include categories with non-zero values
+  return new Set(
+    Object.entries(currentAllocations)
+      .filter(([_, value]) => value > 0)
+      .map(([key]) => key)
+  );
 };
