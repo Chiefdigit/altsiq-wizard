@@ -20,8 +20,7 @@ export const AlternativesPieChart = () => {
       am5percent.PieChart.new(root, {
         layout: root.verticalLayout,
         innerRadius: am5.percent(40),
-        radius: am5.percent(90),
-        paddingBottom: 80
+        radius: am5.percent(90)
       })
     );
 
@@ -42,11 +41,12 @@ export const AlternativesPieChart = () => {
 
     series.labels.template.setAll({
       text: "{category}: {value}%",
-      radius: 10,
+      radius: 30,
       inside: false,
       textType: "adjusted",
       fill: am5.color(0x000000),
-      fontSize: 13
+      fontSize: 13,
+      fontWeight: "400"
     });
 
     // Create legend
@@ -54,9 +54,14 @@ export const AlternativesPieChart = () => {
       am5.Legend.new(root, {
         centerX: am5.percent(50),
         x: am5.percent(50),
+        y: am5.percent(102),
         layout: root.horizontalLayout,
-        height: 50,
-        marginTop: 40
+        height: am5.percent(10),
+        verticalCenter: "bottom",
+        background: am5.Rectangle.new(root, {
+          fill: am5.color(0xffffff),
+          fillOpacity: 0
+        })
       })
     );
 
@@ -68,6 +73,13 @@ export const AlternativesPieChart = () => {
     legend.valueLabels.template.setAll({
       fontSize: 13,
       fontWeight: "400"
+    });
+
+    legend.markerRectangles.template.setAll({
+      cornerRadiusTL: 0,
+      cornerRadiusTR: 0,
+      cornerRadiusBL: 0,
+      cornerRadiusBR: 0
     });
 
     // Data matching the image
