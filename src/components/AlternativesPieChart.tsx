@@ -57,7 +57,7 @@ export const AlternativesPieChart = () => {
         y: am5.percent(102),
         layout: root.horizontalLayout,
         height: am5.percent(10),
-        centerY: "bottom",
+        centerY: am5.percent(100),
         background: am5.Rectangle.new(root, {
           fill: am5.color(0xffffff),
           fillOpacity: 0
