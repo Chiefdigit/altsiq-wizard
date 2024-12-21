@@ -21,14 +21,14 @@ export const STRATEGY_ALLOCATIONS = {
     "Commodities": 25
   },
   income: {
-    "Private Equity": 5,
-    "Hedge Funds": 5,
-    "Real Estate": 20,
+    "Private Equity": 0,
+    "Hedge Funds": 25,
+    "Real Estate": 10,
     "Private Credit": 25,
     "Private Debt": 25,
     "Collectibles": 0,
     "Cryptocurrencies": 0,
-    "Commodities": 20
+    "Commodities": 15
   },
   growth: {
     "Private Equity": 35,
@@ -49,15 +49,5 @@ export const STRATEGY_ALLOCATIONS = {
     "Collectibles": 5,
     "Cryptocurrencies": 0,
     "Commodities": 15
-  },
-  advanced: {
-    "Private Equity": 15,
-    "Hedge Funds": 15,
-    "Real Estate": 15,
-    "Private Credit": 15,
-    "Private Debt": 10,
-    "Collectibles": 15,
-    "Cryptocurrencies": 5,
-    "Commodities": 10
   }
 } as const;
