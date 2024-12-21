@@ -135,7 +135,7 @@ export const AlternativesPieChart = () => {
         style={{ width: "100%", height: "500px" }}
       />
       <div className="mt-4 bg-gray-50 rounded-lg p-4">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-4">
           <h4 className="text-sm font-medium text-gray-700">Select Asset Classes</h4>
           <span className="text-sm font-medium">ADJUST</span>
         </div>
