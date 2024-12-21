@@ -129,14 +129,14 @@ export const AlternativesPieChart = () => {
 
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Distribution Chart</h3>
+      <h3 className="text-lg font-semibold mb-4">Alts Distribution Chart</h3>
       <div
         id="alternatives-chartdiv"
         style={{ width: "100%", height: "500px" }}
       />
       <div className="mt-4 bg-gray-50 rounded-lg p-4">
         <div className="flex justify-between items-start mb-2">
-          <h4 className="text-sm font-medium text-gray-700">Toggle Categories</h4>
+          <h4 className="text-sm font-medium text-gray-700">Add/remove class</h4>
           <span className="text-sm font-medium">ADJUST</span>
         </div>
         {legendItems.map((row, rowIndex) => (
