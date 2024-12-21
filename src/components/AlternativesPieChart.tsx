@@ -10,14 +10,11 @@ export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set([
-    "Private Equity",
-    "Hedge Funds",
-    "Real Estate",
-    "Cryptocurrencies",
-    "Private Debt",
     "Private Credit",
+    "Private Debt",
+    "Real Estate",
     "Commodities",
-    "Collectibles"
+    "Hedge Funds"
   ]));
 
   const toggleCategory = (category: string) => {
@@ -119,18 +116,18 @@ export const AlternativesPieChart = () => {
     switch (category) {
       case "Private Equity": return "bg-[#69B1FF]";
       case "Hedge Funds": return "bg-[#818CF8]";
-      case "Real Assets": return "bg-[#A78BFA]";
+      case "Real Estate": return "bg-[#A78BFA]";
       case "Cryptocurrencies": return "bg-[#E879F9]";
-      case "Private Debt": return "bg-[#D946EF]"; // Updated color
-      case "Private Credit": return "bg-[#F97316]"; // Updated color
-      case "Commodities": return "bg-[#0EA5E9]"; // Updated color
-      case "Collectibles": return "bg-[#8B5CF6]"; // Updated color
+      case "Private Debt": return "bg-[#D946EF]";
+      case "Private Credit": return "bg-[#F97316]";
+      case "Commodities": return "bg-[#0EA5E9]";
+      case "Collectibles": return "bg-[#8B5CF6]";
       default: return "bg-gray-200";
     }
   };
 
   const legendItems = [
-    ["Private Equity", "Hedge Funds", "Real Assets", "Cryptocurrencies"],
+    ["Private Equity", "Hedge Funds", "Real Estate", "Cryptocurrencies"],
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
   ];
 
@@ -143,7 +140,7 @@ export const AlternativesPieChart = () => {
       />
       <div className="mt-4 bg-gray-50 rounded-lg p-4">
         <div className="flex justify-between items-start mb-4">
-          <h4 className="text-sm font-medium text-gray-700">Select Asset Classes</h4>
+          <h4 className="text-sm font-medium text-gray-700">Alts Distribution Chart</h4>
           <span className="text-sm font-medium">ADJUST</span>
         </div>
         {legendItems.map((row, rowIndex) => (
