@@ -13,18 +13,6 @@ interface AllocationChartProps {
   };
 }
 
-interface ChartDataItem {
-  category: string;
-  equities: number;
-  bonds: number;
-  cash: number;
-  alternatives: number;
-  unallocated?: number;
-  columnSettings: {
-    fill: am5.Color;
-  };
-}
-
 export const AllocationChart = ({ allocations }: AllocationChartProps) => {
   const chartRef = useRef<am5.Root | null>(null);
 
@@ -73,8 +61,8 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
         name: "Allocation",
         xAxis: xAxis,
         yAxis: yAxis,
-        valueYField: "value",
-        categoryXField: "category",
+        valueField: "value",
+        categoryField: "category",
         stacked: true
       })
     );
@@ -91,7 +79,7 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     // Calculate unallocated amount
     const unallocated = Math.max(0, 100 - totalAllocation);
 
-    const data: ChartDataItem[] = [
+    const data = [
       {
         category: "Portfolio",
         equities: allocations.equities,
@@ -105,17 +93,15 @@ export const AllocationChart = ({ allocations }: AllocationChartProps) => {
     ];
 
     // Create series for each asset class
-    const createSeries = (field: keyof ChartDataItem, name: string, color: string) => {
-      if (field === 'category' || field === 'columnSettings') return;
-      
+    const createSeries = (field: string, name: string, color: string) => {
       const series = chart.series.push(
         am5xy.ColumnSeries.new(root, {
           name: name,
           stacked: true,
           xAxis: xAxis,
           yAxis: yAxis,
-          valueYField: field,
-          categoryXField: "category"
+          valueField: field,
+          categoryField: "category"
         })
       );
 
