@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { StrategySelector } from "./strategy/StrategySelector";
 import { StrategyDetails } from "./strategy/StrategyDetails";
 import { StrategyActions } from "./strategy/StrategyActions";
 import { AdvancedAllocation } from "../AdvancedAllocation";
-import type { AllocationValues } from "@/types/allocation";
-import { STRATEGY_DESCRIPTIONS } from "@/constants/strategyDescriptions";
+import { useStrategySelection } from "@/hooks/useStrategySelection";
+import type { AllocationValues } from "@/constants/types";
 
 interface StrategyStepProps {
   selectedStrategy: string;
@@ -23,17 +23,10 @@ export const StrategyStep = ({
   onCustomAllocationChange,
   setActiveStep,
 }: StrategyStepProps) => {
-  const [isSelected, setIsSelected] = useState(false);
-
-  const handleStrategySelect = () => {
-    const selectedAllocation = selectedStrategy === "advanced" 
-      ? customAllocations 
-      : STRATEGY_DESCRIPTIONS[selectedStrategy].allocation;
-    
-    localStorage.setItem('selectedStrategyAllocation', JSON.stringify(selectedAllocation));
-    localStorage.setItem('selectedStrategyName', selectedStrategy);
-    setIsSelected(true);
-  };
+  const { isSelected, handleStrategySelect, setIsSelected } = useStrategySelection(
+    selectedStrategy,
+    customAllocations
+  );
 
   return (
     <div className="space-y-6">
