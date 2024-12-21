@@ -12,13 +12,19 @@ export const getChartData = (categories: Set<string>, selectedStrategy: string):
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
   if (!currentAllocations) return [];
 
-  console.log('Current allocations:', currentAllocations); // Debug log
+  // Get all active categories with values > 0
+  const activeData = Object.entries(currentAllocations)
+    .filter(([category, value]) => value > 0 && categories.has(category));
 
-  return Object.entries(currentAllocations)
-    .filter(([category, value]) => value > 0 && categories.has(category))
+  // Calculate total of active categories
+  const total = activeData.reduce((sum, [_, value]) => sum + value, 0);
+
+  // Map to final format with adjusted percentages
+  return activeData
     .map(([category, value]) => ({
       category,
-      value,
+      // Recalculate percentage based on total of active categories
+      value: total > 0 ? (value / total) * 100 : value,
       color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
     }))
     .sort((a, b) => b.value - a.value);

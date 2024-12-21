@@ -11,24 +11,20 @@ export const AlternativesPieChart = () => {
   const { selectedStrategy } = useWizard();
   const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
 
-  // Effect to update active categories when strategy changes
   useEffect(() => {
     if (selectedStrategy) {
       setActiveCategories(getInitialCategories(selectedStrategy));
     }
   }, [selectedStrategy]);
 
-  // Effect to initialize and update chart
   useLayoutEffect(() => {
     if (!selectedStrategy) return;
 
-    // Create root if it doesn't exist
     if (!chartRef.current) {
       const root = am5.Root.new("alternatives-chartdiv");
       root.setThemes([am5themes_Animated.new(root)]);
       chartRef.current = root;
 
-      // Create chart
       const chart = root.container.children.push(
         am5percent.PieChart.new(root, {
           layout: root.verticalLayout,
@@ -36,7 +32,6 @@ export const AlternativesPieChart = () => {
         })
       );
 
-      // Create series
       const series = chart.series.push(
         am5percent.PieSeries.new(root, {
           valueField: "value",
@@ -45,20 +40,18 @@ export const AlternativesPieChart = () => {
         })
       );
 
-      // Configure series
       series.slices.template.setAll({
         strokeWidth: 2,
         stroke: am5.color(0xffffff)
       });
 
       series.labels.template.setAll({
-        text: "{category}: {value}%",
+        text: "{category}: {value.formatNumber('#.0')}%",
         textType: "circular",
         inside: true,
         radius: 10
       });
 
-      // Create legend
       const legend = chart.children.push(
         am5.Legend.new(root, {
           centerX: am5.percent(50),
@@ -71,25 +64,22 @@ export const AlternativesPieChart = () => {
       legend.data.setAll([]);
       series.data.setAll([]);
 
-      // Store references
       (root as any).series = series;
       (root as any).legend = legend;
     }
 
-    // Update data
     const root = chartRef.current;
     if (root) {
       const series = (root as any).series;
       const legend = (root as any).legend;
       if (series && legend) {
         const data = getChartData(activeCategories, selectedStrategy);
-        console.log('Chart data:', data); // Debug log
+        console.log('Chart data with adjusted percentages:', data);
         series.data.setAll(data);
         legend.data.setAll(data);
       }
     }
 
-    // Cleanup
     return () => {
       if (chartRef.current) {
         chartRef.current.dispose();
