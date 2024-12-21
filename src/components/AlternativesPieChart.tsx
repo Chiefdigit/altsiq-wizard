@@ -45,43 +45,43 @@ export const AlternativesPieChart = () => {
     const allData = [
       {
         category: "Private Equity",
-        value: 45.45,
+        value: 45,
         color: am5.color("#69B1FF")
       },
       {
         category: "Hedge Funds",
-        value: 27.27,
+        value: 27,
         color: am5.color("#818CF8")
       },
       {
         category: "Real Assets",
-        value: 22.73,
+        value: 23,
         color: am5.color("#A78BFA")
       },
       {
         category: "Cryptocurrencies",
-        value: 4.55,
+        value: 5,
         color: am5.color("#E879F9")
       },
       {
         category: "Private Debt",
         value: 10,
-        color: am5.color("#D946EF") // Updated color
+        color: am5.color("#D946EF")
       },
       {
         category: "Private Credit",
         value: 8,
-        color: am5.color("#F97316") // Updated color
+        color: am5.color("#F97316")
       },
       {
         category: "Commodities",
         value: 6,
-        color: am5.color("#0EA5E9") // Updated color
+        color: am5.color("#0EA5E9")
       },
       {
         category: "Collectibles",
         value: 4,
-        color: am5.color("#8B5CF6") // Updated color
+        color: am5.color("#8B5CF6")
       }
     ];
 
@@ -93,12 +93,19 @@ export const AlternativesPieChart = () => {
         hidden: !visibleCategories.has(item.category)
       }));
 
-    // Normalize values to sum to 100%
+    // Normalize values to sum to 100% and round to nearest integer
     if (visibleData.length > 0) {
       const total = visibleData.reduce((sum, item) => sum + item.value, 0);
       visibleData.forEach(item => {
-        item.value = (item.value / total) * 100;
+        item.value = Math.round((item.value / total) * 100);
       });
+      
+      // Adjust rounding errors to ensure total is exactly 100%
+      const newTotal = visibleData.reduce((sum, item) => sum + item.value, 0);
+      if (newTotal !== 100 && visibleData.length > 0) {
+        const diff = 100 - newTotal;
+        visibleData[0].value += diff; // Add any rounding difference to the largest category
+      }
     }
 
     series.data.setAll(visibleData);
@@ -129,7 +136,7 @@ export const AlternativesPieChart = () => {
 
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Alts Distribution Chart</h3>
+      <h3 className="text-lg font-semibold mb-4">Select Asset Classes</h3>
       <div
         id="alternatives-chartdiv"
         style={{ width: "100%", height: "500px" }}
