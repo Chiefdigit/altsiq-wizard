@@ -7,18 +7,26 @@ export interface AlternativesData {
 }
 
 export const getChartData = (categories: Set<string>, selectedStrategy: string): AlternativesData[] => {
+  if (!selectedStrategy) return [];
+  
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-  return Array.from(categories)
-    .filter(category => currentAllocations[category as keyof typeof currentAllocations] > 0)
-    .map(category => ({
+  if (!currentAllocations) return [];
+
+  return Object.entries(currentAllocations)
+    .filter(([category, value]) => value > 0 && categories.has(category))
+    .map(([category, value]) => ({
       category,
-      value: currentAllocations[category as keyof typeof currentAllocations],
+      value,
       color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
     }));
 };
 
 export const getInitialCategories = (selectedStrategy: string): Set<string> => {
+  if (!selectedStrategy) return new Set();
+  
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+  if (!currentAllocations) return new Set();
+
   return new Set(
     Object.entries(currentAllocations)
       .filter(([_, value]) => value > 0)
