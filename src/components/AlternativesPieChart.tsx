@@ -83,20 +83,16 @@ export const AlternativesPieChart = () => {
     new Set(Object.keys(STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS]))
   );
 
-  const recalculateAllocations = (categories: Set<string>): AlternativesData[] => {
-    const activeCategories = Array.from(categories);
-    if (activeCategories.length === 0) return [];
-
+  const getChartData = (categories: Set<string>): AlternativesData[] => {
     const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-    const totalActiveAllocation = activeCategories.reduce(
-      (sum, category) => sum + currentAllocations[category as keyof typeof currentAllocations], 0
-    );
-
-    return activeCategories.map(category => ({
-      category,
-      value: (currentAllocations[category as keyof typeof currentAllocations] / totalActiveAllocation) * 100,
-      color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
-    }));
+    
+    return Array.from(categories)
+      .filter(category => currentAllocations[category as keyof typeof currentAllocations] > 0)
+      .map(category => ({
+        category,
+        value: currentAllocations[category as keyof typeof currentAllocations],
+        color: ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]
+      }));
   };
 
   useLayoutEffect(() => {
@@ -126,7 +122,6 @@ export const AlternativesPieChart = () => {
     series.labels.template.setAll({ visible: false });
     series.ticks.template.setAll({ visible: false });
 
-    // Create legend
     const legend = chart.children.push(
       am5.Legend.new(root, {
         centerX: am5.percent(50),
@@ -141,10 +136,15 @@ export const AlternativesPieChart = () => {
       fontWeight: "500"
     });
 
-    legend.valueLabels.template.setAll({ visible: false });
+    legend.valueLabels.template.setAll({
+      visible: true,
+      fontSize: 13,
+      fontWeight: "500",
+      text: "{value}%"
+    });
+
     legend.data.setAll(series.dataItems);
 
-    // Add click listener to toggle categories
     legend.itemContainers.template.states.create("disabled", {
       opacity: 0.5
     });
@@ -153,13 +153,13 @@ export const AlternativesPieChart = () => {
       const dataItem = e.target.dataItem as am5.DataItem<any>;
       if (!dataItem) return;
       
-      const category = dataItem.get("category") as keyof typeof ALTERNATIVES_COLORS;
+      const category = dataItem.get("category");
       if (!category) return;
 
       const newActiveCategories = new Set(activeCategories);
 
       if (newActiveCategories.has(category)) {
-        if (newActiveCategories.size > 1) { // Prevent removing last category
+        if (newActiveCategories.size > 1) {
           newActiveCategories.delete(category);
         }
       } else {
@@ -167,12 +167,11 @@ export const AlternativesPieChart = () => {
       }
 
       setActiveCategories(newActiveCategories);
-      const newData = recalculateAllocations(newActiveCategories);
+      const newData = getChartData(newActiveCategories);
       series.data.setAll(newData);
     });
 
-    // Set initial data
-    const initialData = recalculateAllocations(activeCategories);
+    const initialData = getChartData(activeCategories);
     series.data.setAll(initialData);
 
     return () => {
