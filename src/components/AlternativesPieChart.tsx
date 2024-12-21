@@ -66,35 +66,35 @@ export const AlternativesPieChart = () => {
       {
         category: "Private Debt",
         value: 0,
-        color: am5.color("#E5E7EB"),
-        sliceSettings: { forceHidden: true }
+        color: am5.color("#E5E7EB")
       },
       {
         category: "Private Credit",
         value: 0,
-        color: am5.color("#E5E7EB"),
-        sliceSettings: { forceHidden: true }
+        color: am5.color("#E5E7EB")
       },
       {
         category: "Commodities",
         value: 0,
-        color: am5.color("#E5E7EB"),
-        sliceSettings: { forceHidden: true }
+        color: am5.color("#E5E7EB")
       },
       {
         category: "Collectibles",
         value: 0,
-        color: am5.color("#E5E7EB"),
-        sliceSettings: { forceHidden: true }
+        color: am5.color("#E5E7EB")
       }
-    ];
+    ].map(item => ({
+      ...item,
+      value: visibleCategories.has(item.category) ? item.value : 0,
+      hidden: !visibleCategories.has(item.category)
+    }));
 
     series.data.setAll(data);
 
     return () => {
       root.dispose();
     };
-  }, [selectedStrategy, visibleCategories]);
+  }, [selectedStrategy, visibleCategories]); // Added visibleCategories as dependency
 
   const getColorForCategory = (category: string) => {
     switch (category) {
