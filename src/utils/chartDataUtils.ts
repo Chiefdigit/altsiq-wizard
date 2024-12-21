@@ -29,7 +29,7 @@ export const getInitialCategories = (selectedStrategy: string): Set<string> => {
   const currentAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
   if (!currentAllocations) return new Set();
 
-  // Only include categories with non-zero values
+  // Only include categories with values greater than 0
   return new Set(
     Object.entries(currentAllocations)
       .filter(([_, value]) => value > 0)
