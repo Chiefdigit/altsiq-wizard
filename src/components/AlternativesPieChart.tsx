@@ -48,12 +48,15 @@ export const AlternativesPieChart = () => {
       fontSize: 13
     });
 
+    // Position legend at the bottom
     const legend = chart.children.push(
       am5.Legend.new(root, {
         centerX: am5.percent(50),
         x: am5.percent(50),
-        marginTop: 30,
-        layout: root.horizontalLayout
+        y: am5.percent(100),
+        layout: root.horizontalLayout,
+        height: 100,
+        verticalCenter: "bottom"
       })
     );
 
@@ -124,7 +127,6 @@ export const AlternativesPieChart = () => {
 
     updateData();
 
-    // Watch for changes in toggle state
     root.events.on("frameended", () => {
       updateData();
     });
