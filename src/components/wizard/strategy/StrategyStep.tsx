@@ -33,19 +33,17 @@ export const StrategyStep = ({
   const handleStrategyChange = (value: string) => {
     console.log('Setting strategy to:', value);
     
-    // Update strategy in context
+    // Update strategy in context and localStorage
     onStrategyChange(value);
     setIsSelected(false);
-    
-    // Save the selected strategy to localStorage
     localStorage.setItem('selectedStrategy', value);
     
     // Store the strategy allocations
     if (value !== 'advanced') {
       const strategyKey = value as keyof typeof STRATEGY_ALLOCATIONS;
       const allocations = STRATEGY_ALLOCATIONS[strategyKey];
+      console.log('Setting allocations for strategy:', value, allocations);
       localStorage.setItem('alternativesAllocations', JSON.stringify(allocations));
-      console.log('Stored allocations for strategy:', value, allocations);
     }
     
     toast({
@@ -55,14 +53,18 @@ export const StrategyStep = ({
   };
 
   const handleContinue = () => {
-    // Ensure strategy is properly saved before continuing
-    const currentStrategy = selectedStrategy || localStorage.getItem('selectedStrategy') || 'diversification';
+    // Get the current strategy and ensure its allocations are saved
+    const currentStrategy = selectedStrategy;
+    console.log('Continuing with strategy:', currentStrategy);
     
-    if (currentStrategy !== 'advanced') {
+    if (currentStrategy === 'advanced') {
+      // For advanced strategy, save the custom allocations
+      localStorage.setItem('alternativesAllocations', JSON.stringify(customAllocations));
+    } else {
+      // For predefined strategies, save the corresponding allocations
       const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
       const allocations = STRATEGY_ALLOCATIONS[strategyKey];
       localStorage.setItem('alternativesAllocations', JSON.stringify(allocations));
-      console.log('Ensuring allocations are saved for strategy:', currentStrategy, allocations);
     }
     
     setActiveStep("alternatives");

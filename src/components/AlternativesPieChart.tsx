@@ -22,27 +22,27 @@ export const AlternativesPieChart = () => {
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
 
-  // Get the effective strategy (from context or localStorage)
-  const getEffectiveStrategy = () => {
-    return selectedStrategy || localStorage.getItem('selectedStrategy') || 'diversification';
-  };
-
   const getCurrentAllocations = (): Record<string, number> => {
-    const effectiveStrategy = getEffectiveStrategy();
+    const savedStrategy = localStorage.getItem('selectedStrategy');
+    console.log('Getting allocations for saved strategy:', savedStrategy);
     
-    if (effectiveStrategy === 'advanced') {
+    if (savedStrategy === 'advanced') {
       const savedAllocations = localStorage.getItem('alternativesAllocations');
-      return savedAllocations ? JSON.parse(savedAllocations) : customAllocations;
+      const parsedAllocations = savedAllocations ? JSON.parse(savedAllocations) : {};
+      console.log('Using advanced allocations:', parsedAllocations);
+      return parsedAllocations;
     }
 
-    const strategyKey = effectiveStrategy as keyof typeof STRATEGY_ALLOCATIONS;
-    return STRATEGY_ALLOCATIONS[strategyKey];
+    const strategyKey = savedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+    const allocations = STRATEGY_ALLOCATIONS[strategyKey];
+    console.log('Using predefined allocations for strategy:', strategyKey, allocations);
+    return allocations;
   };
 
-  // Initialize or update allocations when strategy changes
+  // Initialize or update allocations when component mounts or strategy changes
   useEffect(() => {
     const allocations = getCurrentAllocations();
-    console.log('Updating allocations for strategy:', getEffectiveStrategy(), allocations);
+    console.log('Setting initial allocations:', allocations);
     setCustomAllocations(allocations);
   }, [selectedStrategy]);
 
@@ -96,8 +96,8 @@ export const AlternativesPieChart = () => {
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
   ];
 
-  const effectiveStrategy = getEffectiveStrategy();
-  const displayStrategy = effectiveStrategy.charAt(0).toUpperCase() + effectiveStrategy.slice(1);
+  const savedStrategy = localStorage.getItem('selectedStrategy') || 'diversification';
+  const displayStrategy = savedStrategy.charAt(0).toUpperCase() + savedStrategy.slice(1);
 
   return (
     <Card className="p-4">
