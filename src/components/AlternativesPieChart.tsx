@@ -25,7 +25,10 @@ export const AlternativesPieChart = () => {
   });
 
   const getCurrentAllocations = (): Record<string, number> => {
-    if (!selectedStrategy) return {};
+    if (!selectedStrategy) {
+      console.warn('No strategy selected');
+      return {};
+    }
 
     // For advanced strategy, use custom allocations
     if (selectedStrategy === 'advanced') {
@@ -34,9 +37,17 @@ export const AlternativesPieChart = () => {
     
     // For predefined strategies, use STRATEGY_ALLOCATIONS
     if (selectedStrategy in STRATEGY_ALLOCATIONS) {
-      return STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+      const strategyAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+      // Only return categories with non-zero values
+      return Object.entries(strategyAllocations).reduce((acc, [category, value]) => {
+        if (value > 0) {
+          acc[category] = value;
+        }
+        return acc;
+      }, {} as Record<string, number>);
     }
 
+    console.warn('Invalid strategy selected');
     return {};
   };
 
@@ -50,8 +61,8 @@ export const AlternativesPieChart = () => {
     const { series } = configureChart(root);
 
     const currentAllocations = getCurrentAllocations();
+    console.log('Current allocations:', currentAllocations); // Debug log
 
-    // Only include categories with non-zero values
     const chartData = Object.entries(currentAllocations)
       .filter(([_, value]) => value > 0)
       .map(([category, value]) => ({
@@ -60,6 +71,7 @@ export const AlternativesPieChart = () => {
         color: am5.color(ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS] || "#64748b")
       }));
 
+    console.log('Chart data:', chartData); // Debug log
     series.data.setAll(chartData);
 
     return () => {
@@ -72,7 +84,6 @@ export const AlternativesPieChart = () => {
     localStorage.setItem('alternativesAllocations', JSON.stringify(newAllocations));
   };
 
-  const currentAllocations = getCurrentAllocations();
   const legendItems = [
     ["Private Equity", "Hedge Funds", "Real Estate", "Cryptocurrencies"],
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
@@ -102,7 +113,7 @@ export const AlternativesPieChart = () => {
               <LegendItem
                 key={category}
                 category={category}
-                isVisible={currentAllocations[category] > 0}
+                isVisible={getCurrentAllocations()[category] > 0}
                 color={ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]}
                 onToggle={() => {}}
               />
@@ -113,8 +124,8 @@ export const AlternativesPieChart = () => {
       <AlternativesAdjustDialog
         open={isAdjustDialogOpen}
         onOpenChange={setIsAdjustDialogOpen}
-        visibleCategories={new Set(Object.keys(currentAllocations))}
-        initialAllocations={currentAllocations}
+        visibleCategories={new Set(Object.keys(getCurrentAllocations()))}
+        initialAllocations={getCurrentAllocations()}
         onSave={handleSaveAllocations}
       />
     </Card>
