@@ -29,6 +29,18 @@ export const AlternativesPieChart = () => {
     "Hedge Funds"
   ]));
 
+  const getCurrentAllocations = () => {
+    if (!selectedStrategy) return {};
+    
+    const baseAllocations = { ...STRATEGY_ALLOCATIONS[selectedStrategy] };
+    return Object.fromEntries(
+      Object.entries(baseAllocations).map(([category, value]) => [
+        category,
+        customAllocations[category] ?? value
+      ])
+    );
+  };
+
   const toggleCategory = (category: string) => {
     setVisibleCategories(prev => {
       const newSet = new Set(prev);
@@ -42,7 +54,17 @@ export const AlternativesPieChart = () => {
   };
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
-    setCustomAllocations(newAllocations);
+    const filteredAllocations = Object.fromEntries(
+      Object.entries(newAllocations).filter(([_, value]) => value > 0)
+    );
+    setCustomAllocations(filteredAllocations);
+    
+    // Update visible categories based on non-zero allocations
+    setVisibleCategories(new Set(
+      Object.entries(newAllocations)
+        .filter(([_, value]) => value > 0)
+        .map(([category]) => category)
+    ));
   };
 
   useLayoutEffect(() => {
@@ -55,16 +77,14 @@ export const AlternativesPieChart = () => {
     const { series } = configureChart(root);
 
     const calculateProportionalData = (): ChartDataItem[] => {
-      const visibleData = Array.from(visibleCategories).map(category => {
-        const baseValue = customAllocations[category] ?? 
-          (STRATEGY_ALLOCATIONS[selectedStrategy][category as AlternativesCategory] || 0);
-
-        return {
+      const currentAllocations = getCurrentAllocations();
+      const visibleData = Array.from(visibleCategories)
+        .filter(category => currentAllocations[category] > 0)
+        .map(category => ({
           category,
-          value: baseValue,
+          value: currentAllocations[category] || 0,
           color: getColorForCategory(category)
-        };
-      });
+        }));
 
       // Normalize values to sum to 100%
       const total = visibleData.reduce((sum, item) => sum + item.value, 0);
@@ -94,7 +114,7 @@ export const AlternativesPieChart = () => {
 
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Alts Distribution Chart</h3>
+      <h3 className="text-lg font-semibold mb-4">Select Asset Classes</h3>
       <div
         id="alternatives-chartdiv"
         style={{ width: "100%", height: "500px" }}
@@ -127,6 +147,7 @@ export const AlternativesPieChart = () => {
         open={isAdjustDialogOpen}
         onOpenChange={setIsAdjustDialogOpen}
         visibleCategories={visibleCategories}
+        initialAllocations={getCurrentAllocations()}
         onSave={handleSaveAllocations}
       />
     </Card>

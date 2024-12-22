@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ interface AlternativesAdjustDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   visibleCategories: Set<string>;
+  initialAllocations: Record<string, number>;
   onSave: (newAllocations: Record<string, number>) => void;
 }
 
@@ -20,9 +21,16 @@ export const AlternativesAdjustDialog = ({
   open,
   onOpenChange,
   visibleCategories,
+  initialAllocations,
   onSave,
 }: AlternativesAdjustDialogProps) => {
   const [allocations, setAllocations] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (open) {
+      setAllocations(initialAllocations);
+    }
+  }, [open, initialAllocations]);
 
   const handleInputChange = (category: string, value: string) => {
     const numValue = parseFloat(value) || 0;
