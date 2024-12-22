@@ -35,16 +35,17 @@ export const AlternativesPieChart = () => {
       return customAllocations;
     }
     
-    // Check if the selected strategy exists in STRATEGY_ALLOCATIONS
-    if (selectedStrategy in STRATEGY_ALLOCATIONS) {
-      console.log('Using allocations for strategy:', selectedStrategy);
-      const strategyAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-      console.log('Strategy allocations:', strategyAllocations);
-      return strategyAllocations;
+    // Get the allocations for the selected strategy
+    const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+    if (!(strategyKey in STRATEGY_ALLOCATIONS)) {
+      console.warn('Invalid strategy selected:', selectedStrategy);
+      return {};
     }
 
-    console.warn('Invalid strategy selected:', selectedStrategy);
-    return {};
+    console.log('Using allocations for strategy:', strategyKey);
+    const allocations = STRATEGY_ALLOCATIONS[strategyKey];
+    console.log('Strategy allocations:', allocations);
+    return allocations;
   };
 
   useLayoutEffect(() => {
