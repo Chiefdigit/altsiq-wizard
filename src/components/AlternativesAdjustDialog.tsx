@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ALTERNATIVES_COLORS } from "@/constants/alternativesConfig";
+import { ALTERNATIVES_COLORS, STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
+import { useWizard } from "@/components/wizard/WizardContext";
 
 const ALL_ALTERNATIVES = [
   "Private Equity",
@@ -34,21 +35,24 @@ export const AlternativesAdjustDialog = ({
   initialAllocations,
   onSave,
 }: AlternativesAdjustDialogProps) => {
+  const { selectedStrategy } = useWizard();
   const [allocations, setAllocations] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (open) {
-      // Initialize with non-zero values from initialAllocations
-      const initialValues = ALL_ALTERNATIVES.reduce((acc, category) => {
-        const value = initialAllocations[category] || 0;
-        if (value > 0) {
-          acc[category] = value;
-        }
-        return acc;
-      }, {} as Record<string, number>);
-      setAllocations(initialValues);
+      // Get the current strategy's allocations
+      let currentAllocations;
+      if (selectedStrategy === 'advanced') {
+        currentAllocations = initialAllocations;
+      } else {
+        const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+        currentAllocations = STRATEGY_ALLOCATIONS[strategyKey];
+      }
+
+      console.log('Dialog opened with strategy:', selectedStrategy, 'allocations:', currentAllocations);
+      setAllocations(currentAllocations || {});
     }
-  }, [open, initialAllocations]);
+  }, [open, selectedStrategy, initialAllocations]);
 
   const handleInputChange = (category: string, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -63,15 +67,8 @@ export const AlternativesAdjustDialog = ({
   };
 
   const handleApply = () => {
-    // Filter out zero values before saving
-    const nonZeroAllocations = Object.entries(allocations).reduce((acc, [category, value]) => {
-      if (value > 0) {
-        acc[category] = value;
-      }
-      return acc;
-    }, {} as Record<string, number>);
-    
-    onSave(nonZeroAllocations);
+    console.log('Applying new allocations:', allocations);
+    onSave(allocations);
     onOpenChange(false);
   };
 

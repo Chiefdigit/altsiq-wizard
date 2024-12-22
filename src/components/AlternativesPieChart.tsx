@@ -19,10 +19,7 @@ export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
-  const [customAllocations, setCustomAllocations] = useState<Record<string, number>>(() => {
-    const saved = localStorage.getItem('alternativesAllocations');
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
 
   const getCurrentAllocations = (): Record<string, number> => {
@@ -42,10 +39,12 @@ export const AlternativesPieChart = () => {
     return allocations || {};
   };
 
-  // Update chart when strategy or allocations change
+  // Initialize or update allocations when strategy changes
   useEffect(() => {
+    if (!selectedStrategy) return;
+
     const currentAllocations = getCurrentAllocations();
-    console.log('Current allocations updated:', currentAllocations);
+    console.log('Strategy changed, updating allocations:', selectedStrategy, currentAllocations);
     setCustomAllocations(currentAllocations);
   }, [selectedStrategy]);
 
@@ -78,6 +77,7 @@ export const AlternativesPieChart = () => {
   }, [selectedStrategy, customAllocations, hiddenCategories]);
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
+    console.log('Saving new allocations:', newAllocations);
     setCustomAllocations(newAllocations);
     localStorage.setItem('alternativesAllocations', JSON.stringify(newAllocations));
   };
