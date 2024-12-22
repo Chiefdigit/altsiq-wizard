@@ -9,8 +9,6 @@ import { STRATEGY_ALLOCATIONS, ALTERNATIVES_COLORS } from "@/constants/alternati
 import { AlternativesAdjustDialog } from "./AlternativesAdjustDialog";
 import { SlidersHorizontal } from "lucide-react";
 
-type AlternativesCategory = keyof typeof STRATEGY_ALLOCATIONS.diversification;
-
 interface ChartDataItem {
   category: string;
   value: number;
@@ -37,15 +35,20 @@ export const AlternativesPieChart = () => {
   });
 
   const getCurrentAllocations = (): Record<string, number> => {
-    if (!selectedStrategy) return {};
+    if (!selectedStrategy || !(selectedStrategy in STRATEGY_ALLOCATIONS)) {
+      console.warn('No strategy selected or invalid strategy');
+      return {};
+    }
     
-    const baseAllocations = { ...STRATEGY_ALLOCATIONS[selectedStrategy] };
-    return Object.fromEntries(
-      Object.entries(baseAllocations).map(([category, value]) => [
-        category,
-        customAllocations[category] ?? value
-      ])
-    ) as Record<string, number>;
+    // Get the base allocations for the selected strategy
+    const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+    
+    // Merge with any custom allocations, preferring custom values if they exist
+    return Object.entries(baseAllocations).reduce((acc, [category, defaultValue]) => {
+      const customValue = customAllocations[category];
+      acc[category] = customValue !== undefined ? customValue : defaultValue;
+      return acc;
+    }, {} as Record<string, number>);
   };
 
   const toggleCategory = (category: string) => {
@@ -62,6 +65,13 @@ export const AlternativesPieChart = () => {
   };
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
+    // Validate that the total equals 100%
+    const total = Object.values(newAllocations).reduce((sum, value) => sum + value, 0);
+    if (Math.abs(total - 100) > 0.01) {
+      console.error('Total allocation must equal 100%');
+      return;
+    }
+
     const filteredAllocations = Object.fromEntries(
       Object.entries(newAllocations).filter(([_, value]) => value > 0)
     );
