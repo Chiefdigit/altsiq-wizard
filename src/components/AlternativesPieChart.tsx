@@ -23,20 +23,9 @@ export const AlternativesPieChart = () => {
     const saved = localStorage.getItem('alternativesAllocations');
     return saved ? JSON.parse(saved) : {};
   });
-
-  // Initialize visible categories based on the selected strategy
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(() => {
-    if (selectedStrategy && selectedStrategy !== 'advanced' && selectedStrategy in STRATEGY_ALLOCATIONS) {
-      // For predefined strategies, show categories with non-zero allocations
-      const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-      return new Set(
-        Object.entries(strategyAlloc)
-          .filter(([_, value]) => value > 0)
-          .map(([category]) => category)
-      );
-    }
-    // Default categories for advanced or initial state
-    return new Set([
+    const saved = localStorage.getItem('visibleCategories');
+    return saved ? new Set(JSON.parse(saved)) : new Set([
       "Private Credit",
       "Private Debt",
       "Real Estate",
@@ -51,15 +40,8 @@ export const AlternativesPieChart = () => {
       return {};
     }
 
-    // For predefined strategies, use the exact allocations from STRATEGY_ALLOCATIONS
-    if (selectedStrategy !== 'advanced' && selectedStrategy in STRATEGY_ALLOCATIONS) {
-      const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-      console.log(`Using ${selectedStrategy} strategy allocations:`, strategyAlloc);
-      return strategyAlloc;
-    }
-
-    // For advanced strategy only, distribute equally among visible categories
     if (selectedStrategy === 'advanced') {
+      // For advanced strategy, distribute equally among visible categories
       const visibleCount = visibleCategories.size;
       if (visibleCount === 0) return {};
       
@@ -68,6 +50,11 @@ export const AlternativesPieChart = () => {
         acc[category] = equalShare;
         return acc;
       }, {} as Record<string, number>);
+    }
+    
+    // For predefined strategies, use the exact allocations from STRATEGY_ALLOCATIONS
+    if (selectedStrategy in STRATEGY_ALLOCATIONS) {
+      return STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
     }
 
     console.warn('Invalid strategy selected');
@@ -120,23 +107,16 @@ export const AlternativesPieChart = () => {
 
     const calculateChartData = (): ChartDataItem[] => {
       const currentAllocations = getCurrentAllocations();
-      // Only show categories with non-zero allocations for predefined strategies
-      // or visible categories for advanced strategy
-      const relevantCategories = selectedStrategy === 'advanced' 
-        ? Array.from(visibleCategories)
-        : Object.entries(currentAllocations)
-            .filter(([_, value]) => value > 0)
-            .map(([category]) => category);
-
-      return relevantCategories.map(category => ({
-        category,
-        value: currentAllocations[category] || 0,
-        color: getColorForCategory(category)
-      }));
+      return Array.from(visibleCategories)
+        .filter(category => (currentAllocations[category] || 0) > 0)
+        .map(category => ({
+          category,
+          value: currentAllocations[category] || 0,
+          color: getColorForCategory(category)
+        }));
     };
 
     const chartData = calculateChartData();
-    console.log('Chart data:', chartData);
     series.data.setAll(chartData);
 
     return () => {
