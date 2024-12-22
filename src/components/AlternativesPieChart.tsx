@@ -26,44 +26,55 @@ export const AlternativesPieChart = () => {
 
   // Initialize visible categories based on the selected strategy
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(() => {
-    if (!selectedStrategy) return new Set();
-
-    const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-    return new Set(
-      Object.entries(strategyAlloc)
-        .filter(([_, value]) => value > 0)
-        .map(([category]) => category)
-    );
+    if (selectedStrategy && selectedStrategy !== 'advanced' && selectedStrategy in STRATEGY_ALLOCATIONS) {
+      // For predefined strategies, show categories with non-zero allocations
+      const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+      return new Set(
+        Object.entries(strategyAlloc)
+          .filter(([_, value]) => value > 0)
+          .map(([category]) => category)
+      );
+    }
+    // Default categories for advanced or initial state
+    return new Set([
+      "Private Credit",
+      "Private Debt",
+      "Real Estate",
+      "Commodities",
+      "Hedge Funds"
+    ]);
   });
 
   const getCurrentAllocations = (): Record<string, number> => {
-    if (!selectedStrategy) return {};
+    if (!selectedStrategy) {
+      console.warn('No strategy selected');
+      return {};
+    }
 
-    if (selectedStrategy !== 'advanced') {
+    // For predefined strategies, use the exact allocations from STRATEGY_ALLOCATIONS
+    if (selectedStrategy !== 'advanced' && selectedStrategy in STRATEGY_ALLOCATIONS) {
       const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
       console.log(`Using ${selectedStrategy} strategy allocations:`, strategyAlloc);
       return strategyAlloc;
     }
 
-    // For advanced strategy, use custom allocations if available
-    if (Object.keys(customAllocations).length > 0) {
-      return customAllocations;
+    // For advanced strategy only, distribute equally among visible categories
+    if (selectedStrategy === 'advanced') {
+      const visibleCount = visibleCategories.size;
+      if (visibleCount === 0) return {};
+      
+      const equalShare = 100 / visibleCount;
+      return Array.from(visibleCategories).reduce((acc, category) => {
+        acc[category] = equalShare;
+        return acc;
+      }, {} as Record<string, number>);
     }
 
-    // If no custom allocations, distribute equally among visible categories
-    const visibleCount = visibleCategories.size;
-    if (visibleCount === 0) return {};
-    
-    const equalShare = 100 / visibleCount;
-    return Array.from(visibleCategories).reduce((acc, category) => {
-      acc[category] = equalShare;
-      return acc;
-    }, {} as Record<string, number>);
+    console.warn('Invalid strategy selected');
+    return {};
   };
 
   const toggleCategory = (category: string) => {
-    if (selectedStrategy !== 'advanced') return;
-
     setVisibleCategories(prev => {
       const newSet = new Set(prev);
       if (newSet.has(category)) {
@@ -71,21 +82,23 @@ export const AlternativesPieChart = () => {
       } else {
         newSet.add(category);
       }
+      localStorage.setItem('visibleCategories', JSON.stringify(Array.from(newSet)));
       return newSet;
     });
   };
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
-    if (selectedStrategy !== 'advanced') return;
-
     const total = Object.values(newAllocations).reduce((sum, value) => sum + value, 0);
     if (Math.abs(total - 100) > 0.01) {
       console.error('Total allocation must equal 100%');
       return;
     }
 
-    setCustomAllocations(newAllocations);
-    localStorage.setItem('alternativesAllocations', JSON.stringify(newAllocations));
+    const filteredAllocations = Object.fromEntries(
+      Object.entries(newAllocations).filter(([_, value]) => value > 0)
+    );
+    setCustomAllocations(filteredAllocations);
+    localStorage.setItem('alternativesAllocations', JSON.stringify(filteredAllocations));
     
     const newVisibleCategories = new Set(
       Object.entries(newAllocations)
@@ -93,6 +106,7 @@ export const AlternativesPieChart = () => {
         .map(([category]) => category)
     );
     setVisibleCategories(newVisibleCategories);
+    localStorage.setItem('visibleCategories', JSON.stringify(Array.from(newVisibleCategories)));
   };
 
   useLayoutEffect(() => {
@@ -104,15 +118,24 @@ export const AlternativesPieChart = () => {
 
     const { series } = configureChart(root);
 
-    const currentAllocations = getCurrentAllocations();
-    const chartData = Object.entries(currentAllocations)
-      .filter(([category, value]) => value > 0)
-      .map(([category, value]) => ({
+    const calculateChartData = (): ChartDataItem[] => {
+      const currentAllocations = getCurrentAllocations();
+      // Only show categories with non-zero allocations for predefined strategies
+      // or visible categories for advanced strategy
+      const relevantCategories = selectedStrategy === 'advanced' 
+        ? Array.from(visibleCategories)
+        : Object.entries(currentAllocations)
+            .filter(([_, value]) => value > 0)
+            .map(([category]) => category);
+
+      return relevantCategories.map(category => ({
         category,
-        value,
+        value: currentAllocations[category] || 0,
         color: getColorForCategory(category)
       }));
+    };
 
+    const chartData = calculateChartData();
     console.log('Chart data:', chartData);
     series.data.setAll(chartData);
 
@@ -126,22 +149,10 @@ export const AlternativesPieChart = () => {
     return am5.color(hexColor);
   };
 
-  // Only show legend items that are relevant for the current strategy
-  const getLegendItems = () => {
-    const currentAllocations = getCurrentAllocations();
-    const activeCategories = Object.entries(currentAllocations)
-      .filter(([_, value]) => value > 0)
-      .map(([category]) => category);
-
-    // Split active categories into two rows
-    const midpoint = Math.ceil(activeCategories.length / 2);
-    return [
-      activeCategories.slice(0, midpoint),
-      activeCategories.slice(midpoint)
-    ];
-  };
-
-  const legendItems = getLegendItems();
+  const legendItems = [
+    ["Private Equity", "Hedge Funds", "Real Estate", "Cryptocurrencies"],
+    ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
+  ];
 
   return (
     <Card className="p-4">
@@ -153,15 +164,13 @@ export const AlternativesPieChart = () => {
       <div className="mt-4 bg-gray-50 rounded-lg p-4">
         <div className="flex justify-between items-start mb-4">
           <h4 className="text-sm font-medium text-gray-700">Select Asset Classes</h4>
-          {selectedStrategy === 'advanced' && (
-            <button 
-              className="text-sm font-medium hover:text-primary transition-colors inline-flex items-center gap-2"
-              onClick={() => setIsAdjustDialogOpen(true)}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              ADJUST
-            </button>
-          )}
+          <button 
+            className="text-sm font-medium hover:text-primary transition-colors inline-flex items-center gap-2"
+            onClick={() => setIsAdjustDialogOpen(true)}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            ADJUST
+          </button>
         </div>
         {legendItems.map((row, rowIndex) => (
           <div key={rowIndex} className="flex flex-wrap gap-4 mb-4 last:mb-0">
