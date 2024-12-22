@@ -41,6 +41,20 @@ export const AlternativesPieChart = () => {
     );
   });
 
+  useEffect(() => {
+    if (!selectedStrategy) return;
+
+    if (selectedStrategy === 'advanced') {
+      setVisibleCategories(new Set(Object.keys(ALTERNATIVES_COLORS)));
+    } else {
+      const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+      const nonZeroCategories = Object.entries(strategyAlloc)
+        .filter(([_, value]) => value > 0)
+        .map(([category]) => category);
+      setVisibleCategories(new Set(nonZeroCategories));
+    }
+  }, [selectedStrategy]);
+
   const getCurrentAllocations = (): Record<string, number> => {
     if (!selectedStrategy) return {};
 
@@ -51,7 +65,12 @@ export const AlternativesPieChart = () => {
       return strategyAlloc;
     }
 
-    // For advanced strategy only, distribute equally among visible categories
+    // For advanced strategy, use custom allocations or distribute equally
+    if (Object.keys(customAllocations).length > 0) {
+      return customAllocations;
+    }
+
+    // If no custom allocations, distribute equally among visible categories
     const visibleCount = visibleCategories.size;
     if (visibleCount === 0) return {};
     
@@ -108,7 +127,7 @@ export const AlternativesPieChart = () => {
 
     const currentAllocations = getCurrentAllocations();
     const chartData = Object.entries(currentAllocations)
-      .filter(([_, value]) => value > 0)
+      .filter(([category, value]) => value > 0 && visibleCategories.has(category))
       .map(([category, value]) => ({
         category,
         value,
@@ -130,16 +149,9 @@ export const AlternativesPieChart = () => {
 
   // Only show legend items that are relevant for the current strategy
   const getLegendItems = () => {
-    if (selectedStrategy === 'advanced') {
-      return [
-        ["Private Equity", "Hedge Funds", "Real Estate", "Cryptocurrencies"],
-        ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
-      ];
-    }
-
     const currentAllocations = getCurrentAllocations();
     const activeCategories = Object.entries(currentAllocations)
-      .filter(([_, value]) => value > 0)
+      .filter(([category, value]) => value > 0)
       .map(([category]) => category);
 
     // Split active categories into two rows
