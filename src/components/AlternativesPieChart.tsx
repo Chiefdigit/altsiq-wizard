@@ -23,18 +23,22 @@ export const AlternativesPieChart = () => {
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
 
   const getCurrentAllocations = (): Record<string, number> => {
-    const savedStrategy = localStorage.getItem('selectedStrategy');
+    // Get saved strategy with fallback to context or default
+    const savedStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy || 'diversification';
     console.log('Getting allocations for saved strategy:', savedStrategy);
     
     if (savedStrategy === 'advanced') {
       const savedAllocations = localStorage.getItem('alternativesAllocations');
-      const parsedAllocations = savedAllocations ? JSON.parse(savedAllocations) : {};
-      console.log('Using advanced allocations:', parsedAllocations);
-      return parsedAllocations;
+      if (savedAllocations) {
+        const parsedAllocations = JSON.parse(savedAllocations);
+        console.log('Using advanced allocations:', parsedAllocations);
+        return parsedAllocations;
+      }
     }
 
-    const strategyKey = savedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
-    const allocations = STRATEGY_ALLOCATIONS[strategyKey];
+    // Use predefined allocations with fallback to diversification
+    const strategyKey = (savedStrategy || 'diversification') as keyof typeof STRATEGY_ALLOCATIONS;
+    const allocations = STRATEGY_ALLOCATIONS[strategyKey] || STRATEGY_ALLOCATIONS.diversification;
     console.log('Using predefined allocations for strategy:', strategyKey, allocations);
     return allocations;
   };
@@ -96,7 +100,7 @@ export const AlternativesPieChart = () => {
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
   ];
 
-  const savedStrategy = localStorage.getItem('selectedStrategy') || 'diversification';
+  const savedStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy || 'diversification';
   const displayStrategy = savedStrategy.charAt(0).toUpperCase() + savedStrategy.slice(1);
 
   return (
