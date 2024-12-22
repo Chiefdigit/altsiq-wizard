@@ -1,8 +1,8 @@
 import React from "react";
-import { StrategySelector } from "./strategy/StrategySelector";
-import { StrategyDetails } from "./strategy/StrategyDetails";
-import { StrategyActions } from "./strategy/StrategyActions";
-import { AdvancedAllocation } from "../AdvancedAllocation";
+import { StrategySelector } from "./StrategySelector";
+import { StrategyDetails } from "./StrategyDetails";
+import { StrategyActions } from "./StrategyActions";
+import { AdvancedAllocation } from "../../AdvancedAllocation";
 import { useStrategySelection } from "@/hooks/useStrategySelection";
 import type { AllocationValues } from "@/constants/types";
 import { STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
