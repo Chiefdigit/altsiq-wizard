@@ -21,45 +21,58 @@ export const AlternativesPieChart = () => {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
+  const [currentStrategy, setCurrentStrategy] = useState(() => 
+    localStorage.getItem('selectedStrategy') || 'diversification'
+  );
 
   const getCurrentAllocations = (): Record<string, number> => {
-    // Always use the saved allocations from localStorage if they exist
+    // First, try to get the current strategy
+    const strategy = localStorage.getItem('selectedStrategy');
+    console.log('Current strategy from localStorage:', strategy);
+
+    if (!strategy) {
+      console.log('No strategy found in localStorage, using diversification');
+      return STRATEGY_ALLOCATIONS.diversification;
+    }
+
+    // Then get the allocations for this strategy
     const savedAllocations = localStorage.getItem('alternativesAllocations');
     if (savedAllocations) {
       try {
         const parsedAllocations = JSON.parse(savedAllocations);
-        console.log('Using saved allocations from localStorage:', parsedAllocations);
+        console.log('Using allocations for strategy:', strategy, parsedAllocations);
         return parsedAllocations;
       } catch (e) {
         console.error('Error parsing saved allocations:', e);
       }
     }
 
-    // If no saved allocations, use the current strategy's default allocations
-    const currentStrategy = localStorage.getItem('selectedStrategy');
-    console.log('No saved allocations, falling back to strategy:', currentStrategy);
-    
-    if (!currentStrategy) {
-      console.log('No strategy found, using diversification as fallback');
-      return STRATEGY_ALLOCATIONS.diversification;
-    }
-
-    const strategyAllocations = STRATEGY_ALLOCATIONS[currentStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+    // If no saved allocations, use the strategy's default allocations
+    const strategyAllocations = STRATEGY_ALLOCATIONS[strategy as keyof typeof STRATEGY_ALLOCATIONS];
     if (!strategyAllocations) {
       console.log('Invalid strategy, using diversification as fallback');
       return STRATEGY_ALLOCATIONS.diversification;
     }
 
-    console.log('Using allocations for strategy:', currentStrategy, strategyAllocations);
+    console.log('Using default allocations for strategy:', strategy, strategyAllocations);
     return strategyAllocations;
   };
 
-  // Initialize or update allocations when component mounts or strategy changes
+  // Effect to update current strategy
+  useEffect(() => {
+    const savedStrategy = localStorage.getItem('selectedStrategy');
+    if (savedStrategy && savedStrategy !== currentStrategy) {
+      console.log('Strategy changed:', savedStrategy);
+      setCurrentStrategy(savedStrategy);
+    }
+  }, [selectedStrategy]);
+
+  // Effect to update allocations when strategy changes
   useEffect(() => {
     const allocations = getCurrentAllocations();
-    console.log('Setting initial allocations:', allocations);
+    console.log('Setting allocations for strategy:', currentStrategy, allocations);
     setCustomAllocations(allocations);
-  }, [selectedStrategy]);
+  }, [currentStrategy]);
 
   useLayoutEffect(() => {
     const allocations = getCurrentAllocations();
@@ -86,7 +99,7 @@ export const AlternativesPieChart = () => {
     return () => {
       root.dispose();
     };
-  }, [selectedStrategy, customAllocations, hiddenCategories]);
+  }, [currentStrategy, customAllocations, hiddenCategories]);
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
     console.log('Saving new allocations:', newAllocations);
@@ -111,8 +124,7 @@ export const AlternativesPieChart = () => {
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
   ];
 
-  const savedStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy || 'diversification';
-  const displayStrategy = savedStrategy.charAt(0).toUpperCase() + savedStrategy.slice(1);
+  const displayStrategy = currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1);
 
   return (
     <Card className="p-4">
