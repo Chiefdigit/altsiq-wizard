@@ -23,13 +23,13 @@ export const AlternativesPieChart = () => {
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
 
   const getCurrentAllocations = (): Record<string, number> => {
-    // Always get the fresh strategy from localStorage
-    const currentStrategy = localStorage.getItem('selectedStrategy');
-    console.log('Current strategy from localStorage:', currentStrategy);
+    // Get strategy from localStorage with fallback to context
+    const currentStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
+    console.log('Current strategy:', currentStrategy);
 
     if (!currentStrategy) {
-      console.warn('No strategy found in localStorage');
-      return {};
+      console.warn('No strategy found');
+      return STRATEGY_ALLOCATIONS.diversification; // Default to diversification
     }
 
     if (currentStrategy === 'advanced') {
@@ -39,22 +39,20 @@ export const AlternativesPieChart = () => {
 
     const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
     const allocations = STRATEGY_ALLOCATIONS[strategyKey];
-    console.log('Loading allocations for strategy from localStorage:', currentStrategy, allocations);
-    return allocations || {};
+    console.log('Loading allocations for strategy:', currentStrategy, allocations);
+    return allocations;
   };
 
   // Initialize or update allocations when strategy changes
   useEffect(() => {
     const currentAllocations = getCurrentAllocations();
-    console.log('Strategy changed, updating allocations from localStorage:', currentAllocations);
+    console.log('Strategy changed, updating allocations:', currentAllocations);
     setCustomAllocations(currentAllocations);
   }, [selectedStrategy]);
 
   useLayoutEffect(() => {
     const currentAllocations = getCurrentAllocations();
     
-    if (Object.keys(currentAllocations).length === 0) return;
-
     const root = am5.Root.new("alternatives-chartdiv");
     root.setThemes([am5themes_Animated.new(root)]);
     chartRef.current = root;
@@ -103,7 +101,7 @@ export const AlternativesPieChart = () => {
   ];
 
   // Get current strategy for display
-  const currentStrategy = localStorage.getItem('selectedStrategy');
+  const currentStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
 
   return (
     <Card className="p-4">
