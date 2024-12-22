@@ -29,7 +29,7 @@ export const AlternativesPieChart = () => {
     "Hedge Funds"
   ]));
 
-  const getCurrentAllocations = () => {
+  const getCurrentAllocations = (): Record<string, number> => {
     if (!selectedStrategy) return {};
     
     const baseAllocations = { ...STRATEGY_ALLOCATIONS[selectedStrategy] };
@@ -38,7 +38,7 @@ export const AlternativesPieChart = () => {
         category,
         customAllocations[category] ?? value
       ])
-    );
+    ) as Record<string, number>;
   };
 
   const toggleCategory = (category: string) => {
@@ -79,7 +79,7 @@ export const AlternativesPieChart = () => {
     const calculateProportionalData = (): ChartDataItem[] => {
       const currentAllocations = getCurrentAllocations();
       const visibleData = Array.from(visibleCategories)
-        .filter(category => currentAllocations[category] > 0)
+        .filter(category => (currentAllocations[category] || 0) > 0)
         .map(category => ({
           category,
           value: currentAllocations[category] || 0,
@@ -87,10 +87,10 @@ export const AlternativesPieChart = () => {
         }));
 
       // Normalize values to sum to 100%
-      const total = visibleData.reduce((sum, item) => sum + item.value, 0);
+      const total = visibleData.reduce((sum, item) => sum + (item.value || 0), 0);
       return visibleData.map(item => ({
         ...item,
-        value: total > 0 ? Math.round((item.value / total) * 100) : 0
+        value: total > 0 ? Math.round(((item.value || 0) / total) * 100) : 0
       }));
     };
 
