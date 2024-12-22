@@ -11,14 +11,14 @@ export const ALTERNATIVES_COLORS = {
 
 export const STRATEGY_ALLOCATIONS = {
   diversification: {
-    "Private Equity": 15,
+    "Private Equity": 10,
     "Hedge Funds": 15,
-    "Real Estate": 15,
-    "Private Credit": 15,
-    "Private Debt": 15,
+    "Real Estate": 20,
+    "Private Credit": 10,
+    "Private Debt": 10,
     "Collectibles": 5,
     "Cryptocurrencies": 5,
-    "Commodities": 15
+    "Commodities": 25
   },
   income: {
     "Private Equity": 0,
