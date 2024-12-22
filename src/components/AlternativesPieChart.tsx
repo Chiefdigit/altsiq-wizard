@@ -43,12 +43,8 @@ export const AlternativesPieChart = () => {
     // Get the base allocations for the selected strategy
     const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
     
-    // Merge with any custom allocations, preferring custom values if they exist
-    return Object.entries(baseAllocations).reduce((acc, [category, defaultValue]) => {
-      const customValue = customAllocations[category];
-      acc[category] = customValue !== undefined ? customValue : defaultValue;
-      return acc;
-    }, {} as Record<string, number>);
+    // Use the exact values from the strategy allocations, not normalized
+    return { ...baseAllocations };
   };
 
   const toggleCategory = (category: string) => {
@@ -97,26 +93,19 @@ export const AlternativesPieChart = () => {
 
     const { series } = configureChart(root);
 
-    const calculateProportionalData = (): ChartDataItem[] => {
+    const calculateChartData = (): ChartDataItem[] => {
       const currentAllocations = getCurrentAllocations();
-      const visibleData = Array.from(visibleCategories)
+      return Array.from(visibleCategories)
         .filter(category => (currentAllocations[category] || 0) > 0)
         .map(category => ({
           category,
           value: currentAllocations[category] || 0,
           color: getColorForCategory(category)
         }));
-
-      // Normalize values to sum to 100%
-      const total = visibleData.reduce((sum, item) => sum + (item.value || 0), 0);
-      return visibleData.map(item => ({
-        ...item,
-        value: total > 0 ? Math.round(((item.value || 0) / total) * 100) : 0
-      }));
     };
 
-    const normalizedData = calculateProportionalData();
-    series.data.setAll(normalizedData);
+    const chartData = calculateChartData();
+    series.data.setAll(chartData);
 
     return () => {
       root.dispose();
