@@ -21,32 +21,63 @@ export const AlternativesPieChart = () => {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
-  const [currentStrategy, setCurrentStrategy] = useState(() => 
-    localStorage.getItem('selectedStrategy') || 'diversification'
-  );
+  const [currentStrategy, setCurrentStrategy] = useState<string>("");
 
+  // Initialize and sync strategy
   useEffect(() => {
-    // Update current strategy when it changes in localStorage
-    const savedStrategy = localStorage.getItem('selectedStrategy');
-    if (savedStrategy && savedStrategy !== currentStrategy) {
-      console.log('Strategy changed:', savedStrategy);
-      setCurrentStrategy(savedStrategy);
-      
-      // Get allocations based on strategy
-      const savedAllocations = localStorage.getItem('alternativesAllocations');
-      const allocations = savedAllocations 
-        ? JSON.parse(savedAllocations)
-        : STRATEGY_ALLOCATIONS[savedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-      
-      console.log('Setting allocations for strategy:', savedStrategy, allocations);
-      setCustomAllocations(allocations);
-    }
-  }, [selectedStrategy, currentStrategy]);
+    const initializeStrategy = () => {
+      // First try to get strategy from context
+      if (selectedStrategy) {
+        console.log('Using strategy from context:', selectedStrategy);
+        setCurrentStrategy(selectedStrategy);
+        return;
+      }
+
+      // Fallback to localStorage
+      const savedStrategy = localStorage.getItem('selectedStrategy');
+      if (savedStrategy) {
+        console.log('Using strategy from localStorage:', savedStrategy);
+        setCurrentStrategy(savedStrategy);
+        return;
+      }
+
+      // Default to diversification if no strategy is found
+      console.log('No strategy found, defaulting to diversification');
+      setCurrentStrategy('diversification');
+    };
+
+    initializeStrategy();
+  }, [selectedStrategy]);
+
+  // Load allocations whenever strategy changes
+  useEffect(() => {
+    if (!currentStrategy) return;
+
+    const loadAllocations = () => {
+      if (currentStrategy === 'advanced') {
+        const savedAllocations = localStorage.getItem('alternativesAllocations');
+        if (savedAllocations) {
+          console.log('Loading saved advanced allocations:', JSON.parse(savedAllocations));
+          setCustomAllocations(JSON.parse(savedAllocations));
+        }
+      } else {
+        const strategyAllocations = STRATEGY_ALLOCATIONS[currentStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+        console.log('Loading strategy allocations for:', currentStrategy, strategyAllocations);
+        setCustomAllocations(strategyAllocations);
+      }
+    };
+
+    loadAllocations();
+  }, [currentStrategy]);
 
   useLayoutEffect(() => {
-    if (!customAllocations || Object.keys(customAllocations).length === 0) return;
+    if (!customAllocations || Object.keys(customAllocations).length === 0) {
+      console.log('No allocations available, skipping chart render');
+      return;
+    }
 
-    // Dispose of existing chart if it exists
+    console.log('Rendering chart with allocations:', customAllocations);
+
     if (chartRef.current) {
       chartRef.current.dispose();
     }
@@ -65,7 +96,6 @@ export const AlternativesPieChart = () => {
         color: am5.color(ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS] || "#64748b")
       }));
 
-    console.log('Rendering chart with data:', chartData);
     series.data.setAll(chartData);
 
     return () => {
