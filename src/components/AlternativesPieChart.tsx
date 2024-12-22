@@ -23,22 +23,35 @@ export const AlternativesPieChart = () => {
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
 
   const getCurrentAllocations = (): Record<string, number> => {
-    // First try to get the saved allocations directly
+    // Always use the saved allocations from localStorage if they exist
     const savedAllocations = localStorage.getItem('alternativesAllocations');
     if (savedAllocations) {
-      const parsedAllocations = JSON.parse(savedAllocations);
-      console.log('Using saved allocations:', parsedAllocations);
-      return parsedAllocations;
+      try {
+        const parsedAllocations = JSON.parse(savedAllocations);
+        console.log('Using saved allocations from localStorage:', parsedAllocations);
+        return parsedAllocations;
+      } catch (e) {
+        console.error('Error parsing saved allocations:', e);
+      }
     }
 
-    // If no saved allocations, get the strategy and use its default allocations
-    const savedStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy || 'diversification';
-    console.log('No saved allocations, using strategy:', savedStrategy);
+    // If no saved allocations, use the current strategy's default allocations
+    const currentStrategy = localStorage.getItem('selectedStrategy');
+    console.log('No saved allocations, falling back to strategy:', currentStrategy);
     
-    const strategyKey = savedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
-    const allocations = STRATEGY_ALLOCATIONS[strategyKey] || STRATEGY_ALLOCATIONS.diversification;
-    console.log('Using strategy allocations:', allocations);
-    return allocations;
+    if (!currentStrategy) {
+      console.log('No strategy found, using diversification as fallback');
+      return STRATEGY_ALLOCATIONS.diversification;
+    }
+
+    const strategyAllocations = STRATEGY_ALLOCATIONS[currentStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+    if (!strategyAllocations) {
+      console.log('Invalid strategy, using diversification as fallback');
+      return STRATEGY_ALLOCATIONS.diversification;
+    }
+
+    console.log('Using allocations for strategy:', currentStrategy, strategyAllocations);
+    return strategyAllocations;
   };
 
   // Initialize or update allocations when component mounts or strategy changes
