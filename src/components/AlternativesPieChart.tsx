@@ -28,11 +28,6 @@ export const AlternativesPieChart = () => {
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(() => {
     if (!selectedStrategy) return new Set();
 
-    if (selectedStrategy === 'advanced') {
-      return new Set(Object.keys(ALTERNATIVES_COLORS));
-    }
-
-    // For predefined strategies, only show categories with non-zero allocations
     const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
     return new Set(
       Object.entries(strategyAlloc)
@@ -41,31 +36,16 @@ export const AlternativesPieChart = () => {
     );
   });
 
-  useEffect(() => {
-    if (!selectedStrategy) return;
-
-    if (selectedStrategy === 'advanced') {
-      setVisibleCategories(new Set(Object.keys(ALTERNATIVES_COLORS)));
-    } else {
-      const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-      const nonZeroCategories = Object.entries(strategyAlloc)
-        .filter(([_, value]) => value > 0)
-        .map(([category]) => category);
-      setVisibleCategories(new Set(nonZeroCategories));
-    }
-  }, [selectedStrategy]);
-
   const getCurrentAllocations = (): Record<string, number> => {
     if (!selectedStrategy) return {};
 
-    // For predefined strategies, use the exact allocations from STRATEGY_ALLOCATIONS
     if (selectedStrategy !== 'advanced') {
       const strategyAlloc = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
       console.log(`Using ${selectedStrategy} strategy allocations:`, strategyAlloc);
       return strategyAlloc;
     }
 
-    // For advanced strategy, use custom allocations or distribute equally
+    // For advanced strategy, use custom allocations if available
     if (Object.keys(customAllocations).length > 0) {
       return customAllocations;
     }
@@ -82,7 +62,6 @@ export const AlternativesPieChart = () => {
   };
 
   const toggleCategory = (category: string) => {
-    // Only allow toggling categories in advanced mode
     if (selectedStrategy !== 'advanced') return;
 
     setVisibleCategories(prev => {
@@ -127,7 +106,7 @@ export const AlternativesPieChart = () => {
 
     const currentAllocations = getCurrentAllocations();
     const chartData = Object.entries(currentAllocations)
-      .filter(([category, value]) => value > 0 && visibleCategories.has(category))
+      .filter(([category, value]) => value > 0)
       .map(([category, value]) => ({
         category,
         value,
@@ -151,7 +130,7 @@ export const AlternativesPieChart = () => {
   const getLegendItems = () => {
     const currentAllocations = getCurrentAllocations();
     const activeCategories = Object.entries(currentAllocations)
-      .filter(([category, value]) => value > 0)
+      .filter(([_, value]) => value > 0)
       .map(([category]) => category);
 
     // Split active categories into two rows
