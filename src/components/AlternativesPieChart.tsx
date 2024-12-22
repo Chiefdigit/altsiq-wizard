@@ -23,17 +23,20 @@ export const AlternativesPieChart = () => {
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
 
   const getCurrentAllocations = (): Record<string, number> => {
-    if (!selectedStrategy) {
+    const savedStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
+    console.log('Getting allocations for strategy:', savedStrategy);
+
+    if (!savedStrategy) {
       console.warn('No strategy selected');
       return {};
     }
 
-    if (selectedStrategy === 'advanced') {
+    if (savedStrategy === 'advanced') {
       const savedAllocations = localStorage.getItem('alternativesAllocations');
       return savedAllocations ? JSON.parse(savedAllocations) : customAllocations;
     }
 
-    const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+    const strategyKey = savedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
     const allocations = STRATEGY_ALLOCATIONS[strategyKey];
     console.log('Loading allocations for strategy:', strategyKey, allocations);
     return allocations || {};
