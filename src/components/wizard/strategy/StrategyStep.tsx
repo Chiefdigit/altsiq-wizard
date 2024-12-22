@@ -32,11 +32,12 @@ export const StrategyStep = ({
 
   const handleStrategyChange = (value: string) => {
     console.log('Setting strategy to:', value);
-    
-    // Update strategy in context and localStorage
     onStrategyChange(value);
     setIsSelected(false);
+    
+    // Store the strategy when it changes
     localStorage.setItem('selectedStrategy', value);
+    console.log('Stored strategy in localStorage:', value);
     
     // Store the strategy allocations
     if (value !== 'advanced') {
@@ -52,19 +53,48 @@ export const StrategyStep = ({
     });
   };
 
-  const handleContinue = () => {
-    // Get the current strategy and ensure its allocations are saved
-    const currentStrategy = selectedStrategy;
-    console.log('Continuing with strategy:', currentStrategy);
+  const handleSelect = () => {
+    // Save strategy when selecting
+    localStorage.setItem('selectedStrategy', selectedStrategy);
+    console.log('Strategy saved on select:', selectedStrategy);
     
-    if (currentStrategy === 'advanced') {
-      // For advanced strategy, save the custom allocations
+    // Save allocations based on strategy type
+    if (selectedStrategy === 'advanced') {
       localStorage.setItem('alternativesAllocations', JSON.stringify(customAllocations));
+      console.log('Saved advanced allocations:', customAllocations);
     } else {
-      // For predefined strategies, save the corresponding allocations
-      const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+      const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
       const allocations = STRATEGY_ALLOCATIONS[strategyKey];
       localStorage.setItem('alternativesAllocations', JSON.stringify(allocations));
+      console.log('Saved predefined allocations for strategy:', selectedStrategy, allocations);
+    }
+    
+    handleStrategySelect();
+    
+    toast({
+      title: "Strategy Confirmed",
+      description: `${selectedStrategy.charAt(0).toUpperCase() + selectedStrategy.slice(1)} strategy has been saved`,
+    });
+  };
+
+  const handleContinue = () => {
+    // Verify strategy and allocations are properly saved before continuing
+    const savedStrategy = localStorage.getItem('selectedStrategy');
+    console.log('Continuing with saved strategy:', savedStrategy);
+    
+    if (savedStrategy !== selectedStrategy) {
+      // Ensure strategy is saved one final time before continuing
+      localStorage.setItem('selectedStrategy', selectedStrategy);
+      console.log('Re-saved strategy before continuing:', selectedStrategy);
+      
+      // Re-save allocations to ensure consistency
+      if (selectedStrategy === 'advanced') {
+        localStorage.setItem('alternativesAllocations', JSON.stringify(customAllocations));
+      } else {
+        const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+        const allocations = STRATEGY_ALLOCATIONS[strategyKey];
+        localStorage.setItem('alternativesAllocations', JSON.stringify(allocations));
+      }
     }
     
     setActiveStep("alternatives");
@@ -89,7 +119,7 @@ export const StrategyStep = ({
 
       <StrategyActions 
         isSelected={isSelected}
-        onSelect={handleStrategySelect}
+        onSelect={handleSelect}
         onContinue={handleContinue}
       />
     </div>
