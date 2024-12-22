@@ -21,71 +21,38 @@ export const AlternativesPieChart = () => {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
-  const [currentStrategy, setCurrentStrategy] = useState(() => 
-    localStorage.getItem('selectedStrategy') || 'diversification'
-  );
+  const [currentStrategy, setCurrentStrategy] = useState<string>('diversification');
 
-  const getCurrentAllocations = (): Record<string, number> => {
-    // First, try to get the current strategy
-    const strategy = localStorage.getItem('selectedStrategy');
-    console.log('Current strategy from localStorage:', strategy);
-
-    if (!strategy) {
-      console.log('No strategy found in localStorage, using diversification');
-      return STRATEGY_ALLOCATIONS.diversification;
-    }
-
-    // Then get the allocations for this strategy
-    const savedAllocations = localStorage.getItem('alternativesAllocations');
-    if (savedAllocations) {
-      try {
-        const parsedAllocations = JSON.parse(savedAllocations);
-        console.log('Using allocations for strategy:', strategy, parsedAllocations);
-        return parsedAllocations;
-      } catch (e) {
-        console.error('Error parsing saved allocations:', e);
-      }
-    }
-
-    // If no saved allocations, use the strategy's default allocations
-    const strategyAllocations = STRATEGY_ALLOCATIONS[strategy as keyof typeof STRATEGY_ALLOCATIONS];
-    if (!strategyAllocations) {
-      console.log('Invalid strategy, using diversification as fallback');
-      return STRATEGY_ALLOCATIONS.diversification;
-    }
-
-    console.log('Using default allocations for strategy:', strategy, strategyAllocations);
-    return strategyAllocations;
-  };
-
-  // Effect to update current strategy
+  // Effect to sync with localStorage strategy changes
   useEffect(() => {
     const savedStrategy = localStorage.getItem('selectedStrategy');
-    if (savedStrategy && savedStrategy !== currentStrategy) {
-      console.log('Strategy changed:', savedStrategy);
+    if (savedStrategy) {
+      console.log('Strategy from localStorage:', savedStrategy);
       setCurrentStrategy(savedStrategy);
+      
+      // Get the corresponding allocations
+      const strategyKey = savedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+      const defaultAllocations = STRATEGY_ALLOCATIONS[strategyKey];
+      
+      // Check for custom allocations in localStorage
+      const savedAllocations = localStorage.getItem('alternativesAllocations');
+      const allocations = savedAllocations ? JSON.parse(savedAllocations) : defaultAllocations;
+      
+      console.log('Setting allocations for strategy:', savedStrategy, allocations);
+      setCustomAllocations(allocations);
     }
-  }, [selectedStrategy]);
-
-  // Effect to update allocations when strategy changes
-  useEffect(() => {
-    const allocations = getCurrentAllocations();
-    console.log('Setting allocations for strategy:', currentStrategy, allocations);
-    setCustomAllocations(allocations);
-  }, [currentStrategy]);
+  }, [selectedStrategy]); // Re-run when selectedStrategy changes
 
   useLayoutEffect(() => {
-    const allocations = getCurrentAllocations();
-    
+    if (!currentStrategy) return;
+
     const root = am5.Root.new("alternatives-chartdiv");
     root.setThemes([am5themes_Animated.new(root)]);
     chartRef.current = root;
 
     const { series } = configureChart(root);
 
-    console.log('Rendering chart with allocations:', allocations);
-
-    const chartData = Object.entries(allocations)
+    const chartData = Object.entries(customAllocations)
       .filter(([category]) => !hiddenCategories.has(category))
       .map(([category, value]) => ({
         category,
@@ -93,7 +60,7 @@ export const AlternativesPieChart = () => {
         color: am5.color(ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS] || "#64748b")
       }));
 
-    console.log('Chart data:', chartData);
+    console.log('Rendering chart with data:', chartData);
     series.data.setAll(chartData);
 
     return () => {
@@ -166,8 +133,8 @@ export const AlternativesPieChart = () => {
       <AlternativesAdjustDialog
         open={isAdjustDialogOpen}
         onOpenChange={setIsAdjustDialogOpen}
-        visibleCategories={new Set(Object.keys(getCurrentAllocations()))}
-        initialAllocations={getCurrentAllocations()}
+        visibleCategories={new Set(Object.keys(customAllocations))}
+        initialAllocations={customAllocations}
         onSave={handleSaveAllocations}
       />
     </Card>
