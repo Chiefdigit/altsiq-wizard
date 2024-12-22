@@ -21,30 +21,26 @@ export const AlternativesPieChart = () => {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
-  const [currentStrategy, setCurrentStrategy] = useState<string>('diversification');
 
-  // Effect to sync with localStorage strategy changes
   useEffect(() => {
+    // Get the current strategy from localStorage
     const savedStrategy = localStorage.getItem('selectedStrategy');
     if (savedStrategy) {
-      console.log('Strategy from localStorage:', savedStrategy);
-      setCurrentStrategy(savedStrategy);
+      console.log('Loading allocations for strategy:', savedStrategy);
       
-      // Get the corresponding allocations
-      const strategyKey = savedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
-      const defaultAllocations = STRATEGY_ALLOCATIONS[strategyKey];
-      
-      // Check for custom allocations in localStorage
+      // Get allocations based on strategy
       const savedAllocations = localStorage.getItem('alternativesAllocations');
-      const allocations = savedAllocations ? JSON.parse(savedAllocations) : defaultAllocations;
+      const allocations = savedAllocations 
+        ? JSON.parse(savedAllocations)
+        : STRATEGY_ALLOCATIONS[savedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
       
-      console.log('Setting allocations for strategy:', savedStrategy, allocations);
+      console.log('Setting allocations:', allocations);
       setCustomAllocations(allocations);
     }
   }, [selectedStrategy]); // Re-run when selectedStrategy changes
 
   useLayoutEffect(() => {
-    if (!currentStrategy) return;
+    if (!customAllocations || Object.keys(customAllocations).length === 0) return;
 
     const root = am5.Root.new("alternatives-chartdiv");
     root.setThemes([am5themes_Animated.new(root)]);
@@ -66,7 +62,7 @@ export const AlternativesPieChart = () => {
     return () => {
       root.dispose();
     };
-  }, [currentStrategy, customAllocations, hiddenCategories]);
+  }, [customAllocations, hiddenCategories]);
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
     console.log('Saving new allocations:', newAllocations);
@@ -91,6 +87,8 @@ export const AlternativesPieChart = () => {
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
   ];
 
+  // Get current strategy for display
+  const currentStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
   const displayStrategy = currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1);
 
   return (

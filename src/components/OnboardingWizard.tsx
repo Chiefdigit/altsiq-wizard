@@ -58,17 +58,18 @@ export const OnboardingWizard = () => {
           />
         );
       case "alternatives":
+        const currentStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
         return (
           <div className="space-y-4">
-            {selectedStrategy && selectedStrategy !== 'advanced' && (
+            {currentStrategy && currentStrategy !== 'advanced' && (
               <>
                 <h3 className="text-xl font-semibold mb-4">
-                  {selectedStrategy.toUpperCase()}
+                  {currentStrategy.toUpperCase()}
                 </h3>
                 <Card className="p-4 bg-gray-50 mb-4">
                   <p className="text-gray-700">
                     <span className="font-semibold">Strategy Rationale:</span>{" "}
-                    {STRATEGY_DESCRIPTIONS[selectedStrategy].rationale}
+                    {STRATEGY_DESCRIPTIONS[currentStrategy as keyof typeof STRATEGY_DESCRIPTIONS].rationale}
                   </p>
                 </Card>
               </>
