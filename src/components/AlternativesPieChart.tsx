@@ -35,16 +35,30 @@ export const AlternativesPieChart = () => {
   });
 
   const getCurrentAllocations = (): Record<string, number> => {
-    if (!selectedStrategy || !(selectedStrategy in STRATEGY_ALLOCATIONS)) {
-      console.warn('No strategy selected or invalid strategy');
+    if (!selectedStrategy) {
+      console.warn('No strategy selected');
       return {};
     }
+
+    if (selectedStrategy === 'advanced') {
+      // For advanced strategy, distribute equally among visible categories
+      const visibleCount = visibleCategories.size;
+      if (visibleCount === 0) return {};
+      
+      const equalShare = 100 / visibleCount;
+      return Array.from(visibleCategories).reduce((acc, category) => {
+        acc[category] = equalShare;
+        return acc;
+      }, {} as Record<string, number>);
+    }
     
-    // Get the base allocations for the selected strategy
-    const baseAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-    
-    // Use the exact values from the strategy allocations, not normalized
-    return { ...baseAllocations };
+    // For predefined strategies, use the exact allocations from STRATEGY_ALLOCATIONS
+    if (selectedStrategy in STRATEGY_ALLOCATIONS) {
+      return STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+    }
+
+    console.warn('Invalid strategy selected');
+    return {};
   };
 
   const toggleCategory = (category: string) => {
@@ -61,7 +75,6 @@ export const AlternativesPieChart = () => {
   };
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
-    // Validate that the total equals 100%
     const total = Object.values(newAllocations).reduce((sum, value) => sum + value, 0);
     if (Math.abs(total - 100) > 0.01) {
       console.error('Total allocation must equal 100%');
@@ -74,7 +87,6 @@ export const AlternativesPieChart = () => {
     setCustomAllocations(filteredAllocations);
     localStorage.setItem('alternativesAllocations', JSON.stringify(filteredAllocations));
     
-    // Update visible categories based on non-zero allocations
     const newVisibleCategories = new Set(
       Object.entries(newAllocations)
         .filter(([_, value]) => value > 0)
