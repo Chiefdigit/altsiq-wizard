@@ -6,6 +6,7 @@ import { AdvancedAllocation } from "../../AdvancedAllocation";
 import { useStrategySelection } from "@/hooks/useStrategySelection";
 import type { AllocationValues } from "@/constants/types";
 import { STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
+import { toast } from "@/components/ui/use-toast";
 
 interface StrategyStepProps {
   selectedStrategy: string;
@@ -33,6 +34,8 @@ export const StrategyStep = ({
     console.log('Setting strategy to:', value);
     onStrategyChange(value);
     setIsSelected(false);
+    
+    // Save the selected strategy
     localStorage.setItem('selectedStrategy', value);
     
     // Store the strategy allocations when strategy changes
@@ -41,6 +44,12 @@ export const StrategyStep = ({
       const allocations = STRATEGY_ALLOCATIONS[strategyKey];
       localStorage.setItem('alternativesAllocations', JSON.stringify(allocations));
       console.log('Stored allocations for strategy:', value, allocations);
+      
+      // Show confirmation toast
+      toast({
+        title: "Strategy Updated",
+        description: `Selected ${value.charAt(0).toUpperCase() + value.slice(1)} strategy`,
+      });
     }
   };
 

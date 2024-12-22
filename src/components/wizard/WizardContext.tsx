@@ -38,13 +38,25 @@ export const WizardProvider = ({ children }: { children: React.ReactNode }) => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(500000);
   const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
-  const [selectedStrategy, setSelectedStrategy] = useState("diversification");
+  const [selectedStrategy, setSelectedStrategy] = useState(() => {
+    // Initialize from localStorage or default to "diversification"
+    return localStorage.getItem('selectedStrategy') || "diversification";
+  });
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
   // Effect to update allocations when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size updated in context:", portfolioSize);
   }, [portfolioSize]);
+
+  // Effect to sync strategy with localStorage
+  useEffect(() => {
+    const savedStrategy = localStorage.getItem('selectedStrategy');
+    if (savedStrategy && savedStrategy !== selectedStrategy) {
+      console.log('Syncing strategy from localStorage:', savedStrategy);
+      setSelectedStrategy(savedStrategy);
+    }
+  }, []);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
     console.log(`Updating allocation for ${type}:`, value, "Portfolio size:", portfolioSize);
