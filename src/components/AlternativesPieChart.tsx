@@ -31,18 +31,14 @@ export const AlternativesPieChart = () => {
       return {};
     }
 
+    // If it's advanced, use custom allocations
     if (selectedStrategy === 'advanced') {
       return customAllocations;
     }
     
+    // For predefined strategies, use STRATEGY_ALLOCATIONS
     if (selectedStrategy in STRATEGY_ALLOCATIONS) {
-      const strategyAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-      return Object.entries(strategyAllocations).reduce((acc, [category, value]) => {
-        if (value > 0) {
-          acc[category] = value;
-        }
-        return acc;
-      }, {} as Record<string, number>);
+      return STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
     }
 
     console.warn('Invalid strategy selected');
@@ -61,6 +57,7 @@ export const AlternativesPieChart = () => {
     const currentAllocations = getCurrentAllocations();
     console.log('Current allocations:', currentAllocations);
 
+    // Filter out hidden categories and create chart data
     const chartData = Object.entries(currentAllocations)
       .filter(([category]) => !hiddenCategories.has(category))
       .map(([category, value]) => ({
@@ -109,13 +106,15 @@ export const AlternativesPieChart = () => {
       <div className="mt-4 bg-gray-50 rounded-lg p-4">
         <div className="flex justify-between items-start mb-4">
           <h4 className="text-sm font-medium text-gray-700">Select Asset Classes</h4>
-          <button 
-            className="text-sm font-medium hover:text-primary transition-colors inline-flex items-center gap-2"
-            onClick={() => setIsAdjustDialogOpen(true)}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            ADJUST
-          </button>
+          {selectedStrategy === 'advanced' && (
+            <button 
+              className="text-sm font-medium hover:text-primary transition-colors inline-flex items-center gap-2"
+              onClick={() => setIsAdjustDialogOpen(true)}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              ADJUST
+            </button>
+          )}
         </div>
         {legendItems.map((row, rowIndex) => (
           <div key={rowIndex} className="flex flex-wrap gap-4 mb-4 last:mb-0">
@@ -131,13 +130,15 @@ export const AlternativesPieChart = () => {
           </div>
         ))}
       </div>
-      <AlternativesAdjustDialog
-        open={isAdjustDialogOpen}
-        onOpenChange={setIsAdjustDialogOpen}
-        visibleCategories={new Set(Object.keys(getCurrentAllocations()))}
-        initialAllocations={getCurrentAllocations()}
-        onSave={handleSaveAllocations}
-      />
+      {selectedStrategy === 'advanced' && (
+        <AlternativesAdjustDialog
+          open={isAdjustDialogOpen}
+          onOpenChange={setIsAdjustDialogOpen}
+          visibleCategories={new Set(Object.keys(getCurrentAllocations()))}
+          initialAllocations={getCurrentAllocations()}
+          onSave={handleSaveAllocations}
+        />
+      )}
     </Card>
   );
 };
