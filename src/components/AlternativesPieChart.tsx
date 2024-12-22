@@ -41,7 +41,6 @@ export const AlternativesPieChart = () => {
     }
 
     if (selectedStrategy === 'advanced') {
-      // For advanced strategy, distribute equally among visible categories
       const visibleCount = visibleCategories.size;
       if (visibleCount === 0) return {};
       
@@ -52,9 +51,15 @@ export const AlternativesPieChart = () => {
       }, {} as Record<string, number>);
     }
     
-    // For predefined strategies, use the exact allocations from STRATEGY_ALLOCATIONS
     if (selectedStrategy in STRATEGY_ALLOCATIONS) {
-      return STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+      const strategyAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+      // Only return categories with non-zero values
+      return Object.entries(strategyAllocations).reduce((acc, [category, value]) => {
+        if (value > 0) {
+          acc[category] = value;
+        }
+        return acc;
+      }, {} as Record<string, number>);
     }
 
     console.warn('Invalid strategy selected');
@@ -107,11 +112,12 @@ export const AlternativesPieChart = () => {
 
     const calculateChartData = (): ChartDataItem[] => {
       const currentAllocations = getCurrentAllocations();
-      return Array.from(visibleCategories)
-        .filter(category => (currentAllocations[category] || 0) > 0)
-        .map(category => ({
+      // Only include categories with non-zero values that are visible
+      return Object.entries(currentAllocations)
+        .filter(([category, value]) => value > 0 && visibleCategories.has(category))
+        .map(([category, value]) => ({
           category,
-          value: currentAllocations[category] || 0,
+          value,
           color: getColorForCategory(category)
         }));
     };
