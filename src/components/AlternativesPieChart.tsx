@@ -34,19 +34,20 @@ export const AlternativesPieChart = () => {
     if (selectedStrategy === 'advanced') {
       return customAllocations;
     }
-    
+
     // Get the allocations for the selected strategy
     const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
-    if (!(strategyKey in STRATEGY_ALLOCATIONS)) {
-      console.warn('Invalid strategy selected:', selectedStrategy);
-      return {};
-    }
-
-    console.log('Using allocations for strategy:', strategyKey);
     const allocations = STRATEGY_ALLOCATIONS[strategyKey];
-    console.log('Strategy allocations:', allocations);
-    return allocations;
+    console.log('Loading allocations for strategy:', strategyKey, allocations);
+    return allocations || {};
   };
+
+  // Update chart when strategy or allocations change
+  useEffect(() => {
+    const currentAllocations = getCurrentAllocations();
+    console.log('Current allocations updated:', currentAllocations);
+    setCustomAllocations(currentAllocations);
+  }, [selectedStrategy]);
 
   useLayoutEffect(() => {
     if (!selectedStrategy) return;
@@ -58,7 +59,7 @@ export const AlternativesPieChart = () => {
     const { series } = configureChart(root);
 
     const currentAllocations = getCurrentAllocations();
-    console.log('Current allocations:', currentAllocations);
+    console.log('Rendering chart with allocations:', currentAllocations);
 
     const chartData = Object.entries(currentAllocations)
       .filter(([category]) => !hiddenCategories.has(category))

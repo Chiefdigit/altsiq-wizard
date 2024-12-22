@@ -5,6 +5,7 @@ import { StrategyActions } from "./strategy/StrategyActions";
 import { AdvancedAllocation } from "../AdvancedAllocation";
 import { useStrategySelection } from "@/hooks/useStrategySelection";
 import type { AllocationValues } from "@/constants/types";
+import { STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
 
 interface StrategyStepProps {
   selectedStrategy: string;
@@ -28,14 +29,24 @@ export const StrategyStep = ({
     customAllocations
   );
 
+  const handleStrategyChange = (value: string) => {
+    onStrategyChange(value);
+    setIsSelected(false);
+    
+    // Store the strategy allocations when strategy changes
+    if (value !== 'advanced') {
+      const strategyKey = value as keyof typeof STRATEGY_ALLOCATIONS;
+      const allocations = STRATEGY_ALLOCATIONS[strategyKey];
+      localStorage.setItem('alternativesAllocations', JSON.stringify(allocations));
+      console.log('Stored allocations for strategy:', value, allocations);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <StrategySelector 
         selectedStrategy={selectedStrategy}
-        onStrategyChange={(value) => {
-          onStrategyChange(value);
-          setIsSelected(false);
-        }}
+        onStrategyChange={handleStrategyChange}
       />
 
       {selectedStrategy === "advanced" ? (
