@@ -4,11 +4,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ALTERNATIVES_COLORS, STRATEGY_ALLOCATIONS } from "@/constants/alternativesConfig";
 import { useWizard } from "@/components/wizard/WizardContext";
+import { toast } from "@/components/ui/use-toast";
 
 const ALL_ALTERNATIVES = [
   "Private Equity",
@@ -40,16 +42,19 @@ export const AlternativesAdjustDialog = ({
 
   useEffect(() => {
     if (open) {
+      // Get the current strategy's allocations
+      const currentStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
       let currentAllocations;
-      if (selectedStrategy === 'advanced') {
+
+      if (currentStrategy === 'advanced') {
         const savedAllocations = localStorage.getItem('alternativesAllocations');
         currentAllocations = savedAllocations ? JSON.parse(savedAllocations) : initialAllocations;
       } else {
-        const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+        const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
         currentAllocations = STRATEGY_ALLOCATIONS[strategyKey];
       }
 
-      console.log('Dialog opened with strategy:', selectedStrategy, 'allocations:', currentAllocations);
+      console.log('Dialog opened with strategy:', currentStrategy, 'allocations:', currentAllocations);
       setAllocations(currentAllocations || {});
     }
   }, [open, selectedStrategy, initialAllocations]);
@@ -67,9 +72,24 @@ export const AlternativesAdjustDialog = ({
   };
 
   const handleApply = () => {
+    const total = calculateTotal();
+    if (Math.abs(total - 100) >= 0.01) {
+      toast({
+        title: "Invalid Allocation",
+        description: "Total allocation must equal 100%",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     console.log('Applying new allocations:', allocations);
     onSave(allocations);
     onOpenChange(false);
+    
+    toast({
+      title: "Allocations Updated",
+      description: "Your alternative allocations have been updated successfully.",
+    });
   };
 
   return (
@@ -77,7 +97,7 @@ export const AlternativesAdjustDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Private Alternatives</DialogTitle>
-          <p className="text-sm text-gray-500">Create a custom allocation mix</p>
+          <DialogDescription>Create a custom allocation mix</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           {ALL_ALTERNATIVES.map((category) => (
