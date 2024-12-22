@@ -38,11 +38,14 @@ export const AlternativesAdjustDialog = ({
 
   useEffect(() => {
     if (open) {
-      // Initialize all alternatives with either their initial value or 0
-      const initialValues = ALL_ALTERNATIVES.reduce((acc, category) => ({
-        ...acc,
-        [category]: initialAllocations[category] || 0
-      }), {});
+      // Initialize with non-zero values from initialAllocations
+      const initialValues = ALL_ALTERNATIVES.reduce((acc, category) => {
+        const value = initialAllocations[category] || 0;
+        if (value > 0) {
+          acc[category] = value;
+        }
+        return acc;
+      }, {} as Record<string, number>);
       setAllocations(initialValues);
     }
   }, [open, initialAllocations]);
@@ -60,7 +63,15 @@ export const AlternativesAdjustDialog = ({
   };
 
   const handleApply = () => {
-    onSave(allocations);
+    // Filter out zero values before saving
+    const nonZeroAllocations = Object.entries(allocations).reduce((acc, [category, value]) => {
+      if (value > 0) {
+        acc[category] = value;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    onSave(nonZeroAllocations);
     onOpenChange(false);
   };
 
