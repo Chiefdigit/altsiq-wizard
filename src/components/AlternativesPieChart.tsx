@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { Card } from "@/components/ui/card";
@@ -20,14 +20,20 @@ export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
-  const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
-  const [visibleCategories, setVisibleCategories] = useState<Set<string>>(new Set([
-    "Private Credit",
-    "Private Debt",
-    "Real Estate",
-    "Commodities",
-    "Hedge Funds"
-  ]));
+  const [customAllocations, setCustomAllocations] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('alternativesAllocations');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [visibleCategories, setVisibleCategories] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('visibleCategories');
+    return saved ? new Set(JSON.parse(saved)) : new Set([
+      "Private Credit",
+      "Private Debt",
+      "Real Estate",
+      "Commodities",
+      "Hedge Funds"
+    ]);
+  });
 
   const getCurrentAllocations = (): Record<string, number> => {
     if (!selectedStrategy) return {};
@@ -49,6 +55,7 @@ export const AlternativesPieChart = () => {
       } else {
         newSet.add(category);
       }
+      localStorage.setItem('visibleCategories', JSON.stringify(Array.from(newSet)));
       return newSet;
     });
   };
@@ -58,13 +65,16 @@ export const AlternativesPieChart = () => {
       Object.entries(newAllocations).filter(([_, value]) => value > 0)
     );
     setCustomAllocations(filteredAllocations);
+    localStorage.setItem('alternativesAllocations', JSON.stringify(filteredAllocations));
     
     // Update visible categories based on non-zero allocations
-    setVisibleCategories(new Set(
+    const newVisibleCategories = new Set(
       Object.entries(newAllocations)
         .filter(([_, value]) => value > 0)
         .map(([category]) => category)
-    ));
+    );
+    setVisibleCategories(newVisibleCategories);
+    localStorage.setItem('visibleCategories', JSON.stringify(Array.from(newVisibleCategories)));
   };
 
   useLayoutEffect(() => {
