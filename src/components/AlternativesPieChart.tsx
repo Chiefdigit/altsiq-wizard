@@ -21,30 +21,23 @@ export const AlternativesPieChart = () => {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
-  const [currentStrategy, setCurrentStrategy] = useState<string>(selectedStrategy);
 
   const getCurrentAllocations = (): Record<string, number> => {
-    if (currentStrategy === 'advanced') {
+    if (selectedStrategy === 'advanced') {
       const savedAllocations = localStorage.getItem('alternativesAllocations');
       return savedAllocations ? JSON.parse(savedAllocations) : customAllocations;
     }
 
-    const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+    const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
     return STRATEGY_ALLOCATIONS[strategyKey];
   };
-
-  // Update current strategy when selectedStrategy changes
-  useEffect(() => {
-    setCurrentStrategy(selectedStrategy);
-    console.log('Strategy updated to:', selectedStrategy);
-  }, [selectedStrategy]);
 
   // Initialize or update allocations when strategy changes
   useEffect(() => {
     const allocations = getCurrentAllocations();
-    console.log('Updating allocations for strategy:', currentStrategy, allocations);
+    console.log('Updating allocations for strategy:', selectedStrategy, allocations);
     setCustomAllocations(allocations);
-  }, [currentStrategy]);
+  }, [selectedStrategy]);
 
   useLayoutEffect(() => {
     const allocations = getCurrentAllocations();
@@ -71,7 +64,7 @@ export const AlternativesPieChart = () => {
     return () => {
       root.dispose();
     };
-  }, [currentStrategy, customAllocations, hiddenCategories]);
+  }, [selectedStrategy, customAllocations, hiddenCategories]);
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
     console.log('Saving new allocations:', newAllocations);
@@ -96,15 +89,15 @@ export const AlternativesPieChart = () => {
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
   ];
 
+  const displayStrategy = selectedStrategy.charAt(0).toUpperCase() + selectedStrategy.slice(1);
+
   return (
     <Card className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">Alts Distribution Chart</h3>
-        {currentStrategy && (
-          <span className="text-sm text-gray-600">
-            Current Strategy: {currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1)}
-          </span>
-        )}
+        <span className="text-sm text-gray-600">
+          Current Strategy: {displayStrategy}
+        </span>
       </div>
       <div
         id="alternatives-chartdiv"
