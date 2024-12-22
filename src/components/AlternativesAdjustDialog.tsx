@@ -9,6 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ALTERNATIVES_COLORS } from "@/constants/alternativesConfig";
 
+const ALL_ALTERNATIVES = [
+  "Private Equity",
+  "Hedge Funds",
+  "Real Estate",
+  "Private Credit",
+  "Private Debt",
+  "Collectibles",
+  "Cryptocurrencies",
+  "Commodities"
+];
+
 interface AlternativesAdjustDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -20,7 +31,6 @@ interface AlternativesAdjustDialogProps {
 export const AlternativesAdjustDialog = ({
   open,
   onOpenChange,
-  visibleCategories,
   initialAllocations,
   onSave,
 }: AlternativesAdjustDialogProps) => {
@@ -28,7 +38,12 @@ export const AlternativesAdjustDialog = ({
 
   useEffect(() => {
     if (open) {
-      setAllocations(initialAllocations);
+      // Initialize all alternatives with either their initial value or 0
+      const initialValues = ALL_ALTERNATIVES.reduce((acc, category) => ({
+        ...acc,
+        [category]: initialAllocations[category] || 0
+      }), {});
+      setAllocations(initialValues);
     }
   }, [open, initialAllocations]);
 
@@ -57,7 +72,7 @@ export const AlternativesAdjustDialog = ({
           <p className="text-sm text-gray-500">Create a custom allocation mix</p>
         </DialogHeader>
         <div className="space-y-4">
-          {Array.from(visibleCategories).map((category) => (
+          {ALL_ALTERNATIVES.map((category) => (
             <div key={category} className="flex items-center gap-4">
               <div 
                 className="w-3 h-3 rounded-full" 
