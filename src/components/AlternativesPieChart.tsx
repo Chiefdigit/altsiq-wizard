@@ -21,37 +21,33 @@ export const AlternativesPieChart = () => {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
+  const [currentStrategy, setCurrentStrategy] = useState<string>(selectedStrategy);
 
   const getCurrentAllocations = (): Record<string, number> => {
-    // Get strategy from localStorage with fallback to context
-    const currentStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
-    console.log('Current strategy:', currentStrategy);
-
-    if (!currentStrategy) {
-      console.warn('No strategy found');
-      return STRATEGY_ALLOCATIONS.diversification; // Default to diversification
-    }
-
     if (currentStrategy === 'advanced') {
       const savedAllocations = localStorage.getItem('alternativesAllocations');
       return savedAllocations ? JSON.parse(savedAllocations) : customAllocations;
     }
 
     const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
-    const allocations = STRATEGY_ALLOCATIONS[strategyKey];
-    console.log('Loading allocations for strategy:', currentStrategy, allocations);
-    return allocations;
+    return STRATEGY_ALLOCATIONS[strategyKey];
   };
+
+  // Update current strategy when selectedStrategy changes
+  useEffect(() => {
+    setCurrentStrategy(selectedStrategy);
+    console.log('Strategy updated to:', selectedStrategy);
+  }, [selectedStrategy]);
 
   // Initialize or update allocations when strategy changes
   useEffect(() => {
-    const currentAllocations = getCurrentAllocations();
-    console.log('Strategy changed, updating allocations:', currentAllocations);
-    setCustomAllocations(currentAllocations);
-  }, [selectedStrategy]);
+    const allocations = getCurrentAllocations();
+    console.log('Updating allocations for strategy:', currentStrategy, allocations);
+    setCustomAllocations(allocations);
+  }, [currentStrategy]);
 
   useLayoutEffect(() => {
-    const currentAllocations = getCurrentAllocations();
+    const allocations = getCurrentAllocations();
     
     const root = am5.Root.new("alternatives-chartdiv");
     root.setThemes([am5themes_Animated.new(root)]);
@@ -59,9 +55,9 @@ export const AlternativesPieChart = () => {
 
     const { series } = configureChart(root);
 
-    console.log('Rendering chart with allocations:', currentAllocations);
+    console.log('Rendering chart with allocations:', allocations);
 
-    const chartData = Object.entries(currentAllocations)
+    const chartData = Object.entries(allocations)
       .filter(([category]) => !hiddenCategories.has(category))
       .map(([category, value]) => ({
         category,
@@ -75,7 +71,7 @@ export const AlternativesPieChart = () => {
     return () => {
       root.dispose();
     };
-  }, [selectedStrategy, customAllocations, hiddenCategories]);
+  }, [currentStrategy, customAllocations, hiddenCategories]);
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
     console.log('Saving new allocations:', newAllocations);
@@ -99,9 +95,6 @@ export const AlternativesPieChart = () => {
     ["Private Equity", "Hedge Funds", "Real Estate", "Cryptocurrencies"],
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
   ];
-
-  // Get current strategy for display
-  const currentStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
 
   return (
     <Card className="p-4">
