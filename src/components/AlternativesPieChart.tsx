@@ -7,6 +7,7 @@ import { LegendItem } from "./charts/LegendItem";
 import { configureChart } from "./charts/ChartConfig";
 import { STRATEGY_ALLOCATIONS, ALTERNATIVES_COLORS } from "@/constants/alternativesConfig";
 import { AlternativesAdjustDialog } from "./AlternativesAdjustDialog";
+import { SlidersHorizontal } from "lucide-react";
 
 type AlternativesCategory = keyof typeof STRATEGY_ALLOCATIONS.diversification;
 
@@ -133,9 +134,10 @@ export const AlternativesPieChart = () => {
         <div className="flex justify-between items-start mb-4">
           <h4 className="text-sm font-medium text-gray-700">Select Asset Classes</h4>
           <button 
-            className="text-sm font-medium hover:text-primary transition-colors"
+            className="text-sm font-medium hover:text-primary transition-colors inline-flex items-center gap-2"
             onClick={() => setIsAdjustDialogOpen(true)}
           >
+            <SlidersHorizontal className="h-4 w-4" />
             ADJUST
           </button>
         </div>
