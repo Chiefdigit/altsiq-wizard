@@ -32,25 +32,40 @@ export const StrategyStep = ({
 
   const handleStrategyChange = (value: string) => {
     console.log('Setting strategy to:', value);
+    
+    // Update strategy in context
     onStrategyChange(value);
     setIsSelected(false);
     
-    // Save the selected strategy
+    // Save the selected strategy to localStorage
     localStorage.setItem('selectedStrategy', value);
     
-    // Store the strategy allocations when strategy changes
+    // Store the strategy allocations
     if (value !== 'advanced') {
       const strategyKey = value as keyof typeof STRATEGY_ALLOCATIONS;
       const allocations = STRATEGY_ALLOCATIONS[strategyKey];
       localStorage.setItem('alternativesAllocations', JSON.stringify(allocations));
       console.log('Stored allocations for strategy:', value, allocations);
-      
-      // Show confirmation toast
-      toast({
-        title: "Strategy Updated",
-        description: `Selected ${value.charAt(0).toUpperCase() + value.slice(1)} strategy`,
-      });
     }
+    
+    toast({
+      title: "Strategy Updated",
+      description: `Selected ${value.charAt(0).toUpperCase() + value.slice(1)} strategy`,
+    });
+  };
+
+  const handleContinue = () => {
+    // Ensure strategy is properly saved before continuing
+    const currentStrategy = selectedStrategy || localStorage.getItem('selectedStrategy') || 'diversification';
+    
+    if (currentStrategy !== 'advanced') {
+      const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+      const allocations = STRATEGY_ALLOCATIONS[strategyKey];
+      localStorage.setItem('alternativesAllocations', JSON.stringify(allocations));
+      console.log('Ensuring allocations are saved for strategy:', currentStrategy, allocations);
+    }
+    
+    setActiveStep("alternatives");
   };
 
   return (
@@ -73,7 +88,7 @@ export const StrategyStep = ({
       <StrategyActions 
         isSelected={isSelected}
         onSelect={handleStrategySelect}
-        onContinue={() => setActiveStep("alternatives")}
+        onContinue={handleContinue}
       />
     </div>
   );
