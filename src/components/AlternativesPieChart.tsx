@@ -21,12 +21,16 @@ export const AlternativesPieChart = () => {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
+  const [currentStrategy, setCurrentStrategy] = useState(() => 
+    localStorage.getItem('selectedStrategy') || 'diversification'
+  );
 
   useEffect(() => {
-    // Get the current strategy from localStorage
+    // Update current strategy when it changes in localStorage
     const savedStrategy = localStorage.getItem('selectedStrategy');
-    if (savedStrategy) {
-      console.log('Loading allocations for strategy:', savedStrategy);
+    if (savedStrategy && savedStrategy !== currentStrategy) {
+      console.log('Strategy changed:', savedStrategy);
+      setCurrentStrategy(savedStrategy);
       
       // Get allocations based on strategy
       const savedAllocations = localStorage.getItem('alternativesAllocations');
@@ -34,13 +38,18 @@ export const AlternativesPieChart = () => {
         ? JSON.parse(savedAllocations)
         : STRATEGY_ALLOCATIONS[savedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
       
-      console.log('Setting allocations:', allocations);
+      console.log('Setting allocations for strategy:', savedStrategy, allocations);
       setCustomAllocations(allocations);
     }
-  }, [selectedStrategy]); // Re-run when selectedStrategy changes
+  }, [selectedStrategy, currentStrategy]);
 
   useLayoutEffect(() => {
     if (!customAllocations || Object.keys(customAllocations).length === 0) return;
+
+    // Dispose of existing chart if it exists
+    if (chartRef.current) {
+      chartRef.current.dispose();
+    }
 
     const root = am5.Root.new("alternatives-chartdiv");
     root.setThemes([am5themes_Animated.new(root)]);
@@ -87,8 +96,6 @@ export const AlternativesPieChart = () => {
     ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
   ];
 
-  // Get current strategy for display
-  const currentStrategy = localStorage.getItem('selectedStrategy') || selectedStrategy;
   const displayStrategy = currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1);
 
   return (
