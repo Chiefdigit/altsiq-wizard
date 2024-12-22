@@ -23,16 +23,6 @@ export const AlternativesPieChart = () => {
     const saved = localStorage.getItem('alternativesAllocations');
     return saved ? JSON.parse(saved) : {};
   });
-  const [visibleCategories, setVisibleCategories] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem('visibleCategories');
-    return saved ? new Set(JSON.parse(saved)) : new Set([
-      "Private Credit",
-      "Private Debt",
-      "Real Estate",
-      "Commodities",
-      "Hedge Funds"
-    ]);
-  });
 
   const getCurrentAllocations = (): Record<string, number> => {
     if (!selectedStrategy) {
@@ -40,17 +30,12 @@ export const AlternativesPieChart = () => {
       return {};
     }
 
+    // For advanced strategy, use custom allocations
     if (selectedStrategy === 'advanced') {
-      const visibleCount = visibleCategories.size;
-      if (visibleCount === 0) return {};
-      
-      const equalShare = 100 / visibleCount;
-      return Array.from(visibleCategories).reduce((acc, category) => {
-        acc[category] = equalShare;
-        return acc;
-      }, {} as Record<string, number>);
+      return customAllocations;
     }
     
+    // For predefined strategies, use STRATEGY_ALLOCATIONS
     if (selectedStrategy in STRATEGY_ALLOCATIONS) {
       const strategyAllocations = STRATEGY_ALLOCATIONS[selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS];
       // Only return categories with non-zero values
@@ -66,41 +51,6 @@ export const AlternativesPieChart = () => {
     return {};
   };
 
-  const toggleCategory = (category: string) => {
-    setVisibleCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(category)) {
-        newSet.delete(category);
-      } else {
-        newSet.add(category);
-      }
-      localStorage.setItem('visibleCategories', JSON.stringify(Array.from(newSet)));
-      return newSet;
-    });
-  };
-
-  const handleSaveAllocations = (newAllocations: Record<string, number>) => {
-    const total = Object.values(newAllocations).reduce((sum, value) => sum + value, 0);
-    if (Math.abs(total - 100) > 0.01) {
-      console.error('Total allocation must equal 100%');
-      return;
-    }
-
-    const filteredAllocations = Object.fromEntries(
-      Object.entries(newAllocations).filter(([_, value]) => value > 0)
-    );
-    setCustomAllocations(filteredAllocations);
-    localStorage.setItem('alternativesAllocations', JSON.stringify(filteredAllocations));
-    
-    const newVisibleCategories = new Set(
-      Object.entries(newAllocations)
-        .filter(([_, value]) => value > 0)
-        .map(([category]) => category)
-    );
-    setVisibleCategories(newVisibleCategories);
-    localStorage.setItem('visibleCategories', JSON.stringify(Array.from(newVisibleCategories)));
-  };
-
   useLayoutEffect(() => {
     if (!selectedStrategy) return;
 
@@ -110,29 +60,28 @@ export const AlternativesPieChart = () => {
 
     const { series } = configureChart(root);
 
-    const calculateChartData = (): ChartDataItem[] => {
-      const currentAllocations = getCurrentAllocations();
-      // Only include categories with non-zero values that are visible
-      return Object.entries(currentAllocations)
-        .filter(([category, value]) => value > 0 && visibleCategories.has(category))
-        .map(([category, value]) => ({
-          category,
-          value,
-          color: getColorForCategory(category)
-        }));
-    };
+    const currentAllocations = getCurrentAllocations();
+    console.log('Current allocations:', currentAllocations); // Debug log
 
-    const chartData = calculateChartData();
+    const chartData = Object.entries(currentAllocations)
+      .filter(([_, value]) => value > 0)
+      .map(([category, value]) => ({
+        category,
+        value,
+        color: am5.color(ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS] || "#64748b")
+      }));
+
+    console.log('Chart data:', chartData); // Debug log
     series.data.setAll(chartData);
 
     return () => {
       root.dispose();
     };
-  }, [selectedStrategy, visibleCategories, customAllocations]);
+  }, [selectedStrategy, customAllocations]);
 
-  const getColorForCategory = (category: string): am5.Color => {
-    const hexColor = ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS] || "#64748b";
-    return am5.color(hexColor);
+  const handleSaveAllocations = (newAllocations: Record<string, number>) => {
+    setCustomAllocations(newAllocations);
+    localStorage.setItem('alternativesAllocations', JSON.stringify(newAllocations));
   };
 
   const legendItems = [
@@ -164,9 +113,9 @@ export const AlternativesPieChart = () => {
               <LegendItem
                 key={category}
                 category={category}
-                isVisible={visibleCategories.has(category)}
+                isVisible={getCurrentAllocations()[category] > 0}
                 color={ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]}
-                onToggle={() => toggleCategory(category)}
+                onToggle={() => {}}
               />
             ))}
           </div>
@@ -175,7 +124,7 @@ export const AlternativesPieChart = () => {
       <AlternativesAdjustDialog
         open={isAdjustDialogOpen}
         onOpenChange={setIsAdjustDialogOpen}
-        visibleCategories={visibleCategories}
+        visibleCategories={new Set(Object.keys(getCurrentAllocations()))}
         initialAllocations={getCurrentAllocations()}
         onSave={handleSaveAllocations}
       />
