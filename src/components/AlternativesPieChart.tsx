@@ -29,10 +29,10 @@ export const AlternativesPieChart = () => {
     }
 
     if (selectedStrategy === 'advanced') {
-      return customAllocations;
+      const savedAllocations = localStorage.getItem('alternativesAllocations');
+      return savedAllocations ? JSON.parse(savedAllocations) : customAllocations;
     }
 
-    // Get the allocations for the selected strategy
     const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
     const allocations = STRATEGY_ALLOCATIONS[strategyKey];
     console.log('Loading allocations for strategy:', strategyKey, allocations);

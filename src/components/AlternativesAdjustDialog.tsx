@@ -40,10 +40,10 @@ export const AlternativesAdjustDialog = ({
 
   useEffect(() => {
     if (open) {
-      // Get the current strategy's allocations
       let currentAllocations;
       if (selectedStrategy === 'advanced') {
-        currentAllocations = initialAllocations;
+        const savedAllocations = localStorage.getItem('alternativesAllocations');
+        currentAllocations = savedAllocations ? JSON.parse(savedAllocations) : initialAllocations;
       } else {
         const strategyKey = selectedStrategy as keyof typeof STRATEGY_ALLOCATIONS;
         currentAllocations = STRATEGY_ALLOCATIONS[strategyKey];
