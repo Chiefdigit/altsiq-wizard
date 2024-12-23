@@ -35,7 +35,7 @@ export const StrategyStep = ({
     onStrategyChange(value);
     setIsSelected(false);
     
-    // Store the strategy when it changes
+    // Immediately save strategy to localStorage when changed
     localStorage.setItem('selectedStrategy', value);
     console.log('Stored strategy in localStorage:', value);
     
@@ -54,7 +54,7 @@ export const StrategyStep = ({
   };
 
   const handleSelect = () => {
-    // Save strategy when selecting
+    // Double-check strategy is saved when selecting
     localStorage.setItem('selectedStrategy', selectedStrategy);
     console.log('Strategy saved on select:', selectedStrategy);
     
