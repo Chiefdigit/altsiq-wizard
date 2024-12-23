@@ -13,8 +13,12 @@ export const useAlternativesChartData = (currentStrategy: string) => {
       
       try {
         if (!currentStrategy) {
-          throw new Error('No strategy selected');
+          console.log('No current strategy, skipping allocation load');
+          return;
         }
+
+        // Add a small delay to ensure localStorage is updated
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         if (currentStrategy === 'advanced') {
           const savedAllocations = localStorage.getItem('alternativesAllocations');
@@ -26,7 +30,7 @@ export const useAlternativesChartData = (currentStrategy: string) => {
         } else {
           const strategyAllocations = STRATEGY_ALLOCATIONS[currentStrategy as keyof typeof STRATEGY_ALLOCATIONS];
           if (strategyAllocations) {
-            console.log(`Loading allocations for strategy ${currentStrategy}:`, strategyAllocations);
+            console.log(`Loading strategy allocations for: ${currentStrategy}`, strategyAllocations);
             setCustomAllocations(strategyAllocations);
           } else {
             throw new Error(`Invalid strategy: ${currentStrategy}`);

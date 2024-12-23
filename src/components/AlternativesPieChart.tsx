@@ -8,6 +8,7 @@ import { AlternativesAdjustDialog } from "./AlternativesAdjustDialog";
 import { ChartLoadingSpinner } from "./charts/ChartLoadingSpinner";
 import { AlternativesChartLegend } from "./charts/AlternativesChartLegend";
 import { useAlternativesChartData } from "@/hooks/useAlternativesChartData";
+import { toast } from "@/components/ui/use-toast";
 
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
@@ -18,26 +19,35 @@ export const AlternativesPieChart = () => {
 
   // Initialize and sync strategy
   useEffect(() => {
-    if (selectedStrategy) {
-      console.log('Using strategy from context:', selectedStrategy);
-      setCurrentStrategy(selectedStrategy);
-    } else {
-      const savedStrategy = localStorage.getItem('selectedStrategy');
-      if (savedStrategy) {
-        console.log('Using strategy from localStorage:', savedStrategy);
-        setCurrentStrategy(savedStrategy);
+    const loadStrategy = () => {
+      if (selectedStrategy) {
+        console.log('Using strategy from context:', selectedStrategy);
+        setCurrentStrategy(selectedStrategy);
       } else {
-        console.log('No strategy found, defaulting to diversification');
-        setCurrentStrategy('diversification');
+        const savedStrategy = localStorage.getItem('selectedStrategy');
+        if (savedStrategy) {
+          console.log('Using strategy from localStorage:', savedStrategy);
+          setCurrentStrategy(savedStrategy);
+        } else {
+          console.log('No strategy found, defaulting to diversification');
+          setCurrentStrategy('diversification');
+        }
       }
-    }
+    };
+
+    loadStrategy();
   }, [selectedStrategy]);
 
   const { customAllocations, isLoading, error } = useAlternativesChartData(currentStrategy);
 
   useLayoutEffect(() => {
-    if (isLoading || !customAllocations || Object.keys(customAllocations).length === 0) {
-      console.log('Still loading or no allocations available, skipping chart render');
+    if (isLoading) {
+      console.log('Loading chart data...');
+      return;
+    }
+
+    if (!customAllocations || Object.keys(customAllocations).length === 0) {
+      console.log('No allocations available');
       return;
     }
 
@@ -63,14 +73,24 @@ export const AlternativesPieChart = () => {
 
     series.data.setAll(chartData);
 
+    // Notify user when chart is ready
+    toast({
+      title: "Chart Updated",
+      description: `Showing allocations for ${currentStrategy} strategy`,
+    });
+
     return () => {
       root.dispose();
     };
-  }, [customAllocations, hiddenCategories, isLoading]);
+  }, [customAllocations, hiddenCategories, isLoading, currentStrategy]);
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
     console.log('Saving new allocations:', newAllocations);
     localStorage.setItem('alternativesAllocations', JSON.stringify(newAllocations));
+    toast({
+      title: "Allocations Saved",
+      description: "Your alternative allocations have been updated",
+    });
   };
 
   const handleToggle = (category: string) => {
