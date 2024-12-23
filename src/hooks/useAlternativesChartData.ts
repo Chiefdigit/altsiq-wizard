@@ -17,8 +17,7 @@ export const useAlternativesChartData = (currentStrategy: string) => {
           return;
         }
 
-        // Add a small delay to ensure localStorage is updated
-        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log('Loading allocations for strategy:', currentStrategy);
 
         if (currentStrategy === 'advanced') {
           const savedAllocations = localStorage.getItem('alternativesAllocations');
@@ -28,10 +27,13 @@ export const useAlternativesChartData = (currentStrategy: string) => {
             setCustomAllocations(parsedAllocations);
           }
         } else {
-          const strategyAllocations = STRATEGY_ALLOCATIONS[currentStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+          const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
+          const strategyAllocations = STRATEGY_ALLOCATIONS[strategyKey];
           if (strategyAllocations) {
             console.log(`Loading strategy allocations for: ${currentStrategy}`, strategyAllocations);
             setCustomAllocations(strategyAllocations);
+            // Also update localStorage to keep it in sync
+            localStorage.setItem('alternativesAllocations', JSON.stringify(strategyAllocations));
           } else {
             throw new Error(`Invalid strategy: ${currentStrategy}`);
           }

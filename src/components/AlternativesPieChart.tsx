@@ -19,23 +19,17 @@ export const AlternativesPieChart = () => {
 
   // Initialize and sync strategy
   useEffect(() => {
-    const loadStrategy = () => {
-      if (selectedStrategy) {
-        console.log('Using strategy from context:', selectedStrategy);
-        setCurrentStrategy(selectedStrategy);
-      } else {
-        const savedStrategy = localStorage.getItem('selectedStrategy');
-        if (savedStrategy) {
-          console.log('Using strategy from localStorage:', savedStrategy);
-          setCurrentStrategy(savedStrategy);
-        } else {
-          console.log('No strategy found, defaulting to diversification');
-          setCurrentStrategy('diversification');
-        }
-      }
-    };
-
-    loadStrategy();
+    const savedStrategy = localStorage.getItem('selectedStrategy');
+    if (savedStrategy) {
+      console.log('Using saved strategy:', savedStrategy);
+      setCurrentStrategy(savedStrategy);
+    } else if (selectedStrategy) {
+      console.log('Using strategy from context:', selectedStrategy);
+      setCurrentStrategy(selectedStrategy);
+    } else {
+      console.log('No strategy found, defaulting to diversification');
+      setCurrentStrategy('diversification');
+    }
   }, [selectedStrategy]);
 
   const { customAllocations, isLoading, error } = useAlternativesChartData(currentStrategy);
