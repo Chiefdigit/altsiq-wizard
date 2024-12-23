@@ -19,23 +19,25 @@ export const useAlternativesChartData = (currentStrategy: string) => {
 
         console.log('Loading allocations for strategy:', currentStrategy);
 
-        if (currentStrategy === 'advanced') {
-          const savedAllocations = localStorage.getItem('alternativesAllocations');
-          if (savedAllocations) {
-            const parsedAllocations = JSON.parse(savedAllocations);
-            console.log('Loaded advanced allocations:', parsedAllocations);
-            setCustomAllocations(parsedAllocations);
-          }
-        } else {
+        // For non-advanced strategies, always use the predefined allocations
+        if (currentStrategy !== 'advanced') {
           const strategyKey = currentStrategy as keyof typeof STRATEGY_ALLOCATIONS;
           const strategyAllocations = STRATEGY_ALLOCATIONS[strategyKey];
+          
           if (strategyAllocations) {
-            console.log(`Loading strategy allocations for: ${currentStrategy}`, strategyAllocations);
+            console.log(`Setting predefined allocations for ${currentStrategy}:`, strategyAllocations);
             setCustomAllocations(strategyAllocations);
-            // Also update localStorage to keep it in sync
             localStorage.setItem('alternativesAllocations', JSON.stringify(strategyAllocations));
           } else {
             throw new Error(`Invalid strategy: ${currentStrategy}`);
+          }
+        } else {
+          // For advanced strategy, use saved custom allocations
+          const savedAllocations = localStorage.getItem('alternativesAllocations');
+          if (savedAllocations) {
+            const parsedAllocations = JSON.parse(savedAllocations);
+            console.log('Loading saved advanced allocations:', parsedAllocations);
+            setCustomAllocations(parsedAllocations);
           }
         }
       } catch (err) {

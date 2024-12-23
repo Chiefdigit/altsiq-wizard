@@ -20,28 +20,27 @@ export const AlternativesPieChart = () => {
   // Initialize and sync strategy
   useEffect(() => {
     const savedStrategy = localStorage.getItem('selectedStrategy');
-    if (savedStrategy) {
-      console.log('Using saved strategy:', savedStrategy);
-      setCurrentStrategy(savedStrategy);
-    } else if (selectedStrategy) {
-      console.log('Using strategy from context:', selectedStrategy);
-      setCurrentStrategy(selectedStrategy);
-    } else {
+    if (!savedStrategy && !selectedStrategy) {
       console.log('No strategy found, defaulting to diversification');
       setCurrentStrategy('diversification');
+      return;
     }
+
+    const strategyToUse = savedStrategy || selectedStrategy;
+    console.log('Setting current strategy to:', strategyToUse);
+    setCurrentStrategy(strategyToUse);
   }, [selectedStrategy]);
 
   const { customAllocations, isLoading, error } = useAlternativesChartData(currentStrategy);
 
   useLayoutEffect(() => {
-    if (isLoading) {
-      console.log('Loading chart data...');
+    if (isLoading || !currentStrategy) {
+      console.log('Loading chart data or no strategy available');
       return;
     }
 
     if (!customAllocations || Object.keys(customAllocations).length === 0) {
-      console.log('No allocations available');
+      console.log('No allocations available for strategy:', currentStrategy);
       return;
     }
 
@@ -67,7 +66,6 @@ export const AlternativesPieChart = () => {
 
     series.data.setAll(chartData);
 
-    // Notify user when chart is ready
     toast({
       title: "Chart Updated",
       description: `Showing allocations for ${currentStrategy} strategy`,
