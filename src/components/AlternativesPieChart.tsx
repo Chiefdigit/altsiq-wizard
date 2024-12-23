@@ -1,101 +1,43 @@
 import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
 import * as am5 from "@amcharts/amcharts5";
-import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import { Card } from "@/components/ui/card";
 import { useWizard } from "@/components/wizard/WizardContext";
-import { LegendItem } from "./charts/LegendItem";
 import { configureChart } from "./charts/ChartConfig";
-import { STRATEGY_ALLOCATIONS, ALTERNATIVES_COLORS } from "@/constants/alternativesConfig";
+import { ALTERNATIVES_COLORS } from "@/constants/alternativesConfig";
 import { AlternativesAdjustDialog } from "./AlternativesAdjustDialog";
-import { SlidersHorizontal } from "lucide-react";
-
-interface ChartDataItem {
-  category: string;
-  value: number;
-  color: am5.Color;
-}
+import { ChartLoadingSpinner } from "./charts/ChartLoadingSpinner";
+import { AlternativesChartLegend } from "./charts/AlternativesChartLegend";
+import { useAlternativesChartData } from "@/hooks/useAlternativesChartData";
 
 export const AlternativesPieChart = () => {
   const chartRef = useRef<am5.Root | null>(null);
   const { selectedStrategy } = useWizard();
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
-  const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
   const [currentStrategy, setCurrentStrategy] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize and sync strategy
   useEffect(() => {
-    const initializeStrategy = async () => {
-      setIsLoading(true);
-      try {
-        // First try to get strategy from context
-        if (selectedStrategy) {
-          console.log('Using strategy from context:', selectedStrategy);
-          setCurrentStrategy(selectedStrategy);
-          return;
-        }
-
-        // Fallback to localStorage
-        const savedStrategy = localStorage.getItem('selectedStrategy');
-        if (savedStrategy) {
-          console.log('Using strategy from localStorage:', savedStrategy);
-          setCurrentStrategy(savedStrategy);
-          return;
-        }
-
-        // Default to diversification if no strategy is found
+    if (selectedStrategy) {
+      console.log('Using strategy from context:', selectedStrategy);
+      setCurrentStrategy(selectedStrategy);
+    } else {
+      const savedStrategy = localStorage.getItem('selectedStrategy');
+      if (savedStrategy) {
+        console.log('Using strategy from localStorage:', savedStrategy);
+        setCurrentStrategy(savedStrategy);
+      } else {
         console.log('No strategy found, defaulting to diversification');
         setCurrentStrategy('diversification');
-      } catch (error) {
-        console.error('Error initializing strategy:', error);
       }
-    };
-
-    initializeStrategy();
+    }
   }, [selectedStrategy]);
 
-  // Load allocations whenever strategy changes
-  useEffect(() => {
-    if (!currentStrategy) {
-      console.log('No current strategy, skipping allocation load');
-      return;
-    }
-
-    const loadAllocations = async () => {
-      try {
-        if (currentStrategy === 'advanced') {
-          const savedAllocations = localStorage.getItem('alternativesAllocations');
-          if (savedAllocations) {
-            const parsedAllocations = JSON.parse(savedAllocations);
-            console.log('Loading saved advanced allocations:', parsedAllocations);
-            setCustomAllocations(parsedAllocations);
-          }
-        } else {
-          const strategyAllocations = STRATEGY_ALLOCATIONS[currentStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-          console.log('Loading strategy allocations for:', currentStrategy, strategyAllocations);
-          if (strategyAllocations) {
-            setCustomAllocations(strategyAllocations);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading allocations:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadAllocations();
-  }, [currentStrategy]);
+  const { customAllocations, isLoading, error } = useAlternativesChartData(currentStrategy);
 
   useLayoutEffect(() => {
-    if (isLoading) {
-      console.log('Still loading, skipping chart render');
-      return;
-    }
-
-    if (!customAllocations || Object.keys(customAllocations).length === 0) {
-      console.log('No allocations available after loading, skipping chart render');
+    if (isLoading || !customAllocations || Object.keys(customAllocations).length === 0) {
+      console.log('Still loading or no allocations available, skipping chart render');
       return;
     }
 
@@ -106,7 +48,7 @@ export const AlternativesPieChart = () => {
     }
 
     const root = am5.Root.new("alternatives-chartdiv");
-    root.setThemes([am5themes_Animated.new(root)]);
+    root.setThemes([am5.Theme.new(root)]);
     chartRef.current = root;
 
     const { series } = configureChart(root);
@@ -128,7 +70,6 @@ export const AlternativesPieChart = () => {
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
     console.log('Saving new allocations:', newAllocations);
-    setCustomAllocations(newAllocations);
     localStorage.setItem('alternativesAllocations', JSON.stringify(newAllocations));
   };
 
@@ -144,22 +85,19 @@ export const AlternativesPieChart = () => {
     });
   };
 
-  const legendItems = [
-    ["Private Equity", "Hedge Funds", "Real Estate", "Cryptocurrencies"],
-    ["Private Debt", "Private Credit", "Commodities", "Collectibles"]
-  ];
-
-  const displayStrategy = currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1);
-
-  if (isLoading) {
+  if (error) {
     return (
       <Card className="p-4">
-        <div className="flex justify-center items-center h-[500px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+        <div className="text-red-500">Error loading chart: {error}</div>
       </Card>
     );
   }
+
+  if (isLoading) {
+    return <ChartLoadingSpinner />;
+  }
+
+  const displayStrategy = currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1);
 
   return (
     <Card className="p-4">
@@ -173,31 +111,11 @@ export const AlternativesPieChart = () => {
         id="alternatives-chartdiv"
         style={{ width: "100%", height: "500px" }}
       />
-      <div className="mt-4 bg-gray-50 rounded-lg p-4">
-        <div className="flex justify-between items-start mb-4">
-          <h4 className="text-sm font-medium text-gray-700">Select Asset Classes</h4>
-          <button 
-            className="text-sm font-medium hover:text-primary transition-colors inline-flex items-center gap-2"
-            onClick={() => setIsAdjustDialogOpen(true)}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            ADJUST
-          </button>
-        </div>
-        {legendItems.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex flex-wrap gap-4 mb-4 last:mb-0">
-            {row.map((category) => (
-              <LegendItem
-                key={category}
-                category={category}
-                isVisible={!hiddenCategories.has(category)}
-                color={ALTERNATIVES_COLORS[category as keyof typeof ALTERNATIVES_COLORS]}
-                onToggle={() => handleToggle(category)}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
+      <AlternativesChartLegend
+        onAdjustClick={() => setIsAdjustDialogOpen(true)}
+        hiddenCategories={hiddenCategories}
+        onToggle={handleToggle}
+      />
       <AlternativesAdjustDialog
         open={isAdjustDialogOpen}
         onOpenChange={setIsAdjustDialogOpen}
