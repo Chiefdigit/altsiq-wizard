@@ -22,10 +22,12 @@ export const AlternativesPieChart = () => {
   const [customAllocations, setCustomAllocations] = useState<Record<string, number>>({});
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
   const [currentStrategy, setCurrentStrategy] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize and sync strategy
   useEffect(() => {
     const initializeStrategy = () => {
+      setIsLoading(true);
       // First try to get strategy from context
       if (selectedStrategy) {
         console.log('Using strategy from context:', selectedStrategy);
@@ -65,14 +67,15 @@ export const AlternativesPieChart = () => {
         console.log('Loading strategy allocations for:', currentStrategy, strategyAllocations);
         setCustomAllocations(strategyAllocations);
       }
+      setIsLoading(false);
     };
 
     loadAllocations();
   }, [currentStrategy]);
 
   useLayoutEffect(() => {
-    if (!customAllocations || Object.keys(customAllocations).length === 0) {
-      console.log('No allocations available, skipping chart render');
+    if (isLoading || !customAllocations || Object.keys(customAllocations).length === 0) {
+      console.log('Still loading or no allocations available, skipping chart render');
       return;
     }
 
@@ -101,7 +104,7 @@ export const AlternativesPieChart = () => {
     return () => {
       root.dispose();
     };
-  }, [customAllocations, hiddenCategories]);
+  }, [customAllocations, hiddenCategories, isLoading]);
 
   const handleSaveAllocations = (newAllocations: Record<string, number>) => {
     console.log('Saving new allocations:', newAllocations);
@@ -127,6 +130,16 @@ export const AlternativesPieChart = () => {
   ];
 
   const displayStrategy = currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1);
+
+  if (isLoading) {
+    return (
+      <Card className="p-4">
+        <div className="flex justify-center items-center h-[500px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-4">
