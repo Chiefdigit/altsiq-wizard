@@ -26,26 +26,30 @@ export const AlternativesPieChart = () => {
 
   // Initialize and sync strategy
   useEffect(() => {
-    const initializeStrategy = () => {
+    const initializeStrategy = async () => {
       setIsLoading(true);
-      // First try to get strategy from context
-      if (selectedStrategy) {
-        console.log('Using strategy from context:', selectedStrategy);
-        setCurrentStrategy(selectedStrategy);
-        return;
-      }
+      try {
+        // First try to get strategy from context
+        if (selectedStrategy) {
+          console.log('Using strategy from context:', selectedStrategy);
+          setCurrentStrategy(selectedStrategy);
+          return;
+        }
 
-      // Fallback to localStorage
-      const savedStrategy = localStorage.getItem('selectedStrategy');
-      if (savedStrategy) {
-        console.log('Using strategy from localStorage:', savedStrategy);
-        setCurrentStrategy(savedStrategy);
-        return;
-      }
+        // Fallback to localStorage
+        const savedStrategy = localStorage.getItem('selectedStrategy');
+        if (savedStrategy) {
+          console.log('Using strategy from localStorage:', savedStrategy);
+          setCurrentStrategy(savedStrategy);
+          return;
+        }
 
-      // Default to diversification if no strategy is found
-      console.log('No strategy found, defaulting to diversification');
-      setCurrentStrategy('diversification');
+        // Default to diversification if no strategy is found
+        console.log('No strategy found, defaulting to diversification');
+        setCurrentStrategy('diversification');
+      } catch (error) {
+        console.error('Error initializing strategy:', error);
+      }
     };
 
     initializeStrategy();
@@ -53,29 +57,45 @@ export const AlternativesPieChart = () => {
 
   // Load allocations whenever strategy changes
   useEffect(() => {
-    if (!currentStrategy) return;
+    if (!currentStrategy) {
+      console.log('No current strategy, skipping allocation load');
+      return;
+    }
 
-    const loadAllocations = () => {
-      if (currentStrategy === 'advanced') {
-        const savedAllocations = localStorage.getItem('alternativesAllocations');
-        if (savedAllocations) {
-          console.log('Loading saved advanced allocations:', JSON.parse(savedAllocations));
-          setCustomAllocations(JSON.parse(savedAllocations));
+    const loadAllocations = async () => {
+      try {
+        if (currentStrategy === 'advanced') {
+          const savedAllocations = localStorage.getItem('alternativesAllocations');
+          if (savedAllocations) {
+            const parsedAllocations = JSON.parse(savedAllocations);
+            console.log('Loading saved advanced allocations:', parsedAllocations);
+            setCustomAllocations(parsedAllocations);
+          }
+        } else {
+          const strategyAllocations = STRATEGY_ALLOCATIONS[currentStrategy as keyof typeof STRATEGY_ALLOCATIONS];
+          console.log('Loading strategy allocations for:', currentStrategy, strategyAllocations);
+          if (strategyAllocations) {
+            setCustomAllocations(strategyAllocations);
+          }
         }
-      } else {
-        const strategyAllocations = STRATEGY_ALLOCATIONS[currentStrategy as keyof typeof STRATEGY_ALLOCATIONS];
-        console.log('Loading strategy allocations for:', currentStrategy, strategyAllocations);
-        setCustomAllocations(strategyAllocations);
+      } catch (error) {
+        console.error('Error loading allocations:', error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     loadAllocations();
   }, [currentStrategy]);
 
   useLayoutEffect(() => {
-    if (isLoading || !customAllocations || Object.keys(customAllocations).length === 0) {
-      console.log('Still loading or no allocations available, skipping chart render');
+    if (isLoading) {
+      console.log('Still loading, skipping chart render');
+      return;
+    }
+
+    if (!customAllocations || Object.keys(customAllocations).length === 0) {
+      console.log('No allocations available after loading, skipping chart render');
       return;
     }
 
