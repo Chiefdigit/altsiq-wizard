@@ -11,32 +11,46 @@ const DEFAULT_ALLOCATIONS = {
   alternatives: 0,
 };
 
-const DEFAULT_CUSTOM_ALLOCATIONS = {
-  equities: 25,
-  bonds: 25,
-  cash: 25,
-  alternatives: 25,
-};
-
 export const useWizardState = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
-  const [portfolioSize, setPortfolioSize] = useState(() => {
-    const savedSize = localStorage.getItem('portfolioSize');
-    return savedSize ? parseInt(savedSize) : INITIAL_PORTFOLIO_SIZE;
-  });
-  
-  const [allocations, setAllocations] = useState<AllocationValues>(() => {
-    const savedAllocations = localStorage.getItem('allocations');
-    return savedAllocations ? JSON.parse(savedAllocations) : DEFAULT_ALLOCATIONS;
+  const [portfolioSize, setPortfolioSize] = useState(INITIAL_PORTFOLIO_SIZE);
+  const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
+  const [selectedStrategy, setSelectedStrategy] = useState("diversification");
+  const [customAllocations, setCustomAllocations] = useState<AllocationValues>({
+    equities: 25,
+    bonds: 25,
+    cash: 25,
+    alternatives: 25,
   });
 
-  const [selectedStrategy, setSelectedStrategy] = useState(() => {
-    return localStorage.getItem('selectedStrategy') || "diversification";
-  });
-  
-  const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
+  // Clear localStorage and set default values on first load
+  useEffect(() => {
+    const isFirstLoad = !localStorage.getItem('hasVisited');
+    
+    if (isFirstLoad) {
+      console.log('First visit detected, clearing localStorage and setting defaults');
+      localStorage.clear();
+      localStorage.setItem('hasVisited', 'true');
+      localStorage.setItem('portfolioSize', INITIAL_PORTFOLIO_SIZE.toString());
+      localStorage.setItem('allocations', JSON.stringify(DEFAULT_ALLOCATIONS));
+      localStorage.setItem('selectedStrategy', 'diversification');
+      
+      setPortfolioSize(INITIAL_PORTFOLIO_SIZE);
+      setAllocations(DEFAULT_ALLOCATIONS);
+      setSelectedStrategy('diversification');
+    } else {
+      // Load saved values if they exist
+      const savedSize = localStorage.getItem('portfolioSize');
+      const savedAllocations = localStorage.getItem('allocations');
+      const savedStrategy = localStorage.getItem('selectedStrategy');
 
-  // Update allocations when portfolio size changes
+      if (savedSize) setPortfolioSize(parseInt(savedSize));
+      if (savedAllocations) setAllocations(JSON.parse(savedAllocations));
+      if (savedStrategy) setSelectedStrategy(savedStrategy);
+    }
+  }, []);
+
+  // Update localStorage when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size updated:", portfolioSize);
     localStorage.setItem('portfolioSize', portfolioSize.toString());
@@ -50,15 +64,16 @@ export const useWizardState = () => {
         dollarValue: formatDollarValue(dollarValue)
       });
     });
-  }, [portfolioSize]);
+  }, [portfolioSize, allocations]);
 
   const updateAllocation = useCallback((type: keyof AllocationValues, value: number) => {
     console.log(`Updating allocation for ${type}:`, value, "Portfolio size:", portfolioSize);
     
     setAllocations(prev => {
       const newAllocations = { ...prev, [type]: value };
-      const dollarValue = (value / 100) * portfolioSize;
+      localStorage.setItem('allocations', JSON.stringify(newAllocations));
       
+      const dollarValue = (value / 100) * portfolioSize;
       console.log(`${type} allocation updated:`, {
         newPercentage: value,
         portfolioSize,
