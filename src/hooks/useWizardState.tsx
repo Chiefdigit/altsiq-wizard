@@ -20,11 +20,7 @@ const INITIAL_PORTFOLIO_SIZE = 500000;
 
 export const useWizardState = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
-  const [portfolioSize, setPortfolioSize] = useState(() => {
-    // Always return INITIAL_PORTFOLIO_SIZE if there's no saved value
-    const savedSize = localStorage.getItem('portfolioSize');
-    return savedSize ? parseInt(savedSize, 10) : INITIAL_PORTFOLIO_SIZE;
-  });
+  const [portfolioSize, setPortfolioSize] = useState(INITIAL_PORTFOLIO_SIZE);
   
   const [allocations, setAllocations] = useState<AllocationValues>(() => {
     const savedAllocations = localStorage.getItem('allocations');
