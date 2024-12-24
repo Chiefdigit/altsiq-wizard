@@ -20,9 +20,16 @@ const DEFAULT_CUSTOM_ALLOCATIONS = {
 
 export const useWizardState = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
-  const [portfolioSize, setPortfolioSize] = useState(INITIAL_PORTFOLIO_SIZE);
+  const [portfolioSize, setPortfolioSize] = useState(() => {
+    const savedSize = localStorage.getItem('portfolioSize');
+    return savedSize ? parseInt(savedSize) : INITIAL_PORTFOLIO_SIZE;
+  });
   
-  const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
+  const [allocations, setAllocations] = useState<AllocationValues>(() => {
+    const savedAllocations = localStorage.getItem('allocations');
+    return savedAllocations ? JSON.parse(savedAllocations) : DEFAULT_ALLOCATIONS;
+  });
+
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
@@ -41,6 +48,7 @@ export const useWizardState = () => {
     
     // Store the updated portfolio size
     localStorage.setItem('portfolioSize', portfolioSize.toString());
+    localStorage.setItem('allocations', JSON.stringify(allocations));
   }, [portfolioSize, allocations]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
