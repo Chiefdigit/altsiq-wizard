@@ -31,12 +31,14 @@ export const AllocationStep = ({
       });
       return;
     }
+    
+    // Store both portfolio size and allocations together
+    localStorage.setItem('portfolioSize', portfolioSize.toString());
+    localStorage.setItem('allocations', JSON.stringify(allocations));
+    console.log("Storing portfolio size and allocations:", { portfolioSize, allocations });
+    
     onContinue();
   };
-
-  // Get the stored portfolio size
-  const storedSize = localStorage.getItem('portfolioSize');
-  const actualPortfolioSize = storedSize ? parseInt(storedSize, 10) : portfolioSize;
 
   return (
     <div className="space-y-6">
@@ -47,7 +49,7 @@ export const AllocationStep = ({
             {totalAllocation}%
           </span>
           <span className="text-sm text-gray-600 ml-2">
-            ({formatDollarValue(actualPortfolioSize)})
+            ({formatDollarValue(portfolioSize)})
           </span>
         </div>
       </div>
@@ -59,7 +61,7 @@ export const AllocationStep = ({
             label={key.charAt(0).toUpperCase() + key.slice(1)}
             value={value}
             onChange={(newValue) => updateAllocation(key as keyof AllocationValues, newValue)}
-            portfolioSize={actualPortfolioSize}
+            portfolioSize={portfolioSize}
           />
         ))}
       </div>

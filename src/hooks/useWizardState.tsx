@@ -18,8 +18,16 @@ const DEFAULT_CUSTOM_ALLOCATIONS = {
 
 export const useWizardState = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
-  const [portfolioSize, setPortfolioSize] = useState(500000);
-  const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
+  const [portfolioSize, setPortfolioSize] = useState(() => {
+    const savedSize = localStorage.getItem('portfolioSize');
+    return savedSize ? parseInt(savedSize, 10) : 500000;
+  });
+  
+  const [allocations, setAllocations] = useState<AllocationValues>(() => {
+    const savedAllocations = localStorage.getItem('allocations');
+    return savedAllocations ? JSON.parse(savedAllocations) : DEFAULT_ALLOCATIONS;
+  });
+  
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
@@ -27,7 +35,7 @@ export const useWizardState = () => {
   useEffect(() => {
     console.log("Portfolio size updated:", portfolioSize);
     
-    // Recalculate dollar values for each allocation based on new portfolio size
+    // Update dollar values for each allocation
     Object.entries(allocations).forEach(([key, percentage]) => {
       const dollarValue = (percentage / 100) * portfolioSize;
       console.log(`${key} allocation updated:`, {
@@ -36,6 +44,9 @@ export const useWizardState = () => {
         dollarValue: formatDollarValue(dollarValue)
       });
     });
+    
+    // Store the updated portfolio size
+    localStorage.setItem('portfolioSize', portfolioSize.toString());
   }, [portfolioSize, allocations]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
@@ -51,13 +62,16 @@ export const useWizardState = () => {
         newDollarValue: formatDollarValue(dollarValue)
       });
 
-      setAllocations(prev => ({ ...prev, [type]: value }));
+      const newAllocations = { ...allocations, [type]: value };
+      setAllocations(newAllocations);
+      localStorage.setItem('allocations', JSON.stringify(newAllocations));
     }
   };
 
   const handleCustomAllocationChange = (type: keyof AllocationValues, value: string) => {
     const numericValue = Math.min(100, Math.max(0, Number(value) || 0));
-    setCustomAllocations(prev => ({ ...prev, [type]: numericValue }));
+    const newCustomAllocations = { ...customAllocations, [type]: numericValue };
+    setCustomAllocations(newCustomAllocations);
   };
 
   const totalAllocation = Object.values(allocations).reduce(
