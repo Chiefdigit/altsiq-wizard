@@ -22,16 +22,40 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
-  // Effect to sync UI with stored values
+  // Effect to sync UI with stored values on mount
   useEffect(() => {
     const savedAllocations = localStorage.getItem('allocations');
     if (savedAllocations) {
-      const parsed = JSON.parse(savedAllocations);
-      Object.entries(parsed).forEach(([key, value]) => {
-        updateAllocation(key as keyof AllocationValues, Number(value));
-      });
+      try {
+        const parsed = JSON.parse(savedAllocations);
+        Object.entries(parsed).forEach(([key, value]) => {
+          updateAllocation(key as keyof AllocationValues, Number(value));
+        });
+      } catch (error) {
+        console.error('Error parsing saved allocations:', error);
+      }
     }
-  }, [updateAllocation]);
+  }, []);
+
+  const handleAllocationChange = (type: keyof AllocationValues, value: number) => {
+    // Update the allocation
+    updateAllocation(type, value);
+    
+    // Store the updated allocations
+    const updatedAllocations = {
+      ...allocations,
+      [type]: value
+    };
+    localStorage.setItem('allocations', JSON.stringify(updatedAllocations));
+    
+    // Log the update for debugging
+    const dollarValue = (value / 100) * portfolioSize;
+    console.log(`${type} allocation updated:`, {
+      percentage: value,
+      portfolioSize,
+      dollarValue: formatDollarValue(dollarValue)
+    });
+  };
 
   const handleContinue = () => {
     if (totalAllocation !== 100) {
@@ -71,7 +95,7 @@ export const AllocationStep = ({
             key={key}
             label={key.charAt(0).toUpperCase() + key.slice(1)}
             value={value}
-            onChange={(newValue) => updateAllocation(key as keyof AllocationValues, newValue)}
+            onChange={(newValue) => handleAllocationChange(key as keyof AllocationValues, newValue)}
             portfolioSize={portfolioSize}
           />
         ))}

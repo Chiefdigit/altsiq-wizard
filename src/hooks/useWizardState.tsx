@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { AllocationValues } from "@/types/allocation";
 import { formatDollarValue } from "@/utils/formatters";
 
@@ -30,11 +30,16 @@ export const useWizardState = () => {
     return savedAllocations ? JSON.parse(savedAllocations) : DEFAULT_ALLOCATIONS;
   });
 
-  const [selectedStrategy, setSelectedStrategy] = useState("diversification");
+  const [selectedStrategy, setSelectedStrategy] = useState(() => {
+    return localStorage.getItem('selectedStrategy') || "diversification";
+  });
+  
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
+  // Update allocations when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size updated:", portfolioSize);
+    localStorage.setItem('portfolioSize', portfolioSize.toString());
     
     // Update dollar values for each allocation
     Object.entries(allocations).forEach(([key, percentage]) => {
@@ -45,35 +50,28 @@ export const useWizardState = () => {
         dollarValue: formatDollarValue(dollarValue)
       });
     });
+  }, [portfolioSize]);
+
+  const updateAllocation = useCallback((type: keyof AllocationValues, value: number) => {
+    console.log(`Updating allocation for ${type}:`, value, "Portfolio size:", portfolioSize);
     
-    // Store the updated portfolio size
-    localStorage.setItem('portfolioSize', portfolioSize.toString());
-    localStorage.setItem('allocations', JSON.stringify(allocations));
-  }, [portfolioSize, allocations]);
-
-  const updateAllocation = (type: keyof AllocationValues, value: number) => {
-    const remainingTotal = Object.entries(allocations)
-      .filter(([key]) => key !== type)
-      .reduce((sum, [_, val]) => sum + val, 0);
-
-    if (remainingTotal + value <= 100) {
+    setAllocations(prev => {
+      const newAllocations = { ...prev, [type]: value };
       const dollarValue = (value / 100) * portfolioSize;
+      
       console.log(`${type} allocation updated:`, {
         newPercentage: value,
         portfolioSize,
         newDollarValue: formatDollarValue(dollarValue)
       });
-
-      const newAllocations = { ...allocations, [type]: value };
-      setAllocations(newAllocations);
-      localStorage.setItem('allocations', JSON.stringify(newAllocations));
-    }
-  };
+      
+      return newAllocations;
+    });
+  }, [portfolioSize]);
 
   const handleCustomAllocationChange = (type: keyof AllocationValues, value: string) => {
     const numericValue = Math.min(100, Math.max(0, Number(value) || 0));
-    const newCustomAllocations = { ...customAllocations, [type]: numericValue };
-    setCustomAllocations(newCustomAllocations);
+    setCustomAllocations(prev => ({ ...prev, [type]: numericValue }));
   };
 
   const totalAllocation = Object.values(allocations).reduce(
@@ -92,6 +90,7 @@ export const useWizardState = () => {
     portfolioSize,
     setPortfolioSize,
     allocations,
+    setAllocations,
     selectedStrategy,
     setSelectedStrategy,
     customAllocations,
