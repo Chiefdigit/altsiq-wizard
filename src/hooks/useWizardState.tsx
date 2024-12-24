@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import type { AllocationValues } from "@/types/allocation";
 import { formatDollarValue } from "@/utils/formatters";
 
+const INITIAL_PORTFOLIO_SIZE = 500000;
+
 const DEFAULT_ALLOCATIONS = {
   equities: 60,
   bonds: 40,
@@ -16,17 +18,11 @@ const DEFAULT_CUSTOM_ALLOCATIONS = {
   alternatives: 25,
 };
 
-const INITIAL_PORTFOLIO_SIZE = 500000;
-
 export const useWizardState = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(INITIAL_PORTFOLIO_SIZE);
   
-  const [allocations, setAllocations] = useState<AllocationValues>(() => {
-    const savedAllocations = localStorage.getItem('allocations');
-    return savedAllocations ? JSON.parse(savedAllocations) : DEFAULT_ALLOCATIONS;
-  });
-  
+  const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
