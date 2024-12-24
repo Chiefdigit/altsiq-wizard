@@ -16,11 +16,14 @@ const DEFAULT_CUSTOM_ALLOCATIONS = {
   alternatives: 25,
 };
 
+const INITIAL_PORTFOLIO_SIZE = 500000;
+
 export const useWizardState = () => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(() => {
+    // Always return INITIAL_PORTFOLIO_SIZE if there's no saved value
     const savedSize = localStorage.getItem('portfolioSize');
-    return savedSize ? parseInt(savedSize, 10) : 500000;
+    return savedSize ? parseInt(savedSize, 10) : INITIAL_PORTFOLIO_SIZE;
   });
   
   const [allocations, setAllocations] = useState<AllocationValues>(() => {
@@ -31,7 +34,6 @@ export const useWizardState = () => {
   const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
-  // Effect to update allocations when portfolio size changes
   useEffect(() => {
     console.log("Portfolio size updated:", portfolioSize);
     
