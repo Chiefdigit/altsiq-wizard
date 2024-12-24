@@ -23,7 +23,7 @@ export const useWizardState = () => {
     alternatives: 25,
   });
 
-  // Clear localStorage and set default values on first load
+  // Initialize state from localStorage on mount
   useEffect(() => {
     const isFirstLoad = !localStorage.getItem('hasVisited');
     
@@ -44,18 +44,22 @@ export const useWizardState = () => {
       const savedAllocations = localStorage.getItem('allocations');
       const savedStrategy = localStorage.getItem('selectedStrategy');
 
-      if (savedSize) setPortfolioSize(parseInt(savedSize));
+      if (savedSize) {
+        const parsedSize = parseInt(savedSize);
+        console.log('Loading saved portfolio size:', parsedSize);
+        setPortfolioSize(parsedSize);
+      }
       if (savedAllocations) setAllocations(JSON.parse(savedAllocations));
       if (savedStrategy) setSelectedStrategy(savedStrategy);
     }
   }, []);
 
-  // Update localStorage when portfolio size changes
+  // Update localStorage whenever portfolio size changes
   useEffect(() => {
-    console.log("Portfolio size updated:", portfolioSize);
+    console.log("Saving portfolio size to localStorage:", portfolioSize);
     localStorage.setItem('portfolioSize', portfolioSize.toString());
     
-    // Update dollar values for each allocation
+    // Log dollar values for each allocation
     Object.entries(allocations).forEach(([key, percentage]) => {
       const dollarValue = (percentage / 100) * portfolioSize;
       console.log(`${key} allocation updated:`, {
@@ -64,15 +68,19 @@ export const useWizardState = () => {
         dollarValue: formatDollarValue(dollarValue)
       });
     });
-  }, [portfolioSize, allocations]);
+  }, [portfolioSize]);
+
+  // Update localStorage whenever allocations change
+  useEffect(() => {
+    console.log("Saving allocations to localStorage:", allocations);
+    localStorage.setItem('allocations', JSON.stringify(allocations));
+  }, [allocations]);
 
   const updateAllocation = useCallback((type: keyof AllocationValues, value: number) => {
     console.log(`Updating allocation for ${type}:`, value, "Portfolio size:", portfolioSize);
     
     setAllocations(prev => {
       const newAllocations = { ...prev, [type]: value };
-      localStorage.setItem('allocations', JSON.stringify(newAllocations));
-      
       const dollarValue = (value / 100) * portfolioSize;
       console.log(`${type} allocation updated:`, {
         newPercentage: value,
