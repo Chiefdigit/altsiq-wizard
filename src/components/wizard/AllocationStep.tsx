@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AllocationSlider } from "../AllocationSlider";
 import { AllocationChart } from "../AllocationChart";
@@ -22,6 +22,17 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
+  // Effect to sync UI with stored values
+  useEffect(() => {
+    const savedAllocations = localStorage.getItem('allocations');
+    if (savedAllocations) {
+      const parsed = JSON.parse(savedAllocations);
+      Object.entries(parsed).forEach(([key, value]) => {
+        updateAllocation(key as keyof AllocationValues, Number(value));
+      });
+    }
+  }, [updateAllocation]);
+
   const handleContinue = () => {
     if (totalAllocation !== 100) {
       toast({
