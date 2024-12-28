@@ -22,8 +22,16 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
-  // Effect to log portfolio size when component mounts or portfolioSize changes
+  // Effect to initialize default allocations when component mounts
   useEffect(() => {
+    // Set initial allocations if they haven't been set yet
+    if (totalAllocation === 0) {
+      updateAllocation('equities', 60);
+      updateAllocation('bonds', 40);
+      updateAllocation('cash', 0);
+      updateAllocation('alternatives', 0);
+    }
+    
     console.log("AllocationStep received portfolio size:", portfolioSize);
     console.log("Portfolio size in dollars:", formatDollarValue(portfolioSize));
   }, [portfolioSize]);
@@ -45,17 +53,23 @@ export const AllocationStep = ({
     onContinue();
   };
 
+  // Calculate total portfolio value in dollars
+  const totalPortfolioValue = formatDollarValue(portfolioSize);
+
   return (
     <div className="space-y-6">
       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
         <div className="text-center">
-          <span className="text-sm text-gray-600">Total Allocation: </span>
-          <span className={`font-semibold ${totalAllocation !== 100 ? 'text-red-500' : 'text-green-500'}`}>
-            {totalAllocation}%
+          <span className="text-sm text-gray-600">Total Portfolio Value: </span>
+          <span className="font-semibold text-primary">
+            {totalPortfolioValue}
           </span>
-          <span className="text-sm text-gray-600 ml-2">
-            ({formatDollarValue(portfolioSize)})
-          </span>
+          <div className="mt-2">
+            <span className="text-sm text-gray-600">Total Allocation: </span>
+            <span className={`font-semibold ${totalAllocation !== 100 ? 'text-red-500' : 'text-green-500'}`}>
+              {totalAllocation}%
+            </span>
+          </div>
         </div>
       </div>
 
