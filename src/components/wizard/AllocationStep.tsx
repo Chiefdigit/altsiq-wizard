@@ -30,7 +30,7 @@ export const AllocationStep = ({
       updateAllocation('cash', 0);
       updateAllocation('alternatives', 0);
     }
-  }, []);
+  }, [portfolioSize]); // Re-run when portfolio size changes
 
   const handleContinue = () => {
     if (totalAllocation !== 100) {

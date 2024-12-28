@@ -39,30 +39,30 @@ const WizardContext = createContext<WizardContextType | undefined>(undefined);
 export const WizardProvider = ({ children }: { children: React.ReactNode }) => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
   const [portfolioSize, setPortfolioSize] = useState(() => {
-    const isFirstVisit = !localStorage.getItem('hasVisited');
-    if (isFirstVisit) {
-      localStorage.clear();
+    // Check if this is the first visit
+    const hasVisited = localStorage.getItem('hasVisited');
+    if (!hasVisited) {
       localStorage.setItem('hasVisited', 'true');
       localStorage.setItem('portfolioSize', DEFAULT_PORTFOLIO_SIZE.toString());
       return DEFAULT_PORTFOLIO_SIZE;
     }
+    
+    // For subsequent visits, try to get the saved size
     const savedSize = localStorage.getItem('portfolioSize');
     return savedSize ? parseInt(savedSize, 10) : DEFAULT_PORTFOLIO_SIZE;
   });
 
   const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
-  const [selectedStrategy, setSelectedStrategy] = useState(() => {
-    return localStorage.getItem('selectedStrategy') || "diversification";
-  });
+  const [selectedStrategy, setSelectedStrategy] = useState("diversification");
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
-  // Single effect to handle portfolio size updates
+  // Effect to handle portfolio size updates
   useEffect(() => {
     console.log("Portfolio size updated in context:", portfolioSize);
     localStorage.setItem('portfolioSize', portfolioSize.toString());
   }, [portfolioSize]);
 
-  // Single effect to handle allocation updates
+  // Effect to handle allocation updates
   useEffect(() => {
     console.log("Saving allocations to localStorage:", allocations);
     localStorage.setItem('allocations', JSON.stringify(allocations));
