@@ -15,6 +15,8 @@ const DEFAULT_CUSTOM_ALLOCATIONS = {
   alternatives: 25,
 };
 
+const DEFAULT_PORTFOLIO_SIZE = 500000;
+
 interface WizardContextType {
   activeStep: string;
   setActiveStep: (step: string) => void;
@@ -36,38 +38,51 @@ const WizardContext = createContext<WizardContextType | undefined>(undefined);
 
 export const WizardProvider = ({ children }: { children: React.ReactNode }) => {
   const [activeStep, setActiveStep] = useState<string>("portfolio");
-  const [portfolioSize, setPortfolioSize] = useState(500000);
+  const [portfolioSize, setPortfolioSize] = useState(() => {
+    const isFirstVisit = !localStorage.getItem('hasVisited');
+    if (isFirstVisit) {
+      localStorage.clear();
+      localStorage.setItem('hasVisited', 'true');
+      localStorage.setItem('portfolioSize', DEFAULT_PORTFOLIO_SIZE.toString());
+      return DEFAULT_PORTFOLIO_SIZE;
+    }
+    const savedSize = localStorage.getItem('portfolioSize');
+    return savedSize ? parseInt(savedSize, 10) : DEFAULT_PORTFOLIO_SIZE;
+  });
+
   const [allocations, setAllocations] = useState<AllocationValues>(DEFAULT_ALLOCATIONS);
   const [selectedStrategy, setSelectedStrategy] = useState(() => {
-    // Initialize from localStorage or default to "diversification"
     return localStorage.getItem('selectedStrategy') || "diversification";
   });
   const [customAllocations, setCustomAllocations] = useState<AllocationValues>(DEFAULT_CUSTOM_ALLOCATIONS);
 
-  // Effect to update allocations when portfolio size changes
+  // Single effect to handle portfolio size updates
   useEffect(() => {
     console.log("Portfolio size updated in context:", portfolioSize);
+    localStorage.setItem('portfolioSize', portfolioSize.toString());
   }, [portfolioSize]);
 
-  // Effect to sync strategy with localStorage
+  // Single effect to handle allocation updates
   useEffect(() => {
-    const savedStrategy = localStorage.getItem('selectedStrategy');
-    if (savedStrategy && savedStrategy !== selectedStrategy) {
-      console.log('Syncing strategy from localStorage:', savedStrategy);
-      setSelectedStrategy(savedStrategy);
-    }
-  }, []);
+    console.log("Saving allocations to localStorage:", allocations);
+    localStorage.setItem('allocations', JSON.stringify(allocations));
+    
+    // Log dollar values for each allocation
+    Object.entries(allocations).forEach(([key, percentage]) => {
+      const dollarValue = (percentage / 100) * portfolioSize;
+      console.log(`${key} allocation updated:`, {
+        percentage,
+        portfolioSize,
+        dollarValue: new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        }).format(dollarValue)
+      });
+    });
+  }, [allocations, portfolioSize]);
 
   const updateAllocation = (type: keyof AllocationValues, value: number) => {
-    console.log(`Updating allocation for ${type}:`, value, "Portfolio size:", portfolioSize);
-    const total = Object.entries(allocations)
-      .filter(([key]) => key !== type)
-      .reduce((sum, [_, val]) => sum + val, 0);
-
-    if (total + value <= 100) {
-      const newAllocations = { ...allocations, [type]: value };
-      setAllocations(newAllocations);
-    }
+    setAllocations(prev => ({ ...prev, [type]: value }));
   };
 
   const handleCustomAllocationChange = (type: keyof AllocationValues, value: string) => {
