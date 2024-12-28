@@ -22,27 +22,15 @@ export const AllocationStep = ({
   portfolioSize,
   onContinue,
 }: AllocationStepProps) => {
-  // Effect to initialize default allocations when component mounts
   useEffect(() => {
-    // Only set initial allocations if none exist
     if (totalAllocation === 0) {
       console.log("Initializing default allocations with portfolio size:", portfolioSize);
-      
-      // Set default allocations
       updateAllocation('equities', 60);
       updateAllocation('bonds', 40);
       updateAllocation('cash', 0);
       updateAllocation('alternatives', 0);
-      
-      // Log the initial allocation values
-      console.log("Initial allocations set:", {
-        equities: `$${(portfolioSize * 0.6).toLocaleString()}`,
-        bonds: `$${(portfolioSize * 0.4).toLocaleString()}`,
-        cash: "$0",
-        alternatives: "$0"
-      });
     }
-  }, []);  // Only run once on mount
+  }, []);
 
   const handleContinue = () => {
     if (totalAllocation !== 100) {
@@ -53,16 +41,6 @@ export const AllocationStep = ({
       });
       return;
     }
-    
-    // Log final allocations before continuing
-    Object.entries(allocations).forEach(([key, percentage]) => {
-      const value = (percentage / 100) * portfolioSize;
-      console.log(`${key} final allocation:`, {
-        percentage: `${percentage}%`,
-        value: formatDollarValue(value)
-      });
-    });
-    
     onContinue();
   };
 
@@ -89,14 +67,9 @@ export const AllocationStep = ({
             key={key}
             label={key.charAt(0).toUpperCase() + key.slice(1)}
             value={value}
-            onChange={(newValue) => {
-              console.log(`Updating ${key} allocation:`, {
-                newValue: `${newValue}%`,
-                dollarValue: formatDollarValue((newValue / 100) * portfolioSize)
-              });
-              updateAllocation(key as keyof AllocationValues, newValue);
-            }}
+            onChange={(newValue) => updateAllocation(key as keyof AllocationValues, newValue)}
             portfolioSize={portfolioSize}
+            totalAllocation={totalAllocation}
           />
         ))}
       </div>

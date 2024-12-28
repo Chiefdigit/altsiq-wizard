@@ -3,19 +3,22 @@ import * as Slider from "@radix-ui/react-slider";
 import { Input } from "@/components/ui/input";
 import { formatDollarValue } from "@/utils/formatters";
 import { getSliderColor } from "@/utils/formatters";
+import { toast } from "@/components/ui/use-toast";
 
 interface PortfolioSliderProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
   portfolioSize: number;
+  totalAllocation: number;  // Add this prop
 }
 
 export const AllocationSlider = ({ 
   label, 
   value, 
   onChange,
-  portfolioSize 
+  portfolioSize,
+  totalAllocation 
 }: PortfolioSliderProps) => {
   const [inputValue, setInputValue] = useState("");
 
@@ -34,12 +37,41 @@ export const AllocationSlider = ({
     
     if (!isNaN(numericValue)) {
       const percentage = Math.round((numericValue / portfolioSize) * 100);
-      const clampedPercentage = Math.max(0, Math.min(100, percentage));
+      const otherAllocations = totalAllocation - value;
+      const maxAllowed = 100 - otherAllocations;
+      const clampedPercentage = Math.max(0, Math.min(maxAllowed, percentage));
+      
+      if (clampedPercentage !== percentage) {
+        toast({
+          title: "Allocation Adjusted",
+          description: `Maximum allowed allocation is ${maxAllowed}%`,
+          variant: "destructive",
+        });
+      }
+      
       onChange(clampedPercentage);
     }
 
     const dollarValue = (value / 100) * portfolioSize;
     setInputValue(formatDollarValue(dollarValue));
+  };
+
+  const handleSliderChange = (values: number[]) => {
+    const newValue = values[0];
+    const otherAllocations = totalAllocation - value;
+    const maxAllowed = 100 - otherAllocations;
+    
+    if (newValue > maxAllowed) {
+      toast({
+        title: "Maximum Allocation Reached",
+        description: `Cannot exceed ${maxAllowed}% for this asset class`,
+        variant: "destructive",
+      });
+      onChange(maxAllowed);
+      return;
+    }
+    
+    onChange(newValue);
   };
 
   const sliderColor = getSliderColor(label);
@@ -61,10 +93,7 @@ export const AllocationSlider = ({
       <Slider.Root
         className="relative flex items-center select-none touch-none w-full h-5"
         value={[value]}
-        onValueChange={(values) => {
-          const newValue = values[0];
-          onChange(newValue);
-        }}
+        onValueChange={handleSliderChange}
         max={100}
         min={0}
         step={1}
