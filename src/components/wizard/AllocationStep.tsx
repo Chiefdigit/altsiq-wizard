@@ -24,17 +24,25 @@ export const AllocationStep = ({
 }: AllocationStepProps) => {
   // Effect to initialize default allocations when component mounts
   useEffect(() => {
-    // Set initial allocations if they haven't been set yet
+    // Only set initial allocations if none exist
     if (totalAllocation === 0) {
+      console.log("Initializing default allocations with portfolio size:", portfolioSize);
+      
+      // Set default allocations
       updateAllocation('equities', 60);
       updateAllocation('bonds', 40);
       updateAllocation('cash', 0);
       updateAllocation('alternatives', 0);
+      
+      // Log the initial allocation values
+      console.log("Initial allocations set:", {
+        equities: `$${(portfolioSize * 0.6).toLocaleString()}`,
+        bonds: `$${(portfolioSize * 0.4).toLocaleString()}`,
+        cash: "$0",
+        alternatives: "$0"
+      });
     }
-    
-    console.log("AllocationStep received portfolio size:", portfolioSize);
-    console.log("Portfolio size in dollars:", formatDollarValue(portfolioSize));
-  }, [portfolioSize]);
+  }, []);  // Only run once on mount
 
   const handleContinue = () => {
     if (totalAllocation !== 100) {
@@ -46,15 +54,17 @@ export const AllocationStep = ({
       return;
     }
     
-    // Log the final allocations and portfolio size before continuing
-    console.log("Continuing with portfolio size:", portfolioSize);
-    console.log("Final allocations:", allocations);
+    // Log final allocations before continuing
+    Object.entries(allocations).forEach(([key, percentage]) => {
+      const value = (percentage / 100) * portfolioSize;
+      console.log(`${key} final allocation:`, {
+        percentage: `${percentage}%`,
+        value: formatDollarValue(value)
+      });
+    });
     
     onContinue();
   };
-
-  // Calculate total portfolio value in dollars
-  const totalPortfolioValue = formatDollarValue(portfolioSize);
 
   return (
     <div className="space-y-6">
@@ -62,7 +72,7 @@ export const AllocationStep = ({
         <div className="text-center">
           <span className="text-sm text-gray-600">Total Portfolio Value: </span>
           <span className="font-semibold text-primary">
-            {totalPortfolioValue}
+            {formatDollarValue(portfolioSize)}
           </span>
           <div className="mt-2">
             <span className="text-sm text-gray-600">Total Allocation: </span>
@@ -79,7 +89,13 @@ export const AllocationStep = ({
             key={key}
             label={key.charAt(0).toUpperCase() + key.slice(1)}
             value={value}
-            onChange={(newValue) => updateAllocation(key as keyof AllocationValues, newValue)}
+            onChange={(newValue) => {
+              console.log(`Updating ${key} allocation:`, {
+                newValue: `${newValue}%`,
+                dollarValue: formatDollarValue((newValue / 100) * portfolioSize)
+              });
+              updateAllocation(key as keyof AllocationValues, newValue);
+            }}
             portfolioSize={portfolioSize}
           />
         ))}
