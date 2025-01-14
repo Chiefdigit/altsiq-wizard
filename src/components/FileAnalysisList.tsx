@@ -16,10 +16,6 @@ interface SchemaResponse {
   sql: string;
 }
 
-interface ExecuteSqlParams {
-  sql_query: string;
-}
-
 export const FileAnalysisList = () => {
   const [tableName, setTableName] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -72,10 +68,48 @@ export const FileAnalysisList = () => {
         description: `Table ${tableName} schema created successfully`,
       });
 
-      setTableName("");
       refetch();
     } catch (error) {
       console.error("Schema generation error:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleImportData = async (analysisId: string) => {
+    if (!tableName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a table name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setProcessingId(analysisId);
+    try {
+      const { error: importError } = await supabase.functions.invoke("import-csv-data", {
+        body: { 
+          csvAnalysisId: analysisId,
+          tableName: tableName.trim().toLowerCase()
+        },
+      });
+
+      if (importError) throw importError;
+
+      toast({
+        title: "Success",
+        description: `Data imported successfully into table ${tableName}`,
+      });
+
+      refetch();
+    } catch (error) {
+      console.error("Import error:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -90,6 +124,7 @@ export const FileAnalysisList = () => {
     const variants: Record<string, "default" | "secondary" | "destructive"> = {
       pending: "secondary",
       completed: "default",
+      imported: "default",
       error: "destructive",
     };
 
@@ -142,6 +177,15 @@ export const FileAnalysisList = () => {
                       >
                         Generate Schema & Create Table
                       </Button>
+                      {analysis.analysis_status === 'completed' && (
+                        <Button 
+                          onClick={() => handleImportData(analysis.id)}
+                          disabled={processingId === analysis.id}
+                          variant="secondary"
+                        >
+                          Import Data
+                        </Button>
+                      )}
                     </div>
                   </>
                 )}
