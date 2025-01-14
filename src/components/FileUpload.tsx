@@ -31,16 +31,26 @@ export const FileUpload = () => {
       if (uploadError) throw uploadError;
 
       // Create analysis record
-      const { error: dbError } = await supabase
+      const { data: analysisRecord, error: dbError } = await supabase
         .from('csv_analysis')
         .insert({
           file_name: file.name,
           file_path: filePath,
           content_type: file.type,
           size: file.size,
-        });
+        })
+        .select()
+        .single();
 
       if (dbError) throw dbError;
+
+      // Trigger analysis
+      const { error: analysisError } = await supabase.functions
+        .invoke('analyze-csv', {
+          body: { id: analysisRecord.id },
+        });
+
+      if (analysisError) throw analysisError;
 
       toast({
         title: "Success",
