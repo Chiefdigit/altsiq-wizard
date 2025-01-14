@@ -13,6 +13,7 @@ serve(async (req) => {
 
   try {
     const { csvAnalysisId } = await req.json()
+    console.log('Received request for CSV analysis ID:', csvAnalysisId)
 
     if (!csvAnalysisId) {
       return new Response(
@@ -34,15 +35,17 @@ serve(async (req) => {
       .single()
 
     if (analysisError || !analysisData) {
+      console.error('Failed to fetch CSV analysis:', analysisError)
       return new Response(
         JSON.stringify({ error: 'Failed to fetch CSV analysis', details: analysisError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       )
     }
 
-    const analysisResult = analysisData.analysis_result
+    console.log('Analysis result:', analysisData.analysis_result)
 
-    if (!analysisResult || !Array.isArray(analysisResult.data)) {
+    if (!analysisData.analysis_result?.data || !Array.isArray(analysisData.analysis_result.data)) {
+      console.error('Invalid analysis result format:', analysisData.analysis_result)
       return new Response(
         JSON.stringify({ error: 'Invalid analysis result format' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -50,20 +53,46 @@ serve(async (req) => {
     }
 
     // Transform and insert the data
-    const inflationData = analysisResult.data.map((row: any) => ({
-      date: new Date(row.Date || row.date),
-      inflation_rate: parseFloat(row.Rate || row.rate || row.inflation_rate || 0),
-      category: row.Category || row.category || 'CPI',
-      region: row.Region || row.region || 'US',
-      source: row.Source || row.source || 'CSV Import',
-      notes: row.Notes || row.notes || null
-    }))
+    const inflationData = analysisData.analysis_result.data.map((row: any) => {
+      // Parse date string to ensure valid date format
+      const dateStr = row.date || row.Date
+      let date
+      try {
+        date = new Date(dateStr)
+        if (isNaN(date.getTime())) {
+          throw new Error('Invalid date')
+        }
+      } catch (e) {
+        console.error('Error parsing date:', dateStr)
+        throw new Error(`Invalid date format: ${dateStr}`)
+      }
+
+      // Parse inflation rate to ensure valid number
+      const rateStr = row.rate || row.Rate || row.inflation_rate || '0'
+      const rate = parseFloat(rateStr)
+      if (isNaN(rate)) {
+        console.error('Error parsing rate:', rateStr)
+        throw new Error(`Invalid rate format: ${rateStr}`)
+      }
+
+      return {
+        date: date.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        inflation_rate: rate,
+        category: row.category || row.Category || 'CPI',
+        region: row.region || row.Region || 'US',
+        source: row.source || row.Source || 'CSV Import',
+        notes: row.notes || row.Notes || null
+      }
+    })
+
+    console.log('Transformed data:', inflationData)
 
     const { error: insertError } = await supabase
       .from('inflation_data')
       .insert(inflationData)
 
     if (insertError) {
+      console.error('Failed to insert inflation data:', insertError)
       return new Response(
         JSON.stringify({ error: 'Failed to insert inflation data', details: insertError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -85,6 +114,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Unexpected error:', error)
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
