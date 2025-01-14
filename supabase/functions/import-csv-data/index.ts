@@ -29,14 +29,15 @@ serve(async (req) => {
     )
 
     // Get the CSV file data
-    const { data: analysis } = await supabase
+    const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
       .eq('id', csvAnalysisId)
       .single()
 
-    if (!analysis) {
-      throw new Error('Analysis not found')
+    if (analysisError || !analysis) {
+      console.error('Analysis fetch error:', analysisError)
+      throw new Error(`Analysis not found: ${analysisError?.message}`)
     }
 
     console.log('Analysis found:', analysis.file_name)
@@ -47,8 +48,9 @@ serve(async (req) => {
       .from('csv_uploads')
       .download(analysis.file_path)
 
-    if (downloadError) {
-      throw new Error(`Failed to download CSV: ${downloadError.message}`)
+    if (downloadError || !fileData) {
+      console.error('Download error:', downloadError)
+      throw new Error(`Failed to download CSV: ${downloadError?.message}`)
     }
 
     // Parse CSV content
@@ -56,11 +58,19 @@ serve(async (req) => {
     const rows = parse(text, { skipFirstRow: true })
     
     // Get column names from the analysis result
+    if (!analysis.analysis_result?.columnStats) {
+      throw new Error('Invalid analysis result: missing column statistics')
+    }
+
     const columns = analysis.analysis_result.columnStats.map(col => 
       col.column.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/^_+|_+$/g, '')
     ).filter(Boolean)
 
     console.log('Columns:', columns)
+
+    if (columns.length === 0) {
+      throw new Error('No valid columns found in analysis')
+    }
 
     // Prepare data for insertion with validation
     const records = rows.map((row, index) => {
@@ -68,9 +78,14 @@ serve(async (req) => {
       let hasRequiredFields = true
 
       columns.forEach((col, colIndex) => {
-        const value = row[colIndex]
+        let value = row[colIndex]
+        
         // Convert empty strings to null
-        record[col] = value?.trim() === '' ? null : value
+        if (typeof value === 'string') {
+          value = value.trim() === '' ? null : value
+        }
+        
+        record[col] = value
 
         // For inflation_rates table, ensure required fields are present
         if (tableName === 'inflation_rates' && 
@@ -107,10 +122,15 @@ serve(async (req) => {
     }
 
     // Update analysis status
-    await supabase
+    const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({ analysis_status: 'imported' })
       .eq('id', csvAnalysisId)
+
+    if (updateError) {
+      console.error('Status update error:', updateError)
+      // Don't throw here as the import was successful
+    }
 
     return new Response(
       JSON.stringify({ 
