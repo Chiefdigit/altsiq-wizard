@@ -42,15 +42,28 @@ serve(async (req) => {
     // Read the file content
     const text = await fileData.text()
     const lines = text.split('\n')
-    const headers = lines[0].split(',').map(h => h.trim())
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
     
+    // Transform the data into the required format
+    const data = lines.slice(1)
+      .filter(line => line.trim()) // Remove empty lines
+      .map(line => {
+        const values = line.split(',').map(v => v.trim())
+        const row: Record<string, string> = {}
+        headers.forEach((header, index) => {
+          row[header] = values[index] || ''
+        })
+        return row
+      })
+
     // Basic analysis of the CSV structure
     const analysis = {
-      totalRows: lines.length - 1, // Excluding header
+      totalRows: data.length,
       columns: headers.map(header => ({
         name: header,
-        sample: lines.slice(1, 4).map(line => line.split(',')[headers.indexOf(header)]?.trim() || ''),
+        sample: data.slice(0, 3).map(row => row[header]),
       })),
+      data: data, // Include the transformed data
     }
 
     // Update the analysis result
