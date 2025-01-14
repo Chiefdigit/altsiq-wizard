@@ -48,7 +48,7 @@ serve(async (req) => {
     )
     console.log('CSV Headers:', headers)
 
-    // Process each data row
+    // Process all data rows for analysis
     const dataRows = lines.slice(1)
       .filter(line => line.trim() !== '')
       .map(line => {
@@ -59,16 +59,13 @@ serve(async (req) => {
         }, {} as Record<string, string | null>)
       })
 
-    // Get just 2 sample rows for analysis
-    const sampleRows = dataRows.slice(0, 2)
-
-    // Calculate column statistics
+    // Calculate column statistics by analyzing ALL rows
     const columnStats = headers.map(header => {
       const values = dataRows.map(row => row[header]).filter(v => v !== null)
       const numericValues = values.map(v => parseFloat(v as string)).filter(n => !isNaN(n))
-      const isNumeric = numericValues.length > 0
+      const isNumeric = numericValues.length > 0 && numericValues.length === values.length
       const dateValues = values.map(v => new Date(v as string)).filter(d => !isNaN(d.getTime()))
-      const isDate = dateValues.length > 0
+      const isDate = dateValues.length > 0 && dateValues.length === values.length
 
       return {
         column: header,
@@ -77,6 +74,9 @@ serve(async (req) => {
         totalRows: dataRows.length
       }
     })
+
+    // Get just 2 sample rows for preview purposes
+    const sampleRows = dataRows.slice(0, 2)
 
     // Update analysis record with results
     const { error: updateError } = await supabase
