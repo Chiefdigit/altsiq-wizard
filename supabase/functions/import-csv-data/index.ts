@@ -20,6 +20,8 @@ serve(async (req) => {
       throw new Error('Missing required parameters')
     }
 
+    console.log(`Starting import for analysis ${csvAnalysisId} into table ${tableName}`)
+
     // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -36,6 +38,8 @@ serve(async (req) => {
     if (!analysis) {
       throw new Error('Analysis not found')
     }
+
+    console.log('Analysis found:', analysis.file_name)
 
     // Download the CSV file from storage
     const { data: fileData, error: downloadError } = await supabase
@@ -56,14 +60,35 @@ serve(async (req) => {
       col.column.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/^_+|_+$/g, '')
     ).filter(Boolean)
 
-    // Prepare data for insertion
-    const records = rows.map(row => {
+    console.log('Columns:', columns)
+
+    // Prepare data for insertion with validation
+    const records = rows.map((row, index) => {
       const record: Record<string, any> = {}
-      columns.forEach((col, index) => {
-        record[col] = row[index] || null
+      let hasRequiredFields = true
+
+      columns.forEach((col, colIndex) => {
+        const value = row[colIndex]
+        // Convert empty strings to null
+        record[col] = value?.trim() === '' ? null : value
+
+        // For inflation_rates table, ensure required fields are present
+        if (tableName === 'inflation_rates' && 
+            (col === 'country_name' || col === 'country_code') && 
+            !record[col]) {
+          console.log(`Row ${index + 2}: Missing required field ${col}`)
+          hasRequiredFields = false
+        }
       })
-      return record
-    })
+
+      return hasRequiredFields ? record : null
+    }).filter(Boolean) // Remove invalid records
+
+    if (records.length === 0) {
+      throw new Error('No valid records to import')
+    }
+
+    console.log(`Prepared ${records.length} valid records for import`)
 
     // Insert data in batches of 1000 rows
     const batchSize = 1000
@@ -74,6 +99,7 @@ serve(async (req) => {
         .insert(batch)
 
       if (insertError) {
+        console.error('Insert error:', insertError)
         throw new Error(`Failed to insert batch: ${insertError.message}`)
       }
 
