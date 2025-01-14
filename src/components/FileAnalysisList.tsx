@@ -17,7 +17,7 @@ interface SchemaResponse {
 }
 
 export const FileAnalysisList = () => {
-  const [tableName, setTableName] = useState("");
+  const [tableNames, setTableNames] = useState<Record<string, string>>({});
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const { data: analyses, isLoading, refetch } = useQuery({
@@ -34,7 +34,8 @@ export const FileAnalysisList = () => {
   });
 
   const handleGenerateSchema = async (analysisId: string) => {
-    if (!tableName.trim()) {
+    const tableName = tableNames[analysisId];
+    if (!tableName?.trim()) {
       toast({
         title: "Error",
         description: "Please enter a table name",
@@ -82,7 +83,8 @@ export const FileAnalysisList = () => {
   };
 
   const handleImportData = async (analysisId: string) => {
-    if (!tableName.trim()) {
+    const tableName = tableNames[analysisId];
+    if (!tableName?.trim()) {
       toast({
         title: "Error",
         description: "Please enter a table name",
@@ -160,8 +162,11 @@ export const FileAnalysisList = () => {
                 <div className="flex gap-4 items-center px-4">
                   <Input
                     placeholder="Enter table name"
-                    value={tableName}
-                    onChange={(e) => setTableName(e.target.value)}
+                    value={tableNames[analysis.id] || ''}
+                    onChange={(e) => setTableNames(prev => ({
+                      ...prev,
+                      [analysis.id]: e.target.value
+                    }))}
                     className="max-w-xs"
                   />
                   <Button 
@@ -170,31 +175,31 @@ export const FileAnalysisList = () => {
                   >
                     Generate Schema & Create Table
                   </Button>
-                  {analysis.analysis_status === 'completed' && (
+                  {analysis.analysis_status === 'completed' && tableNames[analysis.id] && (
                     <Button 
                       onClick={() => handleImportData(analysis.id)}
                       disabled={processingId === analysis.id}
                       variant="secondary"
                     >
-                      Import Data
+                      Import Data into {tableNames[analysis.id]}
                     </Button>
                   )}
                 </div>
               )}
+              
+              <AccordionContent className="pt-4">
+                <div className="space-y-4">
+                  {analysis.analysis_result && (
+                    <div>
+                      <h3 className="font-medium">Analysis Results:</h3>
+                      <pre className="mt-2 p-4 bg-gray-100 rounded overflow-x-auto">
+                        {JSON.stringify(analysis.analysis_result, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
             </div>
-            
-            <AccordionContent className="pt-4">
-              <div className="space-y-4">
-                {analysis.analysis_result && (
-                  <div>
-                    <h3 className="font-medium">Analysis Results:</h3>
-                    <pre className="mt-2 p-4 bg-gray-100 rounded overflow-x-auto">
-                      {JSON.stringify(analysis.analysis_result, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </div>
-            </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>
