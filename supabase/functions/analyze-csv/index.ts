@@ -42,25 +42,40 @@ serve(async (req) => {
       throw new Error('CSV file is empty or invalid')
     }
 
-    // Parse headers (first line)
-    const headers = lines[0].split(',').map(header => header.trim().toLowerCase())
+    // Parse headers (first line) and clean them
+    const headers = lines[0].split(',').map(header => 
+      header.trim().toLowerCase().replace(/['"]/g, '')
+    )
     console.log('CSV Headers:', headers)
 
-    // Find date and rate column indices
-    const dateColumnIndex = headers.findIndex(h => h.includes('date'))
+    // More flexible column detection
+    const dateColumnIndex = headers.findIndex(h => 
+      h.includes('date') || 
+      h.includes('period') || 
+      h.includes('time')
+    )
+    
     const rateColumnIndex = headers.findIndex(h => 
-      h.includes('rate') || h.includes('inflation') || h.includes('value')
+      h.includes('rate') || 
+      h.includes('inflation') || 
+      h.includes('value') || 
+      h.includes('cpi') ||
+      h.includes('percentage') ||
+      h.includes('change')
     )
 
+    console.log('Date column index:', dateColumnIndex, 'Rate column index:', rateColumnIndex)
+
     if (dateColumnIndex === -1 || rateColumnIndex === -1) {
-      throw new Error('CSV must contain date and rate/inflation columns')
+      console.error('Required columns not found. Headers:', headers)
+      throw new Error('CSV must contain date and rate/inflation columns. Found headers: ' + headers.join(', '))
     }
 
     // Process data rows
     const data = lines.slice(1)
       .filter(line => line.trim() !== '') // Skip empty lines
       .map((line, index) => {
-        const values = line.split(',').map(v => v.trim())
+        const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
         
         // Validate and transform date
         let dateStr = values[dateColumnIndex]
