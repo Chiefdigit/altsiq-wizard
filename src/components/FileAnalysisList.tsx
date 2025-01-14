@@ -12,6 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
+interface SchemaResponse {
+  sql: string;
+}
+
 export const FileAnalysisList = () => {
   const [tableName, setTableName] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -42,7 +46,7 @@ export const FileAnalysisList = () => {
     setProcessingId(analysisId);
     try {
       // First, generate the schema
-      const { data: schema, error: schemaError } = await supabase.functions.invoke('generate-table-schema', {
+      const { data: schema, error: schemaError } = await supabase.functions.invoke<SchemaResponse>('generate-table-schema', {
         body: { 
           csvAnalysisId: analysisId,
           tableName: tableName.trim().toLowerCase()
@@ -54,7 +58,7 @@ export const FileAnalysisList = () => {
       // Then create the table using the generated schema
       const { error: createError } = await supabase
         .rpc('execute_sql', { 
-          sql_query: schema.sql as string  // Explicitly type the sql parameter
+          sql_query: schema!.sql
         });
 
       if (createError) throw createError;
