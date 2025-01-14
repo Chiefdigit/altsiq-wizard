@@ -48,47 +48,70 @@ serve(async (req) => {
     }
 
     // Transform and validate the data
-    const inflationData = analysisData.analysis_result.data.map((row: any, index: number) => {
-      console.log(`Processing row ${index + 1}:`, row)
-      
-      // Parse date
-      const dateStr = row.date || row.Date
-      let date
-      try {
-        date = new Date(dateStr)
-        if (isNaN(date.getTime())) {
-          throw new Error(`Invalid date format: ${dateStr}`)
+    const inflationData = analysisData.analysis_result.data
+      .filter((row: any) => {
+        // Filter out rows where all values are null, undefined, or empty strings
+        return Object.values(row).some(value => value !== null && value !== undefined && value !== '');
+      })
+      .map((row: any, index: number) => {
+        console.log(`Processing row ${index + 1}:`, row)
+        
+        // Parse date with more detailed error handling
+        const dateStr = row.date?.trim() || row.Date?.trim()
+        if (!dateStr) {
+          throw new Error(`Missing date in row ${index + 1}`)
         }
-      } catch (e) {
-        console.error(`Error parsing date in row ${index + 1}:`, dateStr)
-        throw new Error(`Invalid date format in row ${index + 1}: ${dateStr}`)
-      }
 
-      // Parse inflation rate
-      const rateStr = row.rate || row.Rate || row.inflation_rate || '0'
-      const rate = parseFloat(rateStr)
-      if (isNaN(rate)) {
-        console.error(`Error parsing rate in row ${index + 1}:`, rateStr)
-        throw new Error(`Invalid rate format in row ${index + 1}: ${rateStr}`)
-      }
+        let date: Date
+        try {
+          // First try parsing as ISO date
+          date = new Date(dateStr)
+          if (isNaN(date.getTime())) {
+            // If that fails, try parsing other common formats
+            const parts = dateStr.split(/[-/]/)
+            if (parts.length === 3) {
+              // Try different date formats (MM/DD/YYYY, YYYY/MM/DD, etc.)
+              date = new Date(
+                parseInt(parts[2].length === 4 ? parts[2] : parts[0]),
+                parseInt(parts[1]) - 1,
+                parseInt(parts[2].length === 4 ? parts[0] : parts[2])
+              )
+            }
+            if (isNaN(date.getTime())) {
+              throw new Error(`Could not parse date: ${dateStr}`)
+            }
+          }
+        } catch (e) {
+          console.error(`Error parsing date in row ${index + 1}:`, dateStr, e)
+          throw new Error(`Invalid date format in row ${index + 1}: ${dateStr}`)
+        }
 
-      const transformedRow = {
-        date: date.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        inflation_rate: rate,
-        category: row.category || row.Category || 'CPI',
-        region: row.region || row.Region || 'US',
-        source: row.source || row.Source || 'CSV Import',
-        notes: row.notes || row.Notes || null
-      }
+        // Parse inflation rate
+        const rateStr = (row.rate || row.Rate || row.inflation_rate || '0').toString().trim()
+        const rate = parseFloat(rateStr)
+        if (isNaN(rate)) {
+          console.error(`Error parsing rate in row ${index + 1}:`, rateStr)
+          throw new Error(`Invalid rate format in row ${index + 1}: ${rateStr}`)
+        }
 
-      console.log(`Transformed row ${index + 1}:`, transformedRow)
-      return transformedRow
-    })
+        const transformedRow = {
+          date: date.toISOString().split('T')[0], // Format as YYYY-MM-DD
+          inflation_rate: rate,
+          category: (row.category || row.Category || 'CPI').trim(),
+          region: (row.region || row.Region || 'US').trim(),
+          source: (row.source || row.Source || 'CSV Import').trim(),
+          notes: row.notes || row.Notes || null
+        }
+
+        console.log(`Transformed row ${index + 1}:`, transformedRow)
+        return transformedRow
+      })
 
     console.log(`Attempting to insert ${inflationData.length} records`)
 
     // Insert the data in smaller batches to avoid potential size limits
     const BATCH_SIZE = 100
+    let insertedCount = 0
     for (let i = 0; i < inflationData.length; i += BATCH_SIZE) {
       const batch = inflationData.slice(i, i + BATCH_SIZE)
       const { error: insertError } = await supabase
@@ -99,7 +122,8 @@ serve(async (req) => {
         console.error(`Failed to insert batch ${i / BATCH_SIZE + 1}:`, insertError)
         throw new Error(`Failed to insert inflation data batch ${i / BATCH_SIZE + 1}: ${insertError.message}`)
       }
-      console.log(`Successfully inserted batch ${i / BATCH_SIZE + 1}`)
+      insertedCount += batch.length
+      console.log(`Successfully inserted batch ${i / BATCH_SIZE + 1} (${insertedCount} records total)`)
     }
 
     // Update the analysis status
