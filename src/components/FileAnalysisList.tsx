@@ -169,21 +169,23 @@ export const FileAnalysisList = () => {
                     }))}
                     className="max-w-xs"
                   />
-                  <Button 
-                    onClick={() => handleGenerateSchema(analysis.id)}
-                    disabled={processingId === analysis.id}
-                  >
-                    Generate Schema & Create Table
-                  </Button>
-                  {analysis.analysis_status === 'completed' && tableNames[analysis.id] && (
+                  <div className="flex gap-2">
                     <Button 
-                      onClick={() => handleImportData(analysis.id)}
+                      onClick={() => handleGenerateSchema(analysis.id)}
                       disabled={processingId === analysis.id}
-                      variant="secondary"
                     >
-                      Import Data into {tableNames[analysis.id]}
+                      Generate Schema & Create Table
                     </Button>
-                  )}
+                    {analysis.analysis_status === 'completed' && tableNames[analysis.id] && (
+                      <Button 
+                        onClick={() => handleImportData(analysis.id)}
+                        disabled={processingId === analysis.id}
+                        variant="secondary"
+                      >
+                        Import Data into {tableNames[analysis.id]}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
               
