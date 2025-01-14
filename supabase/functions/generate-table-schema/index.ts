@@ -45,23 +45,43 @@ serve(async (req) => {
       throw new Error('No analysis results found')
     }
 
-    // Generate optimal column definitions
-    const columnDefinitions = analysis.analysis_result.columnStats.map(col => {
-      const columnName = col.column.toLowerCase().replace(/[^a-z0-9_]/g, '_')
-      let sqlType = 'text'
-      
-      // Determine optimal type based on analysis
-      if (col.suggestedType === 'date') {
-        sqlType = 'timestamp with time zone'
-      } else if (col.suggestedType === 'numeric') {
-        sqlType = 'numeric'
-      }
+    console.log('Column stats:', analysis.analysis_result.columnStats)
 
-      // Add NOT NULL if no nulls found in data
-      const nullable = col.nonNullCount < col.totalRows ? '' : ' not null'
-      
-      return `"${columnName}" ${sqlType}${nullable}`
-    }).join(',\n    ')
+    // Generate optimal column definitions
+    const columnDefinitions = analysis.analysis_result.columnStats
+      .map(col => {
+        // Sanitize column name and ensure it's not empty
+        const columnName = col.column
+          .toLowerCase()
+          .replace(/[^a-z0-9_]/g, '_')
+          .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
+          
+        // Skip if column name would be empty
+        if (!columnName) {
+          console.warn('Skipping invalid column name:', col.column)
+          return null
+        }
+
+        let sqlType = 'text'
+        
+        // Determine optimal type based on analysis
+        if (col.suggestedType === 'date') {
+          sqlType = 'timestamp with time zone'
+        } else if (col.suggestedType === 'numeric') {
+          sqlType = 'numeric'
+        }
+
+        // Add NOT NULL if no nulls found in data
+        const nullable = col.nonNullCount < col.totalRows ? '' : ' not null'
+        
+        return `"${columnName}" ${sqlType}${nullable}`
+      })
+      .filter(Boolean) // Remove null entries
+      .join(',\n    ')
+
+    if (!columnDefinitions) {
+      throw new Error('No valid columns found in analysis')
+    }
 
     // Create the complete table schema
     const schema = {
