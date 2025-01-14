@@ -155,37 +155,46 @@ export type Database = {
       }
       inflation_data: {
         Row: {
-          category: string | null
+          column_name: string | null
           created_at: string
-          date: string
           id: string
-          inflation_rate: number
-          notes: string | null
-          region: string | null
-          source: string | null
+          import_batch_id: string | null
+          processed_date: string | null
+          processed_value: number | null
+          raw_date: string
+          raw_value: string
+          source_file: string | null
           updated_at: string
+          validation_notes: string | null
+          validation_status: string | null
         }
         Insert: {
-          category?: string | null
+          column_name?: string | null
           created_at?: string
-          date: string
           id?: string
-          inflation_rate: number
-          notes?: string | null
-          region?: string | null
-          source?: string | null
+          import_batch_id?: string | null
+          processed_date?: string | null
+          processed_value?: number | null
+          raw_date: string
+          raw_value: string
+          source_file?: string | null
           updated_at?: string
+          validation_notes?: string | null
+          validation_status?: string | null
         }
         Update: {
-          category?: string | null
+          column_name?: string | null
           created_at?: string
-          date?: string
           id?: string
-          inflation_rate?: number
-          notes?: string | null
-          region?: string | null
-          source?: string | null
+          import_batch_id?: string | null
+          processed_date?: string | null
+          processed_value?: number | null
+          raw_date?: string
+          raw_value?: string
+          source_file?: string | null
           updated_at?: string
+          validation_notes?: string | null
+          validation_status?: string | null
         }
         Relationships: []
       }

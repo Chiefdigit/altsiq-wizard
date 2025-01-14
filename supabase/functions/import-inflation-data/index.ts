@@ -24,109 +24,81 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the CSV analysis result
-    const { data: analysisData, error: analysisError } = await supabase
+    // Get the analysis record to find the import batch ID
+    const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
       .eq('id', csvAnalysisId)
       .single()
 
-    if (analysisError || !analysisData) {
-      console.error('Failed to fetch CSV analysis:', analysisError)
-      throw new Error('Failed to fetch CSV analysis')
+    if (analysisError || !analysis) {
+      console.error('Failed to fetch analysis:', analysisError)
+      throw new Error('Failed to fetch analysis record')
     }
 
-    console.log('Retrieved analysis data:', {
-      fileName: analysisData.file_name,
-      status: analysisData.analysis_status,
-      resultStructure: analysisData.analysis_result ? Object.keys(analysisData.analysis_result) : null
-    })
+    const importBatchId = analysis.analysis_result.importBatchId
 
-    if (!analysisData.analysis_result?.data || !Array.isArray(analysisData.analysis_result.data)) {
-      console.error('Invalid analysis result format:', analysisData.analysis_result)
-      throw new Error('Invalid analysis result format')
+    // Get all raw data for this import batch
+    const { data: rawData, error: rawDataError } = await supabase
+      .from('inflation_data')
+      .select('*')
+      .eq('import_batch_id', importBatchId)
+      .eq('validation_status', 'pending')
+
+    if (rawDataError) {
+      console.error('Failed to fetch raw data:', rawDataError)
+      throw new Error('Failed to fetch raw data')
     }
 
-    // Transform and validate the data
-    const inflationData = analysisData.analysis_result.data
-      .filter((row: any) => {
-        // Filter out rows where all values are null, undefined, or empty strings
-        return Object.values(row).some(value => value !== null && value !== undefined && value !== '');
-      })
-      .map((row: any, index: number) => {
-        console.log(`Processing row ${index + 1}:`, row)
+    console.log(`Processing ${rawData.length} records for import batch ${importBatchId}`)
+
+    // Process each record
+    let processedCount = 0
+    for (const record of rawData) {
+      try {
+        // Parse date
+        const dateValue = new Date(record.raw_date)
+        if (isNaN(dateValue.getTime())) {
+          throw new Error(`Invalid date format: ${record.raw_date}`)
+        }
+
+        // Parse numeric value
+        const numericValue = parseFloat(record.raw_value.replace(/[^0-9.-]/g, ''))
+        if (isNaN(numericValue)) {
+          throw new Error(`Invalid numeric value: ${record.raw_value}`)
+        }
+
+        // Update record with processed values
+        const { error: updateError } = await supabase
+          .from('inflation_data')
+          .update({
+            processed_date: dateValue.toISOString().split('T')[0],
+            processed_value: numericValue,
+            validation_status: 'validated',
+            validation_notes: 'Successfully processed'
+          })
+          .eq('id', record.id)
+
+        if (updateError) {
+          throw updateError
+        }
+
+        processedCount++
+      } catch (error) {
+        console.error(`Error processing record ${record.id}:`, error)
         
-        // Parse date with more detailed error handling
-        const dateStr = row.date?.trim() || row.Date?.trim()
-        if (!dateStr) {
-          throw new Error(`Missing date in row ${index + 1}`)
-        }
-
-        let date: Date
-        try {
-          // First try parsing as ISO date
-          date = new Date(dateStr)
-          if (isNaN(date.getTime())) {
-            // If that fails, try parsing other common formats
-            const parts = dateStr.split(/[-/]/)
-            if (parts.length === 3) {
-              // Try different date formats (MM/DD/YYYY, YYYY/MM/DD, etc.)
-              date = new Date(
-                parseInt(parts[2].length === 4 ? parts[2] : parts[0]),
-                parseInt(parts[1]) - 1,
-                parseInt(parts[2].length === 4 ? parts[0] : parts[2])
-              )
-            }
-            if (isNaN(date.getTime())) {
-              throw new Error(`Could not parse date: ${dateStr}`)
-            }
-          }
-        } catch (e) {
-          console.error(`Error parsing date in row ${index + 1}:`, dateStr, e)
-          throw new Error(`Invalid date format in row ${index + 1}: ${dateStr}`)
-        }
-
-        // Parse inflation rate
-        const rateStr = (row.rate || row.Rate || row.inflation_rate || '0').toString().trim()
-        const rate = parseFloat(rateStr)
-        if (isNaN(rate)) {
-          console.error(`Error parsing rate in row ${index + 1}:`, rateStr)
-          throw new Error(`Invalid rate format in row ${index + 1}: ${rateStr}`)
-        }
-
-        const transformedRow = {
-          date: date.toISOString().split('T')[0], // Format as YYYY-MM-DD
-          inflation_rate: rate,
-          category: (row.category || row.Category || 'CPI').trim(),
-          region: (row.region || row.Region || 'US').trim(),
-          source: (row.source || row.Source || 'CSV Import').trim(),
-          notes: row.notes || row.Notes || null
-        }
-
-        console.log(`Transformed row ${index + 1}:`, transformedRow)
-        return transformedRow
-      })
-
-    console.log(`Attempting to insert ${inflationData.length} records`)
-
-    // Insert the data in smaller batches to avoid potential size limits
-    const BATCH_SIZE = 100
-    let insertedCount = 0
-    for (let i = 0; i < inflationData.length; i += BATCH_SIZE) {
-      const batch = inflationData.slice(i, i + BATCH_SIZE)
-      const { error: insertError } = await supabase
-        .from('inflation_data')
-        .insert(batch)
-
-      if (insertError) {
-        console.error(`Failed to insert batch ${i / BATCH_SIZE + 1}:`, insertError)
-        throw new Error(`Failed to insert inflation data batch ${i / BATCH_SIZE + 1}: ${insertError.message}`)
+        // Mark record as failed
+        await supabase
+          .from('inflation_data')
+          .update({
+            validation_status: 'failed',
+            validation_notes: error.message
+          })
+          .eq('id', record.id)
       }
-      insertedCount += batch.length
-      console.log(`Successfully inserted batch ${i / BATCH_SIZE + 1} (${insertedCount} records total)`)
     }
 
-    // Update the analysis status
+    // Update analysis status
     const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({ analysis_status: 'imported' })
@@ -137,12 +109,11 @@ serve(async (req) => {
       throw new Error('Failed to update analysis status')
     }
 
-    console.log('Import completed successfully')
-
     return new Response(
       JSON.stringify({ 
-        message: 'Data imported successfully', 
-        recordsImported: inflationData.length 
+        message: 'Import completed successfully',
+        recordsProcessed: rawData.length,
+        recordsValidated: processedCount
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )

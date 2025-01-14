@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { fileId } = await req.json()
+    const { fileId, analysisId } = await req.json()
     console.log('Starting analysis for file ID:', fileId)
 
     if (!fileId) {
@@ -42,112 +42,48 @@ serve(async (req) => {
       throw new Error('CSV file is empty or invalid')
     }
 
-    // Parse headers (first line) and clean them
+    // Parse headers and clean them
     const headers = lines[0].split(',').map(header => 
       header.trim().toLowerCase().replace(/['"]/g, '')
     )
     console.log('CSV Headers:', headers)
 
-    // More flexible column detection
-    const dateColumnIndex = headers.findIndex(h => 
-      h.includes('date') || 
-      h.includes('period') || 
-      h.includes('time')
-    )
-    
-    const rateColumnIndex = headers.findIndex(h => 
-      h.includes('rate') || 
-      h.includes('inflation') || 
-      h.includes('value') || 
-      h.includes('cpi') ||
-      h.includes('percentage') ||
-      h.includes('change')
-    )
-
-    console.log('Date column index:', dateColumnIndex, 'Rate column index:', rateColumnIndex)
-
-    if (dateColumnIndex === -1 || rateColumnIndex === -1) {
-      console.error('Required columns not found. Headers:', headers)
-      throw new Error('CSV must contain date and rate/inflation columns. Found headers: ' + headers.join(', '))
-    }
-
-    // Process data rows
-    const data = lines.slice(1)
-      .filter(line => line.trim() !== '') // Skip empty lines
-      .map((line, index) => {
+    // Process each data row
+    const importBatchId = crypto.randomUUID()
+    const dataRows = lines.slice(1)
+      .filter(line => line.trim() !== '')
+      .map(line => {
         const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
-        
-        // Validate and transform date
-        let dateStr = values[dateColumnIndex]
-        if (!dateStr) {
-          console.warn(`Empty date in row ${index + 1}, skipping`)
-          return null
-        }
-
-        // Try to parse and standardize the date format
-        let date: Date | null = null
-        try {
-          // First try parsing as ISO date
-          date = new Date(dateStr)
-          if (isNaN(date.getTime())) {
-            // Try parsing MM/DD/YYYY or DD/MM/YYYY format
-            const parts = dateStr.split(/[-/]/)
-            if (parts.length === 3) {
-              // Assume American format MM/DD/YYYY if month ≤ 12
-              const month = parseInt(parts[0])
-              if (month <= 12) {
-                date = new Date(
-                  parseInt(parts[2]), // year
-                  month - 1, // month (0-based)
-                  parseInt(parts[1]) // day
-                )
-              } else {
-                // Try European format DD/MM/YYYY
-                date = new Date(
-                  parseInt(parts[2]), // year
-                  parseInt(parts[1]) - 1, // month (0-based)
-                  parseInt(parts[0]) // day
-                )
-              }
-            }
-          }
-        } catch (e) {
-          console.warn(`Invalid date format in row ${index + 1}: ${dateStr}`)
-          return null
-        }
-
-        if (!date || isNaN(date.getTime())) {
-          console.warn(`Could not parse date in row ${index + 1}: ${dateStr}`)
-          return null
-        }
-
-        // Transform to YYYY-MM-DD format
-        const formattedDate = date.toISOString().split('T')[0]
-
-        // Parse and validate rate
-        const rateStr = values[rateColumnIndex]
-        const rate = parseFloat(rateStr)
-        if (isNaN(rate)) {
-          console.warn(`Invalid rate in row ${index + 1}: ${rateStr}`)
-          return null
-        }
-
-        return {
-          date: formattedDate,
-          rate: rate,
-          category: values[headers.indexOf('category')] || 'CPI',
-          region: values[headers.indexOf('region')] || 'US',
-          source: values[headers.indexOf('source')] || 'CSV Import',
-          notes: values[headers.indexOf('notes')] || null
-        }
+        return headers.reduce((obj, header, index) => {
+          obj[header] = values[index] || null
+          return obj
+        }, {} as Record<string, string | null>)
       })
-      .filter(row => row !== null) // Remove invalid rows
 
-    if (data.length === 0) {
-      throw new Error('No valid data rows found in CSV')
+    console.log(`Processing ${dataRows.length} rows with import batch ID: ${importBatchId}`)
+
+    // Insert raw data into inflation_data table
+    for (const row of dataRows) {
+      const entries = Object.entries(row)
+      for (const [columnName, value] of entries) {
+        if (value === null || value.trim() === '') continue
+
+        const { error: insertError } = await supabase
+          .from('inflation_data')
+          .insert({
+            raw_date: row[headers[0]] || '', // Assuming first column is always date
+            raw_value: value,
+            column_name: columnName,
+            source_file: fileId,
+            import_batch_id: importBatchId
+          })
+
+        if (insertError) {
+          console.error('Error inserting row:', insertError)
+          throw insertError
+        }
+      }
     }
-
-    console.log(`Successfully processed ${data.length} valid rows`)
 
     // Update analysis record
     const { error: updateError } = await supabase
@@ -156,22 +92,23 @@ serve(async (req) => {
         analysis_status: 'completed',
         analysis_result: {
           headers,
-          data,
-          totalRows: data.length,
+          rowCount: dataRows.length,
+          importBatchId,
           processedAt: new Date().toISOString()
         }
       })
-      .eq('file_path', fileId)
+      .eq('id', analysisId)
 
     if (updateError) {
       console.error('Error updating analysis record:', updateError)
-      throw new Error('Failed to update analysis record')
+      throw updateError
     }
 
     return new Response(
       JSON.stringify({ 
         message: 'Analysis completed successfully',
-        rowsProcessed: data.length
+        rowsProcessed: dataRows.length,
+        importBatchId
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
