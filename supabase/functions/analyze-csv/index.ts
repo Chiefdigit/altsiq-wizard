@@ -52,14 +52,26 @@ serve(async (req) => {
     
     console.log('CSV Headers:', headers)
 
-    // Transform only the data rows (excluding header)
+    // Transform only the data rows (excluding header), filtering out empty or invalid rows
     const data = lines.slice(1)
-      .filter(line => line.trim()) // Remove empty lines
+      .map(line => line.trim())
+      .filter(line => {
+        if (!line) return false; // Remove empty lines
+        const values = line.split(',').map(v => v.trim());
+        // Check if all values in the row are empty or null
+        const hasValidData = values.some(v => v && v !== 'null' && v !== '');
+        if (!hasValidData) {
+          console.log('Filtering out row with no valid data:', line);
+          return false;
+        }
+        return true;
+      })
       .map((line, index) => {
         const values = line.split(',').map(v => v.trim())
         const row: Record<string, string> = {}
         headers.forEach((header, i) => {
-          row[header] = values[i] || ''
+          const value = values[i] || '';
+          row[header] = value === 'null' ? '' : value;
         })
         
         // Validate required fields
@@ -68,9 +80,9 @@ serve(async (req) => {
         }
         
         return row
-      })
+      });
 
-    console.log(`Processed ${data.length} rows of data`)
+    console.log(`Processed ${data.length} valid rows of data`)
 
     // Create a more focused analysis result
     const analysis = {

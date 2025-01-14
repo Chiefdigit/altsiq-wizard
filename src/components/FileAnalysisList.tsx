@@ -8,6 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 
 export const FileAnalysisList = () => {
   const { data: analyses, isLoading, refetch } = useQuery({
@@ -49,6 +50,20 @@ export const FileAnalysisList = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "destructive"> = {
+      pending: "secondary",
+      completed: "default",
+      error: "destructive",
+    };
+
+    return (
+      <Badge variant={variants[status] || "secondary"}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -60,7 +75,10 @@ export const FileAnalysisList = () => {
         {analyses?.map((analysis) => (
           <AccordionItem key={analysis.id} value={analysis.id} className="border p-4 rounded-lg">
             <AccordionTrigger className="flex justify-between">
-              <span>{analysis.file_name}</span>
+              <div className="flex items-center gap-4">
+                <span>{analysis.file_name}</span>
+                {getStatusBadge(analysis.analysis_status)}
+              </div>
               <span className="text-sm text-gray-500">
                 {new Date(analysis.created_at).toLocaleDateString()}
               </span>
