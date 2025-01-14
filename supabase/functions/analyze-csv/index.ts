@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
@@ -12,136 +12,160 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Starting CSV analysis...')
+    const { fileId } = await req.json()
+    console.log('Starting analysis for file ID:', fileId)
+
+    if (!fileId) {
+      throw new Error('File ID is required')
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { id } = await req.json()
-    console.log('Analyzing CSV file with ID:', id)
-
-    // Get the file record
-    const { data: fileRecord, error: fileError } = await supabase
-      .from('csv_analysis')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (fileError || !fileRecord) {
-      console.error('File record not found:', fileError)
-      throw new Error('File record not found')
-    }
-
-    console.log('Retrieved file record:', fileRecord.file_name)
-
-    // Download the file
-    const { data: fileData, error: downloadError } = await supabase.storage
+    // Get the file data
+    const { data: fileData, error: fileError } = await supabase
+      .storage
       .from('csv_uploads')
-      .download(fileRecord.file_path)
+      .download(fileId)
 
-    if (downloadError) {
-      console.error('Error downloading file:', downloadError)
-      throw new Error('Error downloading file')
+    if (fileError) {
+      console.error('Failed to fetch file:', fileError)
+      throw new Error('Failed to fetch file')
     }
 
-    // Read the file content
-    const text = await fileData.text()
-    const lines = text.split('\n')
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
-    
+    // Parse CSV content
+    const csvText = await fileData.text()
+    const lines = csvText.split('\n')
+    if (lines.length < 2) {
+      throw new Error('CSV file is empty or invalid')
+    }
+
+    // Parse headers (first line)
+    const headers = lines[0].split(',').map(header => header.trim().toLowerCase())
     console.log('CSV Headers:', headers)
 
-    // Transform only the data rows (excluding header), filtering out empty or invalid rows
-    const data = lines.slice(1)
-      .map(line => line.trim())
-      .filter(line => {
-        if (!line) return false; // Remove empty lines
-        const values = line.split(',').map(v => v.trim());
-        // Check if all values in the row are empty or null
-        const hasValidData = values.some(v => v && v !== 'null' && v !== '');
-        if (!hasValidData) {
-          console.log('Filtering out row with no valid data:', line);
-          return false;
-        }
-        return true;
-      })
-      .map((line, index) => {
-        const values = line.split(',').map(v => v.trim())
-        const row: Record<string, string> = {}
-        headers.forEach((header, i) => {
-          const value = values[i] || '';
-          row[header] = value === 'null' ? '' : value;
-        })
-        
-        // Validate required fields
-        if (!row.date || !row.rate) {
-          console.warn(`Warning: Row ${index + 2} missing required fields:`, row)
-        }
-        
-        return row
-      });
+    // Find date and rate column indices
+    const dateColumnIndex = headers.findIndex(h => h.includes('date'))
+    const rateColumnIndex = headers.findIndex(h => 
+      h.includes('rate') || h.includes('inflation') || h.includes('value')
+    )
 
-    console.log(`Processed ${data.length} valid rows of data`)
-
-    // Create a more focused analysis result
-    const analysis = {
-      totalRows: data.length,
-      headers: headers,
-      data: data, // This will be the actual data rows
+    if (dateColumnIndex === -1 || rateColumnIndex === -1) {
+      throw new Error('CSV must contain date and rate/inflation columns')
     }
 
-    console.log('Analysis completed, updating record...')
+    // Process data rows
+    const data = lines.slice(1)
+      .filter(line => line.trim() !== '') // Skip empty lines
+      .map((line, index) => {
+        const values = line.split(',').map(v => v.trim())
+        
+        // Validate and transform date
+        let dateStr = values[dateColumnIndex]
+        if (!dateStr) {
+          console.warn(`Empty date in row ${index + 1}, skipping`)
+          return null
+        }
 
-    // Update the analysis result
+        // Try to parse and standardize the date format
+        let date: Date | null = null
+        try {
+          // First try parsing as ISO date
+          date = new Date(dateStr)
+          if (isNaN(date.getTime())) {
+            // Try parsing MM/DD/YYYY or DD/MM/YYYY format
+            const parts = dateStr.split(/[-/]/)
+            if (parts.length === 3) {
+              // Assume American format MM/DD/YYYY if month ≤ 12
+              const month = parseInt(parts[0])
+              if (month <= 12) {
+                date = new Date(
+                  parseInt(parts[2]), // year
+                  month - 1, // month (0-based)
+                  parseInt(parts[1]) // day
+                )
+              } else {
+                // Try European format DD/MM/YYYY
+                date = new Date(
+                  parseInt(parts[2]), // year
+                  parseInt(parts[1]) - 1, // month (0-based)
+                  parseInt(parts[0]) // day
+                )
+              }
+            }
+          }
+        } catch (e) {
+          console.warn(`Invalid date format in row ${index + 1}: ${dateStr}`)
+          return null
+        }
+
+        if (!date || isNaN(date.getTime())) {
+          console.warn(`Could not parse date in row ${index + 1}: ${dateStr}`)
+          return null
+        }
+
+        // Transform to YYYY-MM-DD format
+        const formattedDate = date.toISOString().split('T')[0]
+
+        // Parse and validate rate
+        const rateStr = values[rateColumnIndex]
+        const rate = parseFloat(rateStr)
+        if (isNaN(rate)) {
+          console.warn(`Invalid rate in row ${index + 1}: ${rateStr}`)
+          return null
+        }
+
+        return {
+          date: formattedDate,
+          rate: rate,
+          category: values[headers.indexOf('category')] || 'CPI',
+          region: values[headers.indexOf('region')] || 'US',
+          source: values[headers.indexOf('source')] || 'CSV Import',
+          notes: values[headers.indexOf('notes')] || null
+        }
+      })
+      .filter(row => row !== null) // Remove invalid rows
+
+    if (data.length === 0) {
+      throw new Error('No valid data rows found in CSV')
+    }
+
+    console.log(`Successfully processed ${data.length} valid rows`)
+
+    // Update analysis record
     const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({
         analysis_status: 'completed',
-        analysis_result: analysis,
+        analysis_result: {
+          headers,
+          data,
+          totalRows: data.length,
+          processedAt: new Date().toISOString()
+        }
       })
-      .eq('id', id)
+      .eq('file_path', fileId)
 
     if (updateError) {
-      console.error('Error updating analysis results:', updateError)
-      throw new Error('Error updating analysis results')
+      console.error('Error updating analysis record:', updateError)
+      throw new Error('Failed to update analysis record')
     }
 
-    console.log('Analysis successfully saved')
-
     return new Response(
-      JSON.stringify({ message: 'Analysis completed', analysis }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        message: 'Analysis completed successfully',
+        rowsProcessed: data.length
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
 
   } catch (error) {
     console.error('Analysis error:', error)
-
-    // Update status to error if we can
-    try {
-      const { id } = await req.json()
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      )
-      
-      await supabase
-        .from('csv_analysis')
-        .update({
-          analysis_status: 'error',
-          analysis_result: { error: error.message },
-        })
-        .eq('id', id)
-    } catch (e) {
-      console.error('Error updating error status:', e)
-    }
-
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
   }
 })
