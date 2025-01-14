@@ -3,8 +3,8 @@ import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { WizardProvider } from "@/components/wizard/WizardContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { FileUpload } from "@/components/FileUpload";
-import { FileAnalysisList } from "@/components/FileAnalysisList";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Index: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
@@ -51,11 +51,12 @@ const Index: React.FC = () => {
         </div>
       )}
       <div className="max-w-4xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-4">CSV Analysis</h1>
-          <FileUpload />
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <Link to="/csv-utils">
+            <Button variant="outline">CSV Utilities</Button>
+          </Link>
         </div>
-        <FileAnalysisList />
       </div>
       <WizardProvider>
         <OnboardingWizard />
