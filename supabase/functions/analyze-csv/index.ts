@@ -59,8 +59,8 @@ serve(async (req) => {
         }, {} as Record<string, string | null>)
       })
 
-    // Get sample rows for analysis (first 5 rows)
-    const sampleRows = dataRows.slice(0, 5)
+    // Get just 2 sample rows for analysis
+    const sampleRows = dataRows.slice(0, 2)
 
     // Calculate column statistics
     const columnStats = headers.map(header => {
@@ -73,13 +73,12 @@ serve(async (req) => {
       return {
         column: header,
         nonNullCount: values.length,
-        sampleValues: values.slice(0, 3),
         suggestedType: isDate ? 'date' : isNumeric ? 'numeric' : 'text',
         totalRows: dataRows.length
       }
     })
 
-    // Update analysis record with comprehensive results
+    // Update analysis record with results
     const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({
