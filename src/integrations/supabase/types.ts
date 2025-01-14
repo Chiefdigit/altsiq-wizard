@@ -153,6 +153,42 @@ export type Database = {
         }
         Relationships: []
       }
+      inflation_data: {
+        Row: {
+          category: string | null
+          created_at: string
+          date: string
+          id: string
+          inflation_rate: number
+          notes: string | null
+          region: string | null
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          date: string
+          id?: string
+          inflation_rate: number
+          notes?: string | null
+          region?: string | null
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          inflation_rate?: number
+          notes?: string | null
+          region?: string | null
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           amount: number
