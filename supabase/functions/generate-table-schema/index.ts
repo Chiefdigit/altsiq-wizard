@@ -47,44 +47,41 @@ serve(async (req) => {
 
     // Generate optimal column definitions
     const columnDefinitions = analysis.analysis_result.columnStats.map(col => {
-      let type = 'TEXT'
-      let constraints = ''
+      const columnName = col.column.toLowerCase().replace(/[^a-z0-9_]/g, '_')
+      let sqlType = 'text'
       
       // Determine optimal type based on analysis
       if (col.suggestedType === 'date') {
-        type = 'TIMESTAMP WITH TIME ZONE'
+        sqlType = 'timestamp with time zone'
       } else if (col.suggestedType === 'numeric') {
-        // Check if we need decimal places
-        type = 'NUMERIC'
+        sqlType = 'numeric'
       }
 
       // Add NOT NULL if no nulls found in data
-      if (col.nonNullCount === col.totalRows) {
-        constraints = 'NOT NULL'
-      }
-
-      return `${col.column} ${type}${constraints ? ' ' + constraints : ''}`
-    })
+      const nullable = col.nonNullCount < col.totalRows ? '' : ' not null'
+      
+      return `"${columnName}" ${sqlType}${nullable}`
+    }).join(',\n    ')
 
     // Create the complete table schema
     const schema = {
       tableName,
-      sql: `
-        CREATE TABLE IF NOT EXISTS ${tableName} (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          ${columnDefinitions.join(',\n          ')},
-          imported_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-        );
+      sql: `create table if not exists "${tableName}" (
+    id uuid primary key default gen_random_uuid(),
+    ${columnDefinitions},
+    imported_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
-        -- Add updated_at trigger
-        CREATE TRIGGER update_${tableName}_updated_at
-          BEFORE UPDATE ON ${tableName}
-          FOR EACH ROW
-          EXECUTE FUNCTION update_updated_at_column();
-      `
+-- Add updated_at trigger
+create trigger ${tableName}_updated_at
+    before update on "${tableName}"
+    for each row
+    execute function update_updated_at_column();`
     }
+
+    console.log('Generated SQL:', schema.sql)
 
     // Store the generated schema in the analysis record
     const { error: updateError } = await supabase
