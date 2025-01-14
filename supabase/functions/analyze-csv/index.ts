@@ -49,7 +49,6 @@ serve(async (req) => {
     console.log('CSV Headers:', headers)
 
     // Process each data row
-    const importBatchId = crypto.randomUUID()
     const dataRows = lines.slice(1)
       .filter(line => line.trim() !== '')
       .map(line => {
@@ -60,43 +59,25 @@ serve(async (req) => {
         }, {} as Record<string, string | null>)
       })
 
-    console.log(`Processing ${dataRows.length} rows with import batch ID: ${importBatchId}`)
-
     // Get sample rows for analysis (first 5 rows)
     const sampleRows = dataRows.slice(0, 5)
 
     // Calculate column statistics
     const columnStats = headers.map(header => {
       const values = dataRows.map(row => row[header]).filter(v => v !== null)
+      const numericValues = values.map(v => parseFloat(v as string)).filter(n => !isNaN(n))
+      const isNumeric = numericValues.length > 0
+      const dateValues = values.map(v => new Date(v as string)).filter(d => !isNaN(d.getTime()))
+      const isDate = dateValues.length > 0
+
       return {
         column: header,
         nonNullCount: values.length,
-        sampleValues: values.slice(0, 3) // Show first 3 distinct values
+        sampleValues: values.slice(0, 3),
+        suggestedType: isDate ? 'date' : isNumeric ? 'numeric' : 'text',
+        totalRows: dataRows.length
       }
     })
-
-    // Insert raw data into inflation_data table
-    for (const row of dataRows) {
-      const entries = Object.entries(row)
-      for (const [columnName, value] of entries) {
-        if (value === null || value.trim() === '') continue
-
-        const { error: insertError } = await supabase
-          .from('inflation_data')
-          .insert({
-            raw_date: row[headers[0]] || '', // Assuming first column is always date
-            raw_value: value,
-            column_name: columnName,
-            source_file: fileId,
-            import_batch_id: importBatchId
-          })
-
-        if (insertError) {
-          console.error('Error inserting row:', insertError)
-          throw insertError
-        }
-      }
-    }
 
     // Update analysis record with comprehensive results
     const { error: updateError } = await supabase
@@ -106,7 +87,6 @@ serve(async (req) => {
         analysis_result: {
           headers,
           rowCount: dataRows.length,
-          importBatchId,
           sampleRows,
           columnStats,
           processedAt: new Date().toISOString()
@@ -122,10 +102,11 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         message: 'Analysis completed successfully',
-        rowsProcessed: dataRows.length,
-        importBatchId,
-        sampleData: sampleRows
-      }), 
+        rowCount: dataRows.length,
+        headers,
+        columnStats,
+        sampleRows
+      }),
       { 
         headers: { 
           ...corsHeaders, 

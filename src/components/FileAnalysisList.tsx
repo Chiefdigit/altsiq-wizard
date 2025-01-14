@@ -9,8 +9,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export const FileAnalysisList = () => {
+  const [tableName, setTableName] = useState("");
+  const [processingId, setProcessingId] = useState<string | null>(null);
+
   const { data: analyses, isLoading, refetch } = useQuery({
     queryKey: ["csvAnalyses"],
     queryFn: async () => {
@@ -24,10 +29,23 @@ export const FileAnalysisList = () => {
     },
   });
 
-  const handleImport = async (analysisId: string) => {
+  const handleCreateTable = async (analysisId: string) => {
+    if (!tableName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a table name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setProcessingId(analysisId);
     try {
       const { data, error } = await supabase.functions.invoke('import-inflation-data', {
-        body: { csvAnalysisId: analysisId },
+        body: { 
+          csvAnalysisId: analysisId,
+          tableName: tableName.trim().toLowerCase()
+        },
       });
 
       if (error) {
@@ -36,9 +54,10 @@ export const FileAnalysisList = () => {
 
       toast({
         title: "Success",
-        description: `Imported ${data.recordsImported} records successfully`,
+        description: `Table ${tableName} created successfully`,
       });
 
+      setTableName("");
       refetch();
     } catch (error) {
       console.error('Import error:', error);
@@ -47,6 +66,8 @@ export const FileAnalysisList = () => {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -78,20 +99,6 @@ export const FileAnalysisList = () => {
               <div className="flex items-center gap-4">
                 <span>{analysis.file_name}</span>
                 {getStatusBadge(analysis.analysis_status)}
-                {analysis.analysis_result && analysis.analysis_status !== 'imported' && (
-                  <Button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleImport(analysis.id);
-                    }}
-                    size="sm"
-                  >
-                    Import to Database
-                  </Button>
-                )}
-                {analysis.analysis_status === 'imported' && (
-                  <span className="text-green-600 text-sm">✓ Imported</span>
-                )}
               </div>
               <span className="text-sm text-gray-500">
                 {new Date(analysis.created_at).toLocaleDateString()}
@@ -100,12 +107,28 @@ export const FileAnalysisList = () => {
             <AccordionContent className="pt-4">
               <div className="space-y-4">
                 {analysis.analysis_result && (
-                  <div>
-                    <h3 className="font-medium">Analysis Results:</h3>
-                    <pre className="mt-2 p-4 bg-gray-100 rounded overflow-x-auto">
-                      {JSON.stringify(analysis.analysis_result, null, 2)}
-                    </pre>
-                  </div>
+                  <>
+                    <div>
+                      <h3 className="font-medium">Analysis Results:</h3>
+                      <pre className="mt-2 p-4 bg-gray-100 rounded overflow-x-auto">
+                        {JSON.stringify(analysis.analysis_result, null, 2)}
+                      </pre>
+                    </div>
+                    <div className="flex gap-4 items-center">
+                      <Input
+                        placeholder="Enter table name"
+                        value={tableName}
+                        onChange={(e) => setTableName(e.target.value)}
+                        className="max-w-xs"
+                      />
+                      <Button 
+                        onClick={() => handleCreateTable(analysis.id)}
+                        disabled={processingId === analysis.id}
+                      >
+                        Create Table
+                      </Button>
+                    </div>
+                  </>
                 )}
               </div>
             </AccordionContent>

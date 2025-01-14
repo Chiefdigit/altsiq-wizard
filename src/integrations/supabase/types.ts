@@ -153,51 +153,6 @@ export type Database = {
         }
         Relationships: []
       }
-      inflation_data: {
-        Row: {
-          column_name: string | null
-          created_at: string
-          id: string
-          import_batch_id: string | null
-          processed_date: string | null
-          processed_value: number | null
-          raw_date: string
-          raw_value: string
-          source_file: string | null
-          updated_at: string
-          validation_notes: string | null
-          validation_status: string | null
-        }
-        Insert: {
-          column_name?: string | null
-          created_at?: string
-          id?: string
-          import_batch_id?: string | null
-          processed_date?: string | null
-          processed_value?: number | null
-          raw_date: string
-          raw_value: string
-          source_file?: string | null
-          updated_at?: string
-          validation_notes?: string | null
-          validation_status?: string | null
-        }
-        Update: {
-          column_name?: string | null
-          created_at?: string
-          id?: string
-          import_batch_id?: string | null
-          processed_date?: string | null
-          processed_value?: number | null
-          raw_date?: string
-          raw_value?: string
-          source_file?: string | null
-          updated_at?: string
-          validation_notes?: string | null
-          validation_status?: string | null
-        }
-        Relationships: []
-      }
       investments: {
         Row: {
           amount: number

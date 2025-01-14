@@ -12,11 +12,19 @@ serve(async (req) => {
   }
 
   try {
-    const { csvAnalysisId } = await req.json()
-    console.log('Starting import for CSV analysis ID:', csvAnalysisId)
-
+    const { csvAnalysisId, tableName } = await req.json()
+    
     if (!csvAnalysisId) {
       throw new Error('CSV analysis ID is required')
+    }
+    
+    if (!tableName) {
+      throw new Error('Table name is required')
+    }
+
+    // Validate table name (basic SQL injection prevention)
+    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tableName)) {
+      throw new Error('Invalid table name. Use only letters, numbers, and underscores, starting with a letter.')
     }
 
     const supabase = createClient(
@@ -24,7 +32,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the analysis record to find the import batch ID
+    // Get the analysis record
     const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
@@ -36,86 +44,52 @@ serve(async (req) => {
       throw new Error('Failed to fetch analysis record')
     }
 
-    const importBatchId = analysis.analysis_result.importBatchId
-
-    // Get all raw data for this import batch
-    const { data: rawData, error: rawDataError } = await supabase
-      .from('inflation_data')
-      .select('*')
-      .eq('import_batch_id', importBatchId)
-      .eq('validation_status', 'pending')
-
-    if (rawDataError) {
-      console.error('Failed to fetch raw data:', rawDataError)
-      throw new Error('Failed to fetch raw data')
+    if (!analysis.analysis_result) {
+      throw new Error('No analysis results found')
     }
 
-    console.log(`Processing ${rawData.length} records for import batch ${importBatchId}`)
+    // Create SQL for the new table based on analysis
+    const createTableSQL = `
+      CREATE TABLE IF NOT EXISTS ${tableName} (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        ${analysis.analysis_result.columnStats.map(col => {
+          let type = 'TEXT'
+          if (col.suggestedType === 'date') {
+            type = 'TIMESTAMP'
+          } else if (col.suggestedType === 'numeric') {
+            type = 'NUMERIC'
+          }
+          return `${col.column} ${type}`
+        }).join(',\n        ')},
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+      );
+    `
 
-    // Process each record
-    let processedCount = 0
-    for (const record of rawData) {
-      try {
-        // Parse date
-        const dateValue = new Date(record.raw_date)
-        if (isNaN(dateValue.getTime())) {
-          throw new Error(`Invalid date format: ${record.raw_date}`)
-        }
+    console.log('Creating table with SQL:', createTableSQL)
 
-        // Parse numeric value
-        const numericValue = parseFloat(record.raw_value.replace(/[^0-9.-]/g, ''))
-        if (isNaN(numericValue)) {
-          throw new Error(`Invalid numeric value: ${record.raw_value}`)
-        }
+    // Execute the create table SQL
+    const { error: createError } = await supabase
+      .rpc('execute_sql', { sql_query: createTableSQL })
 
-        // Update record with processed values
-        const { error: updateError } = await supabase
-          .from('inflation_data')
-          .update({
-            processed_date: dateValue.toISOString().split('T')[0],
-            processed_value: numericValue,
-            validation_status: 'validated',
-            validation_notes: 'Successfully processed'
-          })
-          .eq('id', record.id)
-
-        if (updateError) {
-          throw updateError
-        }
-
-        processedCount++
-      } catch (error) {
-        console.error(`Error processing record ${record.id}:`, error)
-        
-        // Mark record as failed
-        await supabase
-          .from('inflation_data')
-          .update({
-            validation_status: 'failed',
-            validation_notes: error.message
-          })
-          .eq('id', record.id)
-      }
-    }
-
-    // Update analysis status
-    const { error: updateError } = await supabase
-      .from('csv_analysis')
-      .update({ analysis_status: 'imported' })
-      .eq('id', csvAnalysisId)
-
-    if (updateError) {
-      console.error('Error updating analysis status:', updateError)
-      throw new Error('Failed to update analysis status')
+    if (createError) {
+      console.error('Error creating table:', createError)
+      throw new Error(`Failed to create table: ${createError.message}`)
     }
 
     return new Response(
       JSON.stringify({ 
-        message: 'Import completed successfully',
-        recordsProcessed: rawData.length,
-        recordsValidated: processedCount
+        message: 'Table structure created successfully',
+        tableName,
+        sql: createTableSQL
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }, 
+        status: 200 
+      }
     )
 
   } catch (error) {
