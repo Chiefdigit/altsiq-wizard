@@ -29,7 +29,7 @@ export const FileAnalysisList = () => {
     },
   });
 
-  const handleCreateTable = async (analysisId: string) => {
+  const handleGenerateSchema = async (analysisId: string) => {
     if (!tableName.trim()) {
       toast({
         title: "Error",
@@ -41,26 +41,31 @@ export const FileAnalysisList = () => {
 
     setProcessingId(analysisId);
     try {
-      const { data, error } = await supabase.functions.invoke('import-inflation-data', {
+      // First, generate the schema
+      const { data: schema, error: schemaError } = await supabase.functions.invoke('generate-table-schema', {
         body: { 
           csvAnalysisId: analysisId,
           tableName: tableName.trim().toLowerCase()
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (schemaError) throw schemaError;
+
+      // Then create the table
+      const { error: createError } = await supabase
+        .rpc('execute_sql', { sql_query: schema.sql });
+
+      if (createError) throw createError;
 
       toast({
         title: "Success",
-        description: `Table ${tableName} created successfully`,
+        description: `Table ${tableName} schema created successfully`,
       });
 
       setTableName("");
       refetch();
     } catch (error) {
-      console.error('Import error:', error);
+      console.error('Schema generation error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -122,10 +127,10 @@ export const FileAnalysisList = () => {
                         className="max-w-xs"
                       />
                       <Button 
-                        onClick={() => handleCreateTable(analysis.id)}
+                        onClick={() => handleGenerateSchema(analysis.id)}
                         disabled={processingId === analysis.id}
                       >
-                        Create Table
+                        Generate Schema & Create Table
                       </Button>
                     </div>
                   </>
