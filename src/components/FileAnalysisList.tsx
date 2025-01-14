@@ -25,23 +25,17 @@ export const FileAnalysisList = () => {
 
   const handleImport = async (analysisId: string) => {
     try {
-      const response = await fetch('/api/import-inflation-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ csvAnalysisId: analysisId }),
+      const { data, error } = await supabase.functions.invoke('import-inflation-data', {
+        body: { csvAnalysisId: analysisId },
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to import data');
+      if (error) {
+        throw error;
       }
 
       toast({
         title: "Success",
-        description: `Imported ${result.recordsImported} records successfully`,
+        description: `Imported ${data.recordsImported} records successfully`,
       });
 
       refetch();
