@@ -55,7 +55,10 @@ serve(async (req) => {
 
     // Parse CSV content
     const text = await fileData.text()
+    console.log('CSV content sample:', text.substring(0, 200)) // Log sample of CSV content
+    
     const rows = parse(text, { skipFirstRow: true })
+    console.log('Parsed rows count:', rows.length)
     
     // Get column names from the analysis result
     if (!analysis.analysis_result?.columnStats) {
@@ -80,9 +83,12 @@ serve(async (req) => {
       columns.forEach((col, colIndex) => {
         let value = row[colIndex]
         
-        // Convert empty strings to null
-        if (typeof value === 'string') {
-          value = value.trim() === '' ? null : value
+        // Handle numeric values for inflation_rates table
+        if (tableName === 'inflation_rates' && !isNaN(Number(col))) {
+          value = value === '' ? null : Number(value)
+        } else {
+          // Convert empty strings to null for text fields
+          value = (typeof value === 'string' && value.trim() === '') ? null : value
         }
         
         record[col] = value
@@ -90,25 +96,32 @@ serve(async (req) => {
         // For inflation_rates table, ensure required fields are present
         if (tableName === 'inflation_rates' && 
             (col === 'country_name' || col === 'country_code') && 
-            !record[col]) {
+            !value) {
           console.log(`Row ${index + 2}: Missing required field ${col}`)
           hasRequiredFields = false
         }
       })
 
-      return hasRequiredFields ? record : null
+      if (!hasRequiredFields) {
+        console.log(`Skipping row ${index + 2} due to missing required fields`)
+        return null
+      }
+
+      return record
     }).filter(Boolean) // Remove invalid records
+
+    console.log(`Prepared ${records.length} valid records for import`)
 
     if (records.length === 0) {
       throw new Error('No valid records to import')
     }
 
-    console.log(`Prepared ${records.length} valid records for import`)
-
     // Insert data in batches of 1000 rows
     const batchSize = 1000
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
+      console.log(`Importing batch ${i/batchSize + 1}, size: ${batch.length}`)
+      
       const { error: insertError } = await supabase
         .from(tableName)
         .insert(batch)
@@ -118,7 +131,7 @@ serve(async (req) => {
         throw new Error(`Failed to insert batch: ${insertError.message}`)
       }
 
-      console.log(`Imported rows ${i + 1} to ${Math.min(i + batchSize, records.length)}`)
+      console.log(`Successfully imported batch ${i/batchSize + 1}`)
     }
 
     // Update analysis status
