@@ -74,10 +74,24 @@ export const FileAnalysisList = () => {
       <Accordion type="single" collapsible className="space-y-2">
         {analyses?.map((analysis) => (
           <AccordionItem key={analysis.id} value={analysis.id} className="border p-4 rounded-lg">
-            <AccordionTrigger className="flex justify-between">
+            <AccordionTrigger className="flex justify-between items-center w-full">
               <div className="flex items-center gap-4">
                 <span>{analysis.file_name}</span>
                 {getStatusBadge(analysis.analysis_status)}
+                {analysis.analysis_result && analysis.analysis_status !== 'imported' && (
+                  <Button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleImport(analysis.id);
+                    }}
+                    size="sm"
+                  >
+                    Import to Database
+                  </Button>
+                )}
+                {analysis.analysis_status === 'imported' && (
+                  <span className="text-green-600 text-sm">✓ Imported</span>
+                )}
               </div>
               <span className="text-sm text-gray-500">
                 {new Date(analysis.created_at).toLocaleDateString()}
@@ -86,25 +100,12 @@ export const FileAnalysisList = () => {
             <AccordionContent className="pt-4">
               <div className="space-y-4">
                 {analysis.analysis_result && (
-                  <>
-                    <div>
-                      <h3 className="font-medium">Analysis Results:</h3>
-                      <pre className="mt-2 p-4 bg-gray-100 rounded overflow-x-auto">
-                        {JSON.stringify(analysis.analysis_result, null, 2)}
-                      </pre>
-                    </div>
-                    {analysis.analysis_status !== 'imported' && (
-                      <Button 
-                        onClick={() => handleImport(analysis.id)}
-                        className="mt-4"
-                      >
-                        Import to Database
-                      </Button>
-                    )}
-                    {analysis.analysis_status === 'imported' && (
-                      <div className="text-green-600">✓ Imported to database</div>
-                    )}
-                  </>
+                  <div>
+                    <h3 className="font-medium">Analysis Results:</h3>
+                    <pre className="mt-2 p-4 bg-gray-100 rounded overflow-x-auto">
+                      {JSON.stringify(analysis.analysis_result, null, 2)}
+                    </pre>
+                  </div>
                 )}
               </div>
             </AccordionContent>
