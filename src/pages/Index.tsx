@@ -3,6 +3,8 @@ import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { WizardProvider } from "@/components/wizard/WizardContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { FileUpload } from "@/components/FileUpload";
+import { FileAnalysisList } from "@/components/FileAnalysisList";
 
 const Index: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
@@ -10,7 +12,6 @@ const Index: React.FC = () => {
   useEffect(() => {
     const testConnection = async () => {
       try {
-        // Try to fetch a single row from the default_settings table
         const { data, error } = await supabase
           .from('default_settings')
           .select('*')
@@ -49,6 +50,13 @@ const Index: React.FC = () => {
           <span className="block sm:inline"> Unable to connect to Supabase.</span>
         </div>
       )}
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold mb-4">CSV Analysis</h1>
+          <FileUpload />
+        </div>
+        <FileAnalysisList />
+      </div>
       <WizardProvider>
         <OnboardingWizard />
       </WizardProvider>

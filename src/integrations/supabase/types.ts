@@ -93,6 +93,42 @@ export type Database = {
         }
         Relationships: []
       }
+      csv_analysis: {
+        Row: {
+          analysis_result: Json | null
+          analysis_status: string | null
+          content_type: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          size: number | null
+          updated_at: string
+        }
+        Insert: {
+          analysis_result?: Json | null
+          analysis_status?: string | null
+          content_type?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          size?: number | null
+          updated_at?: string
+        }
+        Update: {
+          analysis_result?: Json | null
+          analysis_status?: string | null
+          content_type?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          size?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       default_settings: {
         Row: {
           created_at: string
