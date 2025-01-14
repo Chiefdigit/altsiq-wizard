@@ -145,49 +145,53 @@ export const FileAnalysisList = () => {
       <Accordion type="single" collapsible className="space-y-2">
         {analyses?.map((analysis) => (
           <AccordionItem key={analysis.id} value={analysis.id} className="border p-4 rounded-lg">
-            <AccordionTrigger className="flex justify-between items-center w-full">
-              <div className="flex items-center gap-4">
-                <span>{analysis.file_name}</span>
-                {getStatusBadge(analysis.analysis_status)}
-              </div>
-              <span className="text-sm text-gray-500">
-                {new Date(analysis.created_at).toLocaleDateString()}
-              </span>
-            </AccordionTrigger>
+            <div className="flex flex-col gap-4">
+              <AccordionTrigger className="flex justify-between items-center w-full">
+                <div className="flex items-center gap-4">
+                  <span>{analysis.file_name}</span>
+                  {getStatusBadge(analysis.analysis_status)}
+                </div>
+                <span className="text-sm text-gray-500">
+                  {new Date(analysis.created_at).toLocaleDateString()}
+                </span>
+              </AccordionTrigger>
+              
+              {analysis.analysis_result && (
+                <div className="flex gap-4 items-center px-4">
+                  <Input
+                    placeholder="Enter table name"
+                    value={tableName}
+                    onChange={(e) => setTableName(e.target.value)}
+                    className="max-w-xs"
+                  />
+                  <Button 
+                    onClick={() => handleGenerateSchema(analysis.id)}
+                    disabled={processingId === analysis.id}
+                  >
+                    Generate Schema & Create Table
+                  </Button>
+                  {analysis.analysis_status === 'completed' && (
+                    <Button 
+                      onClick={() => handleImportData(analysis.id)}
+                      disabled={processingId === analysis.id}
+                      variant="secondary"
+                    >
+                      Import Data
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+            
             <AccordionContent className="pt-4">
               <div className="space-y-4">
                 {analysis.analysis_result && (
-                  <>
-                    <div>
-                      <h3 className="font-medium">Analysis Results:</h3>
-                      <pre className="mt-2 p-4 bg-gray-100 rounded overflow-x-auto">
-                        {JSON.stringify(analysis.analysis_result, null, 2)}
-                      </pre>
-                    </div>
-                    <div className="flex gap-4 items-center">
-                      <Input
-                        placeholder="Enter table name"
-                        value={tableName}
-                        onChange={(e) => setTableName(e.target.value)}
-                        className="max-w-xs"
-                      />
-                      <Button 
-                        onClick={() => handleGenerateSchema(analysis.id)}
-                        disabled={processingId === analysis.id}
-                      >
-                        Generate Schema & Create Table
-                      </Button>
-                      {analysis.analysis_status === 'completed' && (
-                        <Button 
-                          onClick={() => handleImportData(analysis.id)}
-                          disabled={processingId === analysis.id}
-                          variant="secondary"
-                        >
-                          Import Data
-                        </Button>
-                      )}
-                    </div>
-                  </>
+                  <div>
+                    <h3 className="font-medium">Analysis Results:</h3>
+                    <pre className="mt-2 p-4 bg-gray-100 rounded overflow-x-auto">
+                      {JSON.stringify(analysis.analysis_result, null, 2)}
+                    </pre>
+                  </div>
                 )}
               </div>
             </AccordionContent>
