@@ -124,7 +124,15 @@ serve(async (req) => {
         message: 'Analysis completed successfully',
         rowsProcessed: dataRows.length,
         importBatchId,
-        sampleData: sampleRows ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        sampleData: sampleRows
+      }), 
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }, 
+        status: 200 
+      }
     )
 
   } catch (error) {
