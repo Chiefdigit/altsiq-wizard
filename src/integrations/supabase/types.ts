@@ -9,7 +9,251 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      alt_strategies: {
+        Row: {
+          collectibles_allocation: number | null
+          commodities_allocation: number | null
+          created_at: string
+          cryptocurrencies_allocation: number | null
+          hedge_funds_allocation: number | null
+          id: string
+          name: string
+          private_credit_allocation: number | null
+          private_debt_allocation: number | null
+          private_equity_allocation: number | null
+          real_estate_allocation: number | null
+          strategy_type: Database["public"]["Enums"]["alt_strategy_type"]
+          updated_at: string
+        }
+        Insert: {
+          collectibles_allocation?: number | null
+          commodities_allocation?: number | null
+          created_at?: string
+          cryptocurrencies_allocation?: number | null
+          hedge_funds_allocation?: number | null
+          id?: string
+          name: string
+          private_credit_allocation?: number | null
+          private_debt_allocation?: number | null
+          private_equity_allocation?: number | null
+          real_estate_allocation?: number | null
+          strategy_type: Database["public"]["Enums"]["alt_strategy_type"]
+          updated_at?: string
+        }
+        Update: {
+          collectibles_allocation?: number | null
+          commodities_allocation?: number | null
+          created_at?: string
+          cryptocurrencies_allocation?: number | null
+          hedge_funds_allocation?: number | null
+          id?: string
+          name?: string
+          private_credit_allocation?: number | null
+          private_debt_allocation?: number | null
+          private_equity_allocation?: number | null
+          real_estate_allocation?: number | null
+          strategy_type?: Database["public"]["Enums"]["alt_strategy_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      color_palettes: {
+        Row: {
+          color_names: Json | null
+          colors: Json
+          created_at: string
+          id: string
+          is_default: boolean | null
+          is_favorite: boolean | null
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          color_names?: Json | null
+          colors: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          is_favorite?: boolean | null
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          color_names?: Json | null
+          colors?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          is_favorite?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      default_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      investments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          name: string
+          portfolio_id: string
+          target_return: number | null
+          type: Database["public"]["Enums"]["investment_type"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          name: string
+          portfolio_id: string
+          target_return?: number | null
+          type: Database["public"]["Enums"]["investment_type"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          name?: string
+          portfolio_id?: string
+          target_return?: number | null
+          type?: Database["public"]["Enums"]["investment_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investments_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_projections: {
+        Row: {
+          created_at: string
+          current_value: number
+          data_type: Database["public"]["Enums"]["portfolio_data_type"]
+          date: string
+          id: string
+          initial_value: number
+          sp500_value: number
+          traditional_value: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_value: number
+          data_type: Database["public"]["Enums"]["portfolio_data_type"]
+          date: string
+          id?: string
+          initial_value: number
+          sp500_value: number
+          traditional_value: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_value?: number
+          data_type?: Database["public"]["Enums"]["portfolio_data_type"]
+          date?: string
+          id?: string
+          initial_value?: number
+          sp500_value?: number
+          traditional_value?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      portfolios: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          risk_level: Database["public"]["Enums"]["risk_level"] | null
+          target_return: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          target_return?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          target_return?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          is_accredited: boolean | null
+          last_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id: string
+          is_accredited?: boolean | null
+          last_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          is_accredited?: boolean | null
+          last_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +262,20 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      alt_strategy_type:
+        | "diversification"
+        | "growth"
+        | "income"
+        | "preservation"
+        | "custom"
+      investment_type:
+        | "real_estate"
+        | "private_equity"
+        | "hedge_fund"
+        | "venture_capital"
+      palette_category: "professional" | "modern" | "innovative" | "custom"
+      portfolio_data_type: "historical" | "projected"
+      risk_level: "low" | "medium" | "high"
     }
     CompositeTypes: {
       [_ in never]: never
