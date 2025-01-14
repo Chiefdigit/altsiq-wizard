@@ -4,7 +4,6 @@ import { Info } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -41,22 +40,20 @@ export const RiskScoreDisplay = ({ allocations }: RiskScoreDisplayProps) => {
     <Card className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">AltsIQ Portfolio Risk Score</h3>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Info className="h-4 w-4 text-gray-400" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-[300px]">
-              <p>Risk score calculation based on asset allocation weights:</p>
-              <ul className="list-disc pl-4 mt-2">
-                <li>Equities: 4 (High risk)</li>
-                <li>Bonds: 2 (Low risk)</li>
-                <li>Cash: 1 (Very low risk)</li>
-                <li>Alternatives: 3 (Moderate-high risk)</li>
-              </ul>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Info className="h-4 w-4 text-gray-400" />
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[300px]">
+            <p>Risk score calculation based on asset allocation weights:</p>
+            <ul className="list-disc pl-4 mt-2">
+              <li>Equities: 4 (High risk)</li>
+              <li>Bonds: 2 (Low risk)</li>
+              <li>Cash: 1 (Very low risk)</li>
+              <li>Alternatives: 3 (Moderate-high risk)</li>
+            </ul>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <div className="space-y-2">
