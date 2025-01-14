@@ -52,7 +52,7 @@ serve(async (req) => {
     
     console.log('CSV Headers:', headers)
 
-    // Transform the data into the required format
+    // Transform only the data rows (excluding header)
     const data = lines.slice(1)
       .filter(line => line.trim()) // Remove empty lines
       .map((line, index) => {
@@ -72,14 +72,11 @@ serve(async (req) => {
 
     console.log(`Processed ${data.length} rows of data`)
 
-    // Basic analysis of the CSV structure
+    // Create a more focused analysis result
     const analysis = {
       totalRows: data.length,
-      columns: headers.map(header => ({
-        name: header,
-        sample: data.slice(0, 3).map(row => row[header]),
-      })),
-      data: data,
+      headers: headers,
+      data: data, // This will be the actual data rows
     }
 
     console.log('Analysis completed, updating record...')
