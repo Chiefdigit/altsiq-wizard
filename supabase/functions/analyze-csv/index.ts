@@ -62,6 +62,19 @@ serve(async (req) => {
 
     console.log(`Processing ${dataRows.length} rows with import batch ID: ${importBatchId}`)
 
+    // Get sample rows for analysis (first 5 rows)
+    const sampleRows = dataRows.slice(0, 5)
+
+    // Calculate column statistics
+    const columnStats = headers.map(header => {
+      const values = dataRows.map(row => row[header]).filter(v => v !== null)
+      return {
+        column: header,
+        nonNullCount: values.length,
+        sampleValues: values.slice(0, 3) // Show first 3 distinct values
+      }
+    })
+
     // Insert raw data into inflation_data table
     for (const row of dataRows) {
       const entries = Object.entries(row)
@@ -85,7 +98,7 @@ serve(async (req) => {
       }
     }
 
-    // Update analysis record
+    // Update analysis record with comprehensive results
     const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({
@@ -94,6 +107,8 @@ serve(async (req) => {
           headers,
           rowCount: dataRows.length,
           importBatchId,
+          sampleRows,
+          columnStats,
           processedAt: new Date().toISOString()
         }
       })
@@ -108,9 +123,8 @@ serve(async (req) => {
       JSON.stringify({ 
         message: 'Analysis completed successfully',
         rowsProcessed: dataRows.length,
-        importBatchId
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        importBatchId,
+        sampleData: sampleRows ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
 
   } catch (error) {
