@@ -176,15 +176,13 @@ export const FileAnalysisList = () => {
                     >
                       Generate Schema & Create Table
                     </Button>
-                    {analysis.analysis_status === 'completed' && tableNames[analysis.id] && (
-                      <Button 
-                        onClick={() => handleImportData(analysis.id)}
-                        disabled={processingId === analysis.id}
-                        variant="secondary"
-                      >
-                        Import Data into {tableNames[analysis.id]}
-                      </Button>
-                    )}
+                    <Button 
+                      onClick={() => handleImportData(analysis.id)}
+                      disabled={processingId === analysis.id || !tableNames[analysis.id] || analysis.analysis_status !== 'completed'}
+                      variant="secondary"
+                    >
+                      Import Data into {tableNames[analysis.id]}
+                    </Button>
                   </div>
                 </div>
               )}
