@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { parse } from 'https://deno.land/std@0.181.0/csv/parse.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,7 +27,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the CSV file data
+    // Get the analysis data
     const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
@@ -42,29 +41,12 @@ serve(async (req) => {
 
     console.log('Analysis found:', analysis.file_name)
 
-    // Download the CSV file from storage
-    const { data: fileData, error: downloadError } = await supabase
-      .storage
-      .from('csv_uploads')
-      .download(analysis.file_path)
-
-    if (downloadError || !fileData) {
-      console.error('Download error:', downloadError)
-      throw new Error(`Failed to download CSV: ${downloadError?.message}`)
+    // Validate analysis result structure
+    if (!analysis.analysis_result?.columnStats || !analysis.analysis_result?.sampleRows) {
+      throw new Error('Invalid analysis result structure')
     }
 
-    // Parse CSV content
-    const text = await fileData.text()
-    console.log('CSV content sample:', text.substring(0, 200)) // Log sample of CSV content
-    
-    const rows = parse(text, { skipFirstRow: true })
-    console.log('Parsed rows count:', rows.length)
-    
     // Get column names from the analysis result
-    if (!analysis.analysis_result?.columnStats) {
-      throw new Error('Invalid analysis result: missing column statistics')
-    }
-
     const columns = analysis.analysis_result.columnStats.map(col => 
       col.column.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/^_+|_+$/g, '')
     ).filter(Boolean)
@@ -75,20 +57,40 @@ serve(async (req) => {
       throw new Error('No valid columns found in analysis')
     }
 
-    // Prepare data for insertion with validation
-    const records = rows.map((row, index) => {
+    // Download the CSV file to get all rows
+    const { data: fileData, error: downloadError } = await supabase
+      .storage
+      .from('csv_uploads')
+      .download(analysis.file_path)
+
+    if (downloadError || !fileData) {
+      console.error('Download error:', downloadError)
+      throw new Error(`Failed to download CSV: ${downloadError?.message}`)
+    }
+
+    // Parse CSV content using the file content
+    const text = await fileData.text()
+    const lines = text.split('\n')
+      .filter(line => line.trim() !== '') // Remove empty lines
+      .slice(1) // Skip header row
+
+    console.log(`Processing ${lines.length} data rows`)
+
+    // Process each line into a record
+    const records = lines.map((line, index) => {
+      const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
       const record: Record<string, any> = {}
       let hasRequiredFields = true
 
       columns.forEach((col, colIndex) => {
-        let value = row[colIndex]
+        let value = values[colIndex]
         
         // Handle numeric values for inflation_rates table
         if (tableName === 'inflation_rates' && !isNaN(Number(col))) {
           value = value === '' ? null : Number(value)
         } else {
           // Convert empty strings to null for text fields
-          value = (typeof value === 'string' && value.trim() === '') ? null : value
+          value = (value === '' || value === undefined) ? null : value
         }
         
         record[col] = value
@@ -120,7 +122,7 @@ serve(async (req) => {
     const batchSize = 1000
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
-      console.log(`Importing batch ${i/batchSize + 1}, size: ${batch.length}`)
+      console.log(`Importing batch ${Math.floor(i/batchSize) + 1}, size: ${batch.length}`)
       
       const { error: insertError } = await supabase
         .from(tableName)
@@ -131,7 +133,7 @@ serve(async (req) => {
         throw new Error(`Failed to insert batch: ${insertError.message}`)
       }
 
-      console.log(`Successfully imported batch ${i/batchSize + 1}`)
+      console.log(`Successfully imported batch ${Math.floor(i/batchSize) + 1}`)
     }
 
     // Update analysis status
