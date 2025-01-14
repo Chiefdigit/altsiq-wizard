@@ -12,12 +12,14 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting CSV analysis...')
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     const { id } = await req.json()
+    console.log('Analyzing CSV file with ID:', id)
 
     // Get the file record
     const { data: fileRecord, error: fileError } = await supabase
@@ -27,8 +29,11 @@ serve(async (req) => {
       .single()
 
     if (fileError || !fileRecord) {
+      console.error('File record not found:', fileError)
       throw new Error('File record not found')
     }
+
+    console.log('Retrieved file record:', fileRecord.file_name)
 
     // Download the file
     const { data: fileData, error: downloadError } = await supabase.storage
@@ -36,6 +41,7 @@ serve(async (req) => {
       .download(fileRecord.file_path)
 
     if (downloadError) {
+      console.error('Error downloading file:', downloadError)
       throw new Error('Error downloading file')
     }
 
@@ -44,17 +50,27 @@ serve(async (req) => {
     const lines = text.split('\n')
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
     
+    console.log('CSV Headers:', headers)
+
     // Transform the data into the required format
     const data = lines.slice(1)
       .filter(line => line.trim()) // Remove empty lines
-      .map(line => {
+      .map((line, index) => {
         const values = line.split(',').map(v => v.trim())
         const row: Record<string, string> = {}
-        headers.forEach((header, index) => {
-          row[header] = values[index] || ''
+        headers.forEach((header, i) => {
+          row[header] = values[i] || ''
         })
+        
+        // Validate required fields
+        if (!row.date || !row.rate) {
+          console.warn(`Warning: Row ${index + 2} missing required fields:`, row)
+        }
+        
         return row
       })
+
+    console.log(`Processed ${data.length} rows of data`)
 
     // Basic analysis of the CSV structure
     const analysis = {
@@ -63,8 +79,10 @@ serve(async (req) => {
         name: header,
         sample: data.slice(0, 3).map(row => row[header]),
       })),
-      data: data, // Include the transformed data
+      data: data,
     }
+
+    console.log('Analysis completed, updating record...')
 
     // Update the analysis result
     const { error: updateError } = await supabase
@@ -76,8 +94,11 @@ serve(async (req) => {
       .eq('id', id)
 
     if (updateError) {
+      console.error('Error updating analysis results:', updateError)
       throw new Error('Error updating analysis results')
     }
+
+    console.log('Analysis successfully saved')
 
     return new Response(
       JSON.stringify({ message: 'Analysis completed', analysis }),

@@ -13,13 +13,10 @@ serve(async (req) => {
 
   try {
     const { csvAnalysisId } = await req.json()
-    console.log('Received request for CSV analysis ID:', csvAnalysisId)
+    console.log('Starting import for CSV analysis ID:', csvAnalysisId)
 
     if (!csvAnalysisId) {
-      return new Response(
-        JSON.stringify({ error: 'CSV analysis ID is required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+      throw new Error('CSV analysis ID is required')
     }
 
     const supabase = createClient(
@@ -36,46 +33,46 @@ serve(async (req) => {
 
     if (analysisError || !analysisData) {
       console.error('Failed to fetch CSV analysis:', analysisError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch CSV analysis', details: analysisError }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
+      throw new Error('Failed to fetch CSV analysis')
     }
 
-    console.log('Analysis result:', analysisData.analysis_result)
+    console.log('Retrieved analysis data:', {
+      fileName: analysisData.file_name,
+      status: analysisData.analysis_status,
+      resultStructure: analysisData.analysis_result ? Object.keys(analysisData.analysis_result) : null
+    })
 
     if (!analysisData.analysis_result?.data || !Array.isArray(analysisData.analysis_result.data)) {
       console.error('Invalid analysis result format:', analysisData.analysis_result)
-      return new Response(
-        JSON.stringify({ error: 'Invalid analysis result format' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+      throw new Error('Invalid analysis result format')
     }
 
-    // Transform and insert the data
-    const inflationData = analysisData.analysis_result.data.map((row: any) => {
-      // Parse date string to ensure valid date format
+    // Transform and validate the data
+    const inflationData = analysisData.analysis_result.data.map((row: any, index: number) => {
+      console.log(`Processing row ${index + 1}:`, row)
+      
+      // Parse date
       const dateStr = row.date || row.Date
       let date
       try {
         date = new Date(dateStr)
         if (isNaN(date.getTime())) {
-          throw new Error('Invalid date')
+          throw new Error(`Invalid date format: ${dateStr}`)
         }
       } catch (e) {
-        console.error('Error parsing date:', dateStr)
-        throw new Error(`Invalid date format: ${dateStr}`)
+        console.error(`Error parsing date in row ${index + 1}:`, dateStr)
+        throw new Error(`Invalid date format in row ${index + 1}: ${dateStr}`)
       }
 
-      // Parse inflation rate to ensure valid number
+      // Parse inflation rate
       const rateStr = row.rate || row.Rate || row.inflation_rate || '0'
       const rate = parseFloat(rateStr)
       if (isNaN(rate)) {
-        console.error('Error parsing rate:', rateStr)
-        throw new Error(`Invalid rate format: ${rateStr}`)
+        console.error(`Error parsing rate in row ${index + 1}:`, rateStr)
+        throw new Error(`Invalid rate format in row ${index + 1}: ${rateStr}`)
       }
 
-      return {
+      const transformedRow = {
         date: date.toISOString().split('T')[0], // Format as YYYY-MM-DD
         inflation_rate: rate,
         category: row.category || row.Category || 'CPI',
@@ -83,27 +80,40 @@ serve(async (req) => {
         source: row.source || row.Source || 'CSV Import',
         notes: row.notes || row.Notes || null
       }
+
+      console.log(`Transformed row ${index + 1}:`, transformedRow)
+      return transformedRow
     })
 
-    console.log('Transformed data:', inflationData)
+    console.log(`Attempting to insert ${inflationData.length} records`)
 
-    const { error: insertError } = await supabase
-      .from('inflation_data')
-      .insert(inflationData)
+    // Insert the data in smaller batches to avoid potential size limits
+    const BATCH_SIZE = 100
+    for (let i = 0; i < inflationData.length; i += BATCH_SIZE) {
+      const batch = inflationData.slice(i, i + BATCH_SIZE)
+      const { error: insertError } = await supabase
+        .from('inflation_data')
+        .insert(batch)
 
-    if (insertError) {
-      console.error('Failed to insert inflation data:', insertError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to insert inflation data', details: insertError }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
+      if (insertError) {
+        console.error(`Failed to insert batch ${i / BATCH_SIZE + 1}:`, insertError)
+        throw new Error(`Failed to insert inflation data batch ${i / BATCH_SIZE + 1}: ${insertError.message}`)
+      }
+      console.log(`Successfully inserted batch ${i / BATCH_SIZE + 1}`)
     }
 
     // Update the analysis status
-    await supabase
+    const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({ analysis_status: 'imported' })
       .eq('id', csvAnalysisId)
+
+    if (updateError) {
+      console.error('Error updating analysis status:', updateError)
+      throw new Error('Failed to update analysis status')
+    }
+
+    console.log('Import completed successfully')
 
     return new Response(
       JSON.stringify({ 
@@ -114,10 +124,10 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    console.error('Import error:', error)
     return new Response(
-      JSON.stringify({ error: 'An unexpected error occurred', details: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
   }
 })
