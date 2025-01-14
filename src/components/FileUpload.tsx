@@ -46,13 +46,19 @@ export const FileUpload = () => {
 
       console.log('Created analysis record:', analysisRecord);
 
-      // Trigger analysis with the correct fileId parameter
+      // Trigger analysis with both the file path and record ID
       const { error: analysisError } = await supabase.functions
         .invoke('analyze-csv', {
-          body: { fileId: filePath },
+          body: { 
+            fileId: filePath,
+            analysisId: analysisRecord.id 
+          },
         });
 
-      if (analysisError) throw analysisError;
+      if (analysisError) {
+        console.error('Analysis error:', analysisError);
+        throw analysisError;
+      }
 
       toast({
         title: "Success",
