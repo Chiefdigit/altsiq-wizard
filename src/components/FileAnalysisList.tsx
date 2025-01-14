@@ -61,7 +61,7 @@ export const FileAnalysisList = () => {
 
       // Then create the table using the generated schema
       const { error: createError } = await supabase
-        .rpc<void, ExecuteSqlParams>("execute_sql", { 
+        .rpc("execute_sql", { 
           sql_query: schema!.sql
         });
 
