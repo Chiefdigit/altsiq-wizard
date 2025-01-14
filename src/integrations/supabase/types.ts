@@ -295,7 +295,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      execute_sql: {
+        Args: {
+          sql_query: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       alt_strategy_type:

@@ -16,6 +16,10 @@ interface SchemaResponse {
   sql: string;
 }
 
+interface ExecuteSqlParams {
+  sql_query: string;
+}
+
 export const FileAnalysisList = () => {
   const [tableName, setTableName] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -46,7 +50,7 @@ export const FileAnalysisList = () => {
     setProcessingId(analysisId);
     try {
       // First, generate the schema
-      const { data: schema, error: schemaError } = await supabase.functions.invoke<SchemaResponse>('generate-table-schema', {
+      const { data: schema, error: schemaError } = await supabase.functions.invoke<SchemaResponse>("generate-table-schema", {
         body: { 
           csvAnalysisId: analysisId,
           tableName: tableName.trim().toLowerCase()
@@ -57,7 +61,7 @@ export const FileAnalysisList = () => {
 
       // Then create the table using the generated schema
       const { error: createError } = await supabase
-        .rpc('execute_sql', { 
+        .rpc<void, ExecuteSqlParams>("execute_sql", { 
           sql_query: schema!.sql
         });
 
@@ -71,7 +75,7 @@ export const FileAnalysisList = () => {
       setTableName("");
       refetch();
     } catch (error) {
-      console.error('Schema generation error:', error);
+      console.error("Schema generation error:", error);
       toast({
         title: "Error",
         description: error.message,
