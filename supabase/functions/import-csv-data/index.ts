@@ -34,6 +34,23 @@ function parseCSVLine(line: string): string[] {
   return values;
 }
 
+function sanitizeColumnName(header: string): string {
+  // First, clean the header
+  let cleanHeader = header.trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '_')
+    .replace(/^(\d)/, 'col_$1') // Prefix with 'col_' if starts with number
+    .replace(/_+/g, '_') // Replace multiple underscores with single
+    .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+    
+  // If cleaning resulted in empty string, use a fallback
+  if (!cleanHeader) {
+    cleanHeader = 'column_' + Math.random().toString(36).substring(2, 7);
+  }
+  
+  return cleanHeader;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -88,24 +105,23 @@ serve(async (req) => {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
-    // Get headers from first line and clean them
-    const headers = parseCSVLine(lines[0]).map(header => 
-      header.trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9_]/g, '_')
-        .replace(/^(\d)/, 'col_$1') // Prefix with 'col_' if starts with number
-    );
+    // Get and sanitize headers
+    const headers = parseCSVLine(lines[0]).map(sanitizeColumnName);
+    console.log('Sanitized CSV Headers:', headers);
 
-    console.log('CSV Headers:', headers)
+    // Verify no duplicate headers
+    const uniqueHeaders = new Set(headers);
+    if (uniqueHeaders.size !== headers.length) {
+      throw new Error('Duplicate column names detected after sanitization');
+    }
 
     // Process each data row
     const records = lines.slice(1).map((line, index) => {
       const values = parseCSVLine(line)
-      console.log(`Row ${index + 1} values:`, values)
+      console.log(`Processing row ${index + 1}/${lines.length - 1}`);
       
       const record: Record<string, any> = {}
       
-      // Map each value to its corresponding header
       headers.forEach((header, i) => {
         let value = values[i]?.trim() || null
         
@@ -123,7 +139,9 @@ serve(async (req) => {
     })
 
     console.log(`Prepared ${records.length} records for import`)
-    console.log('Sample record:', records[0])
+    if (records.length > 0) {
+      console.log('Sample record:', records[0])
+    }
 
     if (records.length === 0) {
       throw new Error('No valid records to import')
