@@ -44,16 +44,8 @@ serve(async (req) => {
     console.log('Analysis ID:', csvAnalysisId)
     console.log('Target table:', tableName)
     
-    if (!csvAnalysisId) {
-      throw new Error('CSV analysis ID is required')
-    }
-    
-    if (!tableName) {
-      throw new Error('Table name is required')
-    }
-
-    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tableName)) {
-      throw new Error('Invalid table name. Use only letters, numbers, and underscores, starting with a letter.')
+    if (!csvAnalysisId || !tableName) {
+      throw new Error('CSV analysis ID and table name are required')
     }
 
     const supabase = createClient(
@@ -72,7 +64,6 @@ serve(async (req) => {
       console.error('Failed to fetch analysis:', analysisError)
       throw new Error('Failed to fetch analysis record')
     }
-    console.log('Analysis record found:', analysis.file_path)
 
     console.log('Downloading CSV file...')
     const { data: fileData, error: fileError } = await supabase
@@ -84,37 +75,25 @@ serve(async (req) => {
       console.error('Failed to fetch file:', fileError)
       throw new Error('Failed to fetch file')
     }
-    console.log('File downloaded successfully')
 
     const csvText = await fileData.text()
     const lines = csvText.split(/\r?\n/)
       .map(line => line.trim())
       .filter(line => line.length > 0)
 
-    console.log(`Total lines in CSV:`, lines.length)
-
     if (lines.length < 2) {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
-    // Parse headers and normalize them
-    const rawHeaders = parseCSVLine(lines[0])
-    console.log('Raw headers:', rawHeaders)
-    
-    // Map the headers to database column names
-    const columnMap = rawHeaders.map(header => {
-      const normalizedHeader = header.toLowerCase().trim()
-      
-      // Special handling for fund name column
-      if (normalizedHeader === 'fund name') {
-        return 'fund_name'
-      }
-      
-      // Handle month columns (convert apr-24 to apr_24)
-      return normalizedHeader.replace(/-/g, '_')
-    })
-    
-    console.log('Column mapping:', columnMap)
+    // We know the fund name is always the last column (13th)
+    // and the other columns are numeric values for months and YTD
+    const dbColumns = [
+      'jan_24', 'feb_24', 'mar_24', 'apr_24', 'may_24', 
+      'jun_24', 'jul_24', 'aug_24', 'sep_24', 'oct_24', 
+      'nov_24', 'ytd_2024', 'fund_name'
+    ]
+
+    console.log('Using fixed column mapping:', dbColumns)
 
     const cleanNumericValue = (value: string): number | null => {
       if (!value || value.trim() === '') return null
@@ -132,23 +111,25 @@ serve(async (req) => {
       const values = parseCSVLine(line)
       console.log(`Row ${index + 1} values:`, values)
       
+      if (values.length !== 13) {
+        throw new Error(`Invalid data: Row ${index + 1} has ${values.length} columns, expected 13`)
+      }
+
       const record: Record<string, any> = {}
       
-      columnMap.forEach((columnName, colIndex) => {
-        const value = values[colIndex]?.trim() || null
-        
-        if (columnName === 'fund_name') {
-          if (!value) {
-            console.error(`Row ${index + 1} has no fund name:`, values)
-            throw new Error(`Invalid data: Row ${index + 1} is missing required fund name`)
-          }
-          record[columnName] = value
-        } else {
-          record[columnName] = cleanNumericValue(value)
-        }
-      })
+      // Process all columns except the last one as numeric
+      for (let i = 0; i < 12; i++) {
+        record[dbColumns[i]] = cleanNumericValue(values[i])
+      }
+      
+      // The last column is always the fund name
+      const fundName = values[12]
+      if (!fundName?.trim()) {
+        console.error(`Row ${index + 1} has no fund name:`, values)
+        throw new Error(`Invalid data: Row ${index + 1} is missing fund name`)
+      }
+      record.fund_name = fundName.trim()
 
-      console.log(`Processed record for row ${index + 1}:`, record)
       return record
     })
 
@@ -159,7 +140,7 @@ serve(async (req) => {
       throw new Error('No valid records to import')
     }
 
-    // First, clear existing data for this import
+    // Clear existing data
     console.log('Clearing existing data from table...')
     const { error: clearError } = await supabase
       .from(tableName)
@@ -171,13 +152,13 @@ serve(async (req) => {
       throw new Error(`Failed to clear existing data: ${clearError.message}`)
     }
 
+    // Insert records in batches
     const batchSize = 100
     console.log(`Will insert records in batches of ${batchSize}`)
     
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
       console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
-      console.log('First record in batch:', batch[0])
       
       const { error: insertError } = await supabase
         .from(tableName)
@@ -190,6 +171,7 @@ serve(async (req) => {
       console.log(`Successfully inserted batch ${i / batchSize + 1}`)
     }
 
+    // Update analysis status
     console.log('Updating analysis status...')
     const { error: updateError } = await supabase
       .from('csv_analysis')

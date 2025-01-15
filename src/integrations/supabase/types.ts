@@ -153,7 +153,7 @@ export type Database = {
         }
         Relationships: []
       }
-      fuckme: {
+      fuckmetwice: {
         Row: {
           apr_24: number
           aug_24: number
