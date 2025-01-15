@@ -44,18 +44,23 @@ export const FileAnalysisList = () => {
       return;
     }
 
+    // Sanitize table name: only allow letters, numbers, and underscores
+    const sanitizedTableName = tableName.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    
     setProcessingId(analysisId);
     try {
       // First, generate the schema
       const { data: schema, error: schemaError } = await supabase.functions.invoke<SchemaResponse>("generate-table-schema", {
         body: { 
           csvAnalysisId: analysisId,
-          tableName: tableName.trim().toLowerCase()
+          tableName: sanitizedTableName
         },
       });
 
       if (schemaError) throw schemaError;
       if (!schema?.sql) throw new Error("No schema SQL generated");
+
+      console.log('Generated SQL:', schema.sql); // Add logging
 
       // Then create the table using the generated schema
       const { error: createError } = await supabase
@@ -63,11 +68,14 @@ export const FileAnalysisList = () => {
           sql_query: schema.sql
         });
 
-      if (createError) throw createError;
+      if (createError) {
+        console.error('Create table error:', createError); // Add logging
+        throw createError;
+      }
 
       toast({
         title: "Success",
-        description: `Table ${tableName} schema created successfully`,
+        description: `Table ${sanitizedTableName} schema created successfully`,
       });
 
       refetch();
@@ -94,12 +102,15 @@ export const FileAnalysisList = () => {
       return;
     }
 
+    // Sanitize table name: only allow letters, numbers, and underscores
+    const sanitizedTableName = tableName.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+
     setProcessingId(analysisId);
     try {
       const { error: importError } = await supabase.functions.invoke("import-csv-data", {
         body: { 
           csvAnalysisId: analysisId,
-          tableName: tableName.trim().toLowerCase()
+          tableName: sanitizedTableName
         },
       });
 
@@ -107,7 +118,7 @@ export const FileAnalysisList = () => {
 
       toast({
         title: "Success",
-        description: `Data imported successfully into table ${tableName}`,
+        description: `Data imported successfully into table ${sanitizedTableName}`,
       });
 
       refetch();
