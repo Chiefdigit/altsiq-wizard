@@ -6,6 +6,38 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Proper CSV parsing function that respects quotes
+function parseCSVLine(line: string): string[] {
+  const values: string[] = [];
+  let currentValue = '';
+  let insideQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      if (insideQuotes && line[i + 1] === '"') {
+        // Handle escaped quotes
+        currentValue += '"';
+        i++;
+      } else {
+        // Toggle quote state
+        insideQuotes = !insideQuotes;
+      }
+    } else if (char === ',' && !insideQuotes) {
+      // End of field
+      values.push(currentValue.trim());
+      currentValue = '';
+    } else {
+      currentValue += char;
+    }
+  }
+  
+  // Add the last value
+  values.push(currentValue.trim());
+  return values;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -22,7 +54,6 @@ serve(async (req) => {
       throw new Error('Table name is required')
     }
 
-    // Validate table name (basic SQL injection prevention)
     if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tableName)) {
       throw new Error('Invalid table name. Use only letters, numbers, and underscores, starting with a letter.')
     }
@@ -32,7 +63,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the analysis record with the file path
     const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
@@ -44,7 +74,6 @@ serve(async (req) => {
       throw new Error('Failed to fetch analysis record')
     }
 
-    // Download the CSV file
     const { data: fileData, error: fileError } = await supabase
       .storage
       .from('csv_uploads')
@@ -66,13 +95,13 @@ serve(async (req) => {
 
     console.log(`Processing CSV with ${lines.length} lines (including header)`)
 
-    // Process headers
-    const headers = lines[0].split(',').map(header => header.trim().replace(/['"]/g, ''))
+    // Process headers using proper CSV parsing
+    const headers = parseCSVLine(lines[0])
     
     // Map CSV headers to database column names
     const columnMap = headers.map(header => {
-      // Convert header to snake_case and handle special cases
-      let columnName = header.toLowerCase()
+      let columnName = header
+        .toLowerCase()
         .replace(/[^a-z0-9]/g, '_')
         .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
       
@@ -99,32 +128,29 @@ serve(async (req) => {
       return isNaN(numericValue) ? null : numericValue;
     };
 
-    // Process data rows
+    // Process data rows with proper CSV parsing
     const records = lines.slice(1).map((line, index) => {
-      const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
+      const values = parseCSVLine(line)
       const record: Record<string, any> = {}
 
       columnMap.forEach((col, colIndex) => {
         if (!col) return; // Skip empty column names
         
-        let value = values[colIndex]
+        let value = values[colIndex] || null
         
-        // Handle numeric values
+        // Handle numeric values for year columns
         if (/^year_\d+$/.test(col)) {
-          value = cleanNumericValue(value)
-        } else {
-          value = value === '' ? null : value
+          value = cleanNumericValue(value || '')
         }
         
         record[col] = value
       })
 
       return record
-    }).filter(record => Object.keys(record).length > 0) // Remove empty records
+    }).filter(record => Object.keys(record).length > 0)
 
     console.log(`Prepared ${records.length} valid records for import`)
-    console.log('First 3 records:', JSON.stringify(records.slice(0, 3), null, 2))
-    console.log('Last 3 records:', JSON.stringify(records.slice(-3), null, 2))
+    console.log('Sample record:', records[0])
 
     if (records.length === 0) {
       throw new Error('No valid records to import')
@@ -134,10 +160,10 @@ serve(async (req) => {
     const batchSize = 100
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
-      console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)} into table ${tableName}`)
+      console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
       
       const { error: insertError } = await supabase
-        .from(tableName)  // Use the provided table name instead of hardcoding
+        .from(tableName)
         .insert(batch)
 
       if (insertError) {
@@ -154,7 +180,6 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Failed to update analysis status:', updateError)
-      // Don't throw here as the import was successful
     }
 
     return new Response(
