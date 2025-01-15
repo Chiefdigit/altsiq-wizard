@@ -517,6 +517,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_csv_import_table: {
+        Args: {
+          table_name: string
+          create_table_sql: string
+        }
+        Returns: undefined
+      }
       execute_sql: {
         Args: {
           sql_query: string
