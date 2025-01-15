@@ -67,11 +67,28 @@ serve(async (req) => {
     console.log(`Processing CSV with ${lines.length} lines (including header)`)
 
     // Process headers
-    const columns = lines[0]
-      .split(',')
-      .map(header => header.trim().toLowerCase().replace(/['"]/g, ''))
+    const headers = lines[0].split(',').map(header => header.trim().replace(/['"]/g, ''))
+    
+    // Map CSV headers to database column names for can_hf_performance table
+    const columnMap = headers.map(header => {
+      // Convert header to snake_case and handle special cases
+      let columnName = header.toLowerCase()
+        .replace(/[^a-z0-9]/g, '_')
+        .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
+      
+      // Special handling for monthly columns and YTD
+      if (columnName.match(/^jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec$/)) {
+        columnName = `2024___${columnName}`
+      } else if (columnName === 'ytd') {
+        columnName = '2024_ytd'
+      } else if (columnName === 'fund_name' || columnName === 'fundname') {
+        columnName = 'fund_name'
+      }
+      
+      return columnName
+    })
 
-    console.log('Columns:', columns)
+    console.log('Mapped columns:', columnMap)
 
     const cleanNumericValue = (value: string): number | null => {
       if (!value || value === '') return null;
@@ -91,33 +108,23 @@ serve(async (req) => {
       const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
       const record: Record<string, any> = {}
 
-      columns.forEach((col, colIndex) => {
+      columnMap.forEach((col, colIndex) => {
+        if (!col) return; // Skip empty column names
+        
         let value = values[colIndex]
         
-        // Special handling for can_hf_performance table
-        if (tableName === 'can_hf_performance') {
-          // Handle fund_name column
-          if (col === 'fund_name') {
-            value = value || null;
-          } 
-          // Handle numeric columns (monthly returns and YTD)
-          else if (col.includes('2024___') || col === '2024_ytd') {
-            value = cleanNumericValue(value);
-          }
+        // Handle numeric columns (monthly returns and YTD)
+        if (col.startsWith('2024___') || col === '2024_ytd') {
+          value = cleanNumericValue(value)
         } else {
-          // For other tables, use the general numeric detection
-          if (analysis.analysis_result.columnStats[colIndex].suggestedType === 'numeric') {
-            value = cleanNumericValue(value);
-          } else {
-            value = (value === '' || value === undefined) ? null : value;
-          }
+          value = value === '' ? null : value
         }
         
-        record[col] = value;
+        record[col] = value
       })
 
-      return record;
-    }).filter(Boolean) // Remove invalid records
+      return record
+    }).filter(record => Object.keys(record).length > 0) // Remove empty records
 
     console.log(`Prepared ${records.length} valid records for import`)
     console.log('First 3 records:', JSON.stringify(records.slice(0, 3), null, 2))
@@ -134,7 +141,7 @@ serve(async (req) => {
       console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
       
       const { error: insertError } = await supabase
-        .from(tableName)
+        .from('can_hf_performance')  // Use the correct table name
         .insert(batch)
 
       if (insertError) {
