@@ -16,6 +16,7 @@ function parseCSVLine(line: string): string[] {
     
     if (char === '"') {
       if (insideQuotes && line[i + 1] === '"') {
+        // Handle escaped quotes
         currentValue += '"';
         i++;
       } else {
@@ -81,19 +82,18 @@ serve(async (req) => {
       .map(line => line.trim())
       .filter(line => line.length > 0)
 
+    console.log('Total lines found:', lines.length)
+
     if (lines.length < 2) {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
-    // We know the fund name is always the last column (13th)
-    // and the other columns are numeric values for months and YTD
+    // Fixed column mapping for the database
     const dbColumns = [
       'jan_24', 'feb_24', 'mar_24', 'apr_24', 'may_24', 
       'jun_24', 'jul_24', 'aug_24', 'sep_24', 'oct_24', 
       'nov_24', 'ytd_2024', 'fund_name'
     ]
-
-    console.log('Using fixed column mapping:', dbColumns)
 
     const cleanNumericValue = (value: string): number | null => {
       if (!value || value.trim() === '') return null
@@ -107,22 +107,24 @@ serve(async (req) => {
       return isNaN(numericValue) ? null : numericValue
     }
 
+    // Process each data row
     const records = lines.slice(1).map((line, index) => {
       const values = parseCSVLine(line)
-      console.log(`Row ${index + 1} values:`, values)
+      console.log(`Row ${index + 1} raw values:`, values)
       
       if (values.length !== 13) {
+        console.error(`Row ${index + 1} has incorrect number of columns:`, values)
         throw new Error(`Invalid data: Row ${index + 1} has ${values.length} columns, expected 13`)
       }
 
       const record: Record<string, any> = {}
       
-      // Process all columns except the last one as numeric
+      // Process first 12 columns as numeric values
       for (let i = 0; i < 12; i++) {
         record[dbColumns[i]] = cleanNumericValue(values[i])
       }
       
-      // The last column is always the fund name
+      // Last column is always fund name
       const fundName = values[12]
       if (!fundName?.trim()) {
         console.error(`Row ${index + 1} has no fund name:`, values)
