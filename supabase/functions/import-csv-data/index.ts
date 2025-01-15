@@ -125,7 +125,12 @@ serve(async (req) => {
       headers.forEach((header, i) => {
         let value = values[i]?.trim() || null
         
-        // Try to convert to number if possible
+        // Skip empty values for required fields
+        if (value === '') {
+          value = null;
+        }
+        
+        // Try to convert to number if possible and not empty
         if (value !== null && !isNaN(Number(value.replace('%', '')))) {
           value = value.endsWith('%') 
             ? Number(value.replace('%', '')) / 100 
@@ -135,10 +140,16 @@ serve(async (req) => {
         record[header] = value
       })
 
-      return record
-    })
+      // Validate required fields
+      if (record.hedge_fund_name === null) {
+        console.warn(`Skipping row ${index + 1} due to missing hedge_fund_name`);
+        return null;
+      }
 
-    console.log(`Prepared ${records.length} records for import`)
+      return record
+    }).filter(Boolean); // Remove null records
+
+    console.log(`Prepared ${records.length} valid records for import`)
     if (records.length > 0) {
       console.log('Sample record:', records[0])
     }

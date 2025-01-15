@@ -1,6 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +21,11 @@ serve(async (req) => {
     
     console.log('Analyzing error:', error);
     console.log('Table name:', tableName);
-    console.log('Sample CSV data:', csvData.slice(0, 500) + '...'); // Log first 500 chars
+    console.log('Sample CSV data:', csvData?.slice(0, 500) + '...'); // Log first 500 chars
+
+    if (!error || !csvData) {
+      throw new Error('Error details and CSV data are required');
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -56,6 +59,12 @@ Please analyze the error and CSV data to:
         max_tokens: 1000
       }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
 
     const aiResponse = await response.json();
     console.log('AI Analysis:', aiResponse.choices[0].message.content);
