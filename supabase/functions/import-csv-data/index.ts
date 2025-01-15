@@ -97,7 +97,11 @@ serve(async (req) => {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
+    // Parse headers and filter out any empty ones
     const headers = parseCSVLine(lines[0])
+      .map(header => header.trim())
+      .filter(header => header.length > 0)
+    
     console.log('CSV Headers:', headers)
     
     const columnMap = headers.map(header => {
@@ -106,10 +110,12 @@ serve(async (req) => {
         .replace(/[^a-z0-9]/g, '_')
         .replace(/^_+|_+$/g, '')
       
-      if (columnName === 'fund_name') {
+      // Special handling for "fund name" column
+      if (columnName === 'fund_name' || header.toLowerCase() === 'fund name') {
         return 'fund_name'
       }
       
+      // Handle year columns
       if (/^\d+$/.test(columnName)) {
         columnName = `year_${columnName}`
       }
@@ -138,28 +144,23 @@ serve(async (req) => {
       const values = parseCSVLine(line)
       console.log(`Row ${index + 1} values:`, values)
       
-      // Validate row has all required columns
-      if (values.length !== headers.length) {
-        console.error(`Row ${index + 1} has incorrect number of columns. Expected ${headers.length}, got ${values.length}`)
-        throw new Error(`Invalid CSV format: Row ${index + 1} has incorrect number of columns`)
-      }
-
       const record: Record<string, any> = {}
 
-      columnMap.forEach((col, colIndex) => {
-        if (!col) return
+      headers.forEach((header, colIndex) => {
+        const columnName = columnMap[colIndex]
+        if (!columnName) return // Skip empty column names
         
         const value = values[colIndex]?.trim() || null
         
-        if (col === 'fund_name') {
+        if (columnName === 'fund_name') {
           if (!value) {
             console.error(`Row ${index + 1} has no fund name`)
             throw new Error(`Invalid data: Row ${index + 1} is missing required fund name`)
           }
-          record[col] = value
+          record[columnName] = value
           console.log(`Fund name for row ${index + 1}:`, value)
         } else {
-          record[col] = cleanNumericValue(value)
+          record[columnName] = cleanNumericValue(value)
         }
       })
 
