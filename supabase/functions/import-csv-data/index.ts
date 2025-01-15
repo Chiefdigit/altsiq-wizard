@@ -55,9 +55,9 @@ serve(async (req) => {
 
   try {
     const { csvAnalysisId, tableName } = await req.json()
-    console.log('Starting import process')
-    console.log('Analysis ID:', csvAnalysisId)
-    console.log('Target table:', tableName)
+    console.log('DEBUG: Starting import process')
+    console.log('DEBUG: Analysis ID:', csvAnalysisId)
+    console.log('DEBUG: Target table:', tableName)
     
     if (!csvAnalysisId || !tableName) {
       throw new Error('CSV analysis ID and table name are required')
@@ -68,7 +68,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    console.log('Fetching analysis record...')
+    console.log('DEBUG: Fetching analysis record...')
     const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
@@ -80,7 +80,7 @@ serve(async (req) => {
       throw new Error('Failed to fetch analysis record')
     }
 
-    console.log('Downloading CSV file...')
+    console.log('DEBUG: Downloading CSV file...')
     const { data: fileData, error: fileError } = await supabase
       .storage
       .from('csv_uploads')
@@ -92,18 +92,27 @@ serve(async (req) => {
     }
 
     const csvText = await fileData.text()
+    console.log('DEBUG: Raw CSV content:')
+    console.log('------------------------')
+    console.log(csvText)
+    console.log('------------------------')
+
     const lines = csvText.split(/\r?\n/)
       .map(line => line.trim())
       .filter(line => line.length > 0)
 
-    console.log('Total lines found:', lines.length)
+    console.log('DEBUG: Total lines found:', lines.length)
 
     if (lines.length < 2) {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
     const headers = parseCSVLine(lines[0]).map(sanitizeColumnName)
-    console.log('Sanitized CSV Headers:', headers)
+    console.log('DEBUG: CSV Headers (sanitized):', headers)
+    console.log('DEBUG: Expected columns for performance_hedgefunds:', [
+      'hedge_fund_name', 'jan_24', 'feb_24', 'mar_24', 'apr_24', 'may_24',
+      'jun_24', 'jul_24', 'aug_24', 'sep_24', 'oct_24', 'nov_24', 'ytd_2024'
+    ])
 
     const uniqueHeaders = new Set(headers)
     if (uniqueHeaders.size !== headers.length) {
@@ -113,7 +122,8 @@ serve(async (req) => {
     const records = lines.slice(1)
       .map((line, index) => {
         const values = parseCSVLine(line)
-        console.log(`Processing row ${index + 1}/${lines.length - 1}`)
+        console.log(`\nDEBUG: Processing row ${index + 1}/${lines.length - 1}`)
+        console.log('DEBUG: Raw values:', values)
         
         if (values.length !== headers.length) {
           console.warn(`Skipping row ${index + 1}: column count mismatch`)
@@ -126,6 +136,7 @@ serve(async (req) => {
           let value = values[i]?.trim() || null
           
           if (value === '') {
+            console.log(`*************************** EMPTY VALUE FOUND in row ${index + 1}, column "${header}" ***************************`)
             value = null
           }
           
@@ -136,21 +147,27 @@ serve(async (req) => {
           }
           
           record[header] = value
+          if (value === null) {
+            console.log(`DEBUG: Null value in column "${header}" for row ${index + 1}`)
+          }
         })
 
         // Validate required fields based on table name
-        if (tableName === 'performance_hedgefunds' && !record.hedge_fund_name) {
-          console.warn(`Skipping row ${index + 1}: missing hedge_fund_name`)
-          return null
+        if (tableName === 'performance_hedgefunds') {
+          if (!record.hedge_fund_name) {
+            console.log(`*************************** MISSING HEDGE FUND NAME in row ${index + 1} ***************************`)
+            console.log('DEBUG: Full record:', record)
+            return null
+          }
         }
 
         return record
       })
       .filter(Boolean)
 
-    console.log(`Prepared ${records.length} valid records for import`)
+    console.log('\nDEBUG: Final records to import:', records)
     if (records.length > 0) {
-      console.log('Sample record:', records[0])
+      console.log('DEBUG: Sample record:', records[0])
     }
 
     if (records.length === 0) {
@@ -158,7 +175,7 @@ serve(async (req) => {
     }
 
     // Clear existing data
-    console.log('Clearing existing data from table...')
+    console.log('DEBUG: Clearing existing data from table...')
     const { error: clearError } = await supabase
       .from(tableName)
       .delete()
@@ -171,11 +188,12 @@ serve(async (req) => {
 
     // Insert records in batches
     const batchSize = 100
-    console.log(`Will insert records in batches of ${batchSize}`)
+    console.log(`DEBUG: Will insert records in batches of ${batchSize}`)
     
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
-      console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
+      console.log(`DEBUG: Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
+      console.log('DEBUG: First record in batch:', batch[0])
       
       const { error: insertError } = await supabase
         .from(tableName)
@@ -189,7 +207,7 @@ serve(async (req) => {
     }
 
     // Update analysis status
-    console.log('Updating analysis status...')
+    console.log('DEBUG: Updating analysis status...')
     const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({ analysis_status: 'imported' })
