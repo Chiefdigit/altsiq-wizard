@@ -89,37 +89,37 @@ serve(async (req) => {
     const records = lines.map((line, index) => {
       const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
       const record: Record<string, any> = {}
-      let hasRequiredFields = true
 
       columns.forEach((col, colIndex) => {
         let value = values[colIndex]
         
-        // Handle numeric values
-        if (analysis.analysis_result.columnStats[colIndex].suggestedType === 'numeric') {
-          value = cleanNumericValue(value);
+        // Special handling for can_hf_performance table
+        if (tableName === 'can_hf_performance') {
+          // Handle fund_name column
+          if (col === 'fund_name') {
+            value = value || null;
+          } 
+          // Handle numeric columns (monthly returns and YTD)
+          else if (col.includes('2024___') || col === '2024_ytd') {
+            value = cleanNumericValue(value);
+          }
         } else {
-          // Convert empty strings to null for text fields
-          value = (value === '' || value === undefined) ? null : value
+          // For other tables, use the general numeric detection
+          if (analysis.analysis_result.columnStats[colIndex].suggestedType === 'numeric') {
+            value = cleanNumericValue(value);
+          } else {
+            value = (value === '' || value === undefined) ? null : value;
+          }
         }
         
-        record[col] = value
-
-        // For required fields, ensure they are present
-        if ((col === 'country_name' || col === 'country_code') && !value) {
-          console.log(`Row ${index + 2}: Missing required field ${col}`)
-          hasRequiredFields = false
-        }
+        record[col] = value;
       })
 
-      if (!hasRequiredFields) {
-        console.log(`Skipping row ${index + 2} due to missing required fields`)
-        return null
-      }
-
-      return record
+      return record;
     }).filter(Boolean) // Remove invalid records
 
     console.log(`Prepared ${records.length} valid records for import`)
+    console.log('Sample record:', records[0])
 
     if (records.length === 0) {
       throw new Error('No valid records to import')
