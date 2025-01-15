@@ -50,11 +50,16 @@ serve(async (req) => {
     // Generate optimal column definitions
     const columnDefinitions = analysis.analysis_result.columnStats
       .map(col => {
-        // Sanitize column name and ensure it's not empty
-        const columnName = col.column
+        // Handle column names that start with numbers by prefixing with 'year_'
+        let columnName = col.column
           .toLowerCase()
           .replace(/[^a-z0-9_]/g, '_')
           .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
+        
+        // If column name starts with a number, prefix it with 'year_'
+        if (/^\d/.test(columnName)) {
+          columnName = `year_${columnName}`
+        }
           
         // Skip if column name would be empty
         if (!columnName) {
@@ -83,7 +88,7 @@ serve(async (req) => {
       throw new Error('No valid columns found in analysis')
     }
 
-    // Create the complete table schema - note the simpler quoting
+    // Create the complete table schema
     const schema = {
       tableName,
       sql: `create table if not exists ${tableName} (
