@@ -92,10 +92,10 @@ serve(async (req) => {
     }
 
     const csvText = await fileData.text()
-    console.log('DEBUG: Raw CSV content:')
-    console.log('------------------------')
+    console.log('\n\nDEBUG: COMPLETE CSV CONTENT:')
+    console.log('============================')
     console.log(csvText)
-    console.log('------------------------')
+    console.log('============================\n\n')
 
     const lines = csvText.split(/\r?\n/)
       .map(line => line.trim())
@@ -119,11 +119,14 @@ serve(async (req) => {
       throw new Error('Duplicate column names detected after sanitization')
     }
 
+    console.log('\nDEBUG: Processing ALL records:')
+    console.log('==============================')
+    
     const records = lines.slice(1)
       .map((line, index) => {
         const values = parseCSVLine(line)
-        console.log(`\nDEBUG: Processing row ${index + 1}/${lines.length - 1}`)
-        console.log('DEBUG: Raw values:', values)
+        console.log(`\nRecord ${index + 1}/${lines.length - 1}:`)
+        console.log('Raw values:', values)
         
         if (values.length !== headers.length) {
           console.warn(`Skipping row ${index + 1}: column count mismatch`)
@@ -147,16 +150,14 @@ serve(async (req) => {
           }
           
           record[header] = value
-          if (value === null) {
-            console.log(`DEBUG: Null value in column "${header}" for row ${index + 1}`)
-          }
+          console.log(`Column "${header}": ${value === null ? '*************************** NULL ***************************' : value}`)
         })
 
         // Validate required fields based on table name
         if (tableName === 'performance_hedgefunds') {
           if (!record.hedge_fund_name) {
             console.log(`*************************** MISSING HEDGE FUND NAME in row ${index + 1} ***************************`)
-            console.log('DEBUG: Full record:', record)
+            console.log('Full record:', record)
             return null
           }
         }
@@ -165,10 +166,12 @@ serve(async (req) => {
       })
       .filter(Boolean)
 
-    console.log('\nDEBUG: Final records to import:', records)
-    if (records.length > 0) {
-      console.log('DEBUG: Sample record:', records[0])
-    }
+    console.log('\nDEBUG: ALL records to import:')
+    console.log('============================')
+    records.forEach((record, index) => {
+      console.log(`\nRecord ${index + 1}:`, record)
+    })
+    console.log('============================')
 
     if (records.length === 0) {
       throw new Error('No valid records to import')
