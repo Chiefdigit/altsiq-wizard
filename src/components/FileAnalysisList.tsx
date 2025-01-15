@@ -102,11 +102,11 @@ export const FileAnalysisList = () => {
       return;
     }
 
-    // Sanitize table name: only allow letters, numbers, and underscores
     const sanitizedTableName = tableName.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
 
     setProcessingId(analysisId);
     try {
+      // First try to import
       const { error: importError } = await supabase.functions.invoke("import-csv-data", {
         body: { 
           csvAnalysisId: analysisId,
@@ -114,7 +114,34 @@ export const FileAnalysisList = () => {
         },
       });
 
-      if (importError) throw importError;
+      if (importError) {
+        console.error('Import error:', importError);
+        
+        // If import fails, get the CSV data for analysis
+        const { data: fileData } = await supabase.storage
+          .from('csv_uploads')
+          .download((analyses?.find(a => a.id === analysisId)?.file_path || ''));
+        
+        const csvText = await fileData?.text();
+        
+        // Send to OpenAI for analysis
+        const { data: analysis, error: analysisError } = await supabase.functions.invoke("analyze-csv-error", {
+          body: {
+            error: importError,
+            csvData: csvText,
+            tableName: sanitizedTableName
+          }
+        });
+
+        if (analysisError) throw analysisError;
+
+        toast({
+          title: "Import Failed - AI Analysis",
+          description: analysis.analysis,
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Success",
