@@ -37,7 +37,14 @@ serve(async (req) => {
 
     // Parse CSV content
     const csvText = await fileData.text()
-    const lines = csvText.split('\n')
+    
+    // Split by newlines and filter out empty lines and those with only whitespace
+    const lines = csvText.split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+
+    console.log('Total non-empty lines found:', lines.length)
+
     if (lines.length < 2) {
       throw new Error('CSV file is empty or invalid')
     }
@@ -48,9 +55,13 @@ serve(async (req) => {
     )
     console.log('CSV Headers:', headers)
 
-    // Process all data rows for analysis
+    // Process only non-empty data rows for analysis
     const dataRows = lines.slice(1)
-      .filter(line => line.trim() !== '')
+      .filter(line => {
+        const values = line.split(',').map(v => v.trim())
+        // Check if the row has at least one non-empty value
+        return values.some(v => v.length > 0)
+      })
       .map(line => {
         const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
         return headers.reduce((obj, header, index) => {
@@ -59,7 +70,9 @@ serve(async (req) => {
         }, {} as Record<string, string | null>)
       })
 
-    // Calculate column statistics by analyzing ALL rows
+    console.log('Valid data rows found:', dataRows.length)
+
+    // Calculate column statistics by analyzing valid rows
     const columnStats = headers.map(header => {
       const values = dataRows.map(row => row[header]).filter(v => v !== null)
       const numericValues = values.map(v => parseFloat(v as string)).filter(n => !isNaN(n))
