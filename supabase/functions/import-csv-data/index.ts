@@ -16,7 +16,6 @@ function parseCSVLine(line: string): string[] {
     
     if (char === '"') {
       if (insideQuotes && line[i + 1] === '"') {
-        // Handle escaped quotes
         currentValue += '"';
         i++;
       } else {
@@ -139,6 +138,12 @@ serve(async (req) => {
       const values = parseCSVLine(line)
       console.log(`Row ${index + 1} values:`, values)
       
+      // Validate row has all required columns
+      if (values.length !== headers.length) {
+        console.error(`Row ${index + 1} has incorrect number of columns. Expected ${headers.length}, got ${values.length}`)
+        throw new Error(`Invalid CSV format: Row ${index + 1} has incorrect number of columns`)
+      }
+
       const record: Record<string, any> = {}
 
       columnMap.forEach((col, colIndex) => {
@@ -147,6 +152,10 @@ serve(async (req) => {
         const value = values[colIndex]?.trim() || null
         
         if (col === 'fund_name') {
+          if (!value) {
+            console.error(`Row ${index + 1} has no fund name`)
+            throw new Error(`Invalid data: Row ${index + 1} is missing required fund name`)
+          }
           record[col] = value
           console.log(`Fund name for row ${index + 1}:`, value)
         } else {

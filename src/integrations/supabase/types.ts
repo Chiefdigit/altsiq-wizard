@@ -416,7 +416,7 @@ export type Database = {
           },
         ]
       }
-      performance_hedge: {
+      performance_hedgefunds: {
         Row: {
           apr_24: number
           aug_24: number
