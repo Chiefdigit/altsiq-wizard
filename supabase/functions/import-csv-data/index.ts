@@ -69,20 +69,16 @@ serve(async (req) => {
     // Process headers
     const headers = lines[0].split(',').map(header => header.trim().replace(/['"]/g, ''))
     
-    // Map CSV headers to database column names for can_hf_performance table
+    // Map CSV headers to database column names
     const columnMap = headers.map(header => {
       // Convert header to snake_case and handle special cases
       let columnName = header.toLowerCase()
         .replace(/[^a-z0-9]/g, '_')
         .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
       
-      // Special handling for monthly columns and YTD
-      if (columnName.match(/^jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec$/)) {
-        columnName = `2024___${columnName}`
-      } else if (columnName === 'ytd') {
-        columnName = '2024_ytd'
-      } else if (columnName === 'fund_name' || columnName === 'fundname') {
-        columnName = 'fund_name'
+      // Special handling for numeric columns
+      if (/^\d+$/.test(columnName)) {
+        columnName = `year_${columnName}`
       }
       
       return columnName
@@ -113,8 +109,8 @@ serve(async (req) => {
         
         let value = values[colIndex]
         
-        // Handle numeric columns (monthly returns and YTD)
-        if (col.startsWith('2024___') || col === '2024_ytd') {
+        // Handle numeric values
+        if (/^year_\d+$/.test(col)) {
           value = cleanNumericValue(value)
         } else {
           value = value === '' ? null : value
@@ -138,10 +134,10 @@ serve(async (req) => {
     const batchSize = 100
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
-      console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
+      console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)} into table ${tableName}`)
       
       const { error: insertError } = await supabase
-        .from('can_hf_performance')  // Use the correct table name
+        .from(tableName)  // Use the provided table name instead of hardcoding
         .insert(batch)
 
       if (insertError) {
