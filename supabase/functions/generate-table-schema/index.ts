@@ -50,15 +50,15 @@ serve(async (req) => {
     // Generate optimal column definitions
     const columnDefinitions = analysis.analysis_result.columnStats
       .map(col => {
-        // Handle column names that start with numbers by prefixing with 'year_'
+        // Handle column names that start with numbers by prefixing with 'col_'
         let columnName = col.column
           .toLowerCase()
           .replace(/[^a-z0-9_]/g, '_')
           .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
         
-        // If column name starts with a number, prefix it with 'year_'
+        // If column name starts with a number, prefix it with 'col_'
         if (/^\d/.test(columnName)) {
-          columnName = `year_${columnName}`
+          columnName = `col_${columnName}`
         }
           
         // Skip if column name would be empty
@@ -88,25 +88,22 @@ serve(async (req) => {
       throw new Error('No valid columns found in analysis')
     }
 
-    // Create the complete table schema
-    const schema = {
-      tableName,
-      sql: `create table if not exists ${tableName} (
-    id uuid primary key default gen_random_uuid(),
-    ${columnDefinitions},
-    imported_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-    updated_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
+    // Create the complete table schema using our new create_csv_import_table function
+    const createTableSQL = `
+    SELECT create_csv_import_table(
+      '${tableName}',
+      $sql$
+        CREATE TABLE ${tableName} (
+          id uuid primary key default gen_random_uuid(),
+          ${columnDefinitions},
+          imported_at timestamp with time zone default timezone('utc'::text, now()) not null,
+          created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+          updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+        )
+      $sql$
+    );`
 
--- Add updated_at trigger
-create trigger ${tableName}_updated_at
-    before update on ${tableName}
-    for each row
-    execute function update_updated_at_column();`
-    }
-
-    console.log('Generated SQL:', schema.sql)
+    console.log('Generated SQL:', createTableSQL)
 
     // Store the generated schema in the analysis record
     const { error: updateError } = await supabase
@@ -114,7 +111,7 @@ create trigger ${tableName}_updated_at
       .update({
         analysis_result: {
           ...analysis.analysis_result,
-          generatedSchema: schema
+          generatedSchema: { sql: createTableSQL }
         }
       })
       .eq('id', csvAnalysisId)
@@ -125,7 +122,7 @@ create trigger ${tableName}_updated_at
     }
 
     return new Response(
-      JSON.stringify(schema),
+      JSON.stringify({ sql: createTableSQL }),
       { 
         headers: { 
           ...corsHeaders, 
