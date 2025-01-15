@@ -19,8 +19,8 @@ serve(async (req) => {
       throw new Error('CSV analysis ID and table name are required')
     }
 
-    // Validate table name (basic SQL injection prevention)
-    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tableName)) {
+    // Basic SQL injection prevention - only allow letters, numbers, underscores
+    if (!/^[a-z][a-z0-9_]*$/.test(tableName)) {
       throw new Error('Invalid table name. Use only letters, numbers, and underscores, starting with a letter.')
     }
 
@@ -74,7 +74,7 @@ serve(async (req) => {
         // Add NOT NULL if no nulls found in data
         const nullable = col.nonNullCount < col.totalRows ? '' : ' not null'
         
-        return `"${columnName}" ${sqlType}${nullable}`
+        return `${columnName} ${sqlType}${nullable}`
       })
       .filter(Boolean) // Remove null entries
       .join(',\n    ')
@@ -83,10 +83,10 @@ serve(async (req) => {
       throw new Error('No valid columns found in analysis')
     }
 
-    // Create the complete table schema
+    // Create the complete table schema - note the simpler quoting
     const schema = {
       tableName,
-      sql: `create table if not exists "${tableName}" (
+      sql: `create table if not exists ${tableName} (
     id uuid primary key default gen_random_uuid(),
     ${columnDefinitions},
     imported_at timestamp with time zone default timezone('utc'::text, now()) not null,
@@ -96,7 +96,7 @@ serve(async (req) => {
 
 -- Add updated_at trigger
 create trigger ${tableName}_updated_at
-    before update on "${tableName}"
+    before update on ${tableName}
     for each row
     execute function update_updated_at_column();`
     }
