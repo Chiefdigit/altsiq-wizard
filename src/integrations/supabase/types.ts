@@ -153,63 +153,222 @@ export type Database = {
         }
         Relationships: []
       }
-      fund_performance: {
+      inflation_rates: {
         Row: {
-          "2024___apr": number | null
-          "2024___aug": number | null
-          "2024___dec": string | null
-          "2024___feb": number | null
-          "2024___jan": number | null
-          "2024___jul": number | null
-          "2024___jun": number | null
-          "2024___mar": number | null
-          "2024___may": number | null
-          "2024___nov": number | null
-          "2024___oct": number | null
-          "2024___sep": number | null
-          "2024_ytd": number | null
+          "1960": number
+          "1961": number
+          "1962": number
+          "1963": number
+          "1964": number
+          "1965": number
+          "1966": number
+          "1967": number
+          "1968": number
+          "1969": number
+          "1970": number
+          "1971": number
+          "1972": number
+          "1973": number
+          "1974": number
+          "1975": number
+          "1976": number
+          "1977": number
+          "1978": number
+          "1979": number
+          "1980": number
+          "1981": number
+          "1982": number
+          "1983": number
+          "1984": number
+          "1985": number
+          "1986": number
+          "1987": number
+          "1988": number
+          "1989": number
+          "1990": number
+          "1991": number
+          "1992": number
+          "1993": number
+          "1994": number
+          "1995": number
+          "1996": number
+          "1997": number
+          "1998": number
+          "1999": number
+          "2000": number
+          "2001": number
+          "2002": number
+          "2003": number
+          "2004": number
+          "2005": number
+          "2006": number
+          "2007": number
+          "2008": number
+          "2009": number
+          "2010": number
+          "2011": number
+          "2012": number
+          "2013": number
+          "2014": number
+          "2015": number
+          "2016": number
+          "2017": number
+          "2018": number
+          "2019": number
+          "2020": number
+          "2021": number
+          "2022": number
+          "2023": number
+          "2024": number
+          country_code: string
+          country_name: string
           created_at: string
-          fund_name: string | null
           id: string
           imported_at: string
           updated_at: string
         }
         Insert: {
-          "2024___apr"?: number | null
-          "2024___aug"?: number | null
-          "2024___dec"?: string | null
-          "2024___feb"?: number | null
-          "2024___jan"?: number | null
-          "2024___jul"?: number | null
-          "2024___jun"?: number | null
-          "2024___mar"?: number | null
-          "2024___may"?: number | null
-          "2024___nov"?: number | null
-          "2024___oct"?: number | null
-          "2024___sep"?: number | null
-          "2024_ytd"?: number | null
+          "1960": number
+          "1961": number
+          "1962": number
+          "1963": number
+          "1964": number
+          "1965": number
+          "1966": number
+          "1967": number
+          "1968": number
+          "1969": number
+          "1970": number
+          "1971": number
+          "1972": number
+          "1973": number
+          "1974": number
+          "1975": number
+          "1976": number
+          "1977": number
+          "1978": number
+          "1979": number
+          "1980": number
+          "1981": number
+          "1982": number
+          "1983": number
+          "1984": number
+          "1985": number
+          "1986": number
+          "1987": number
+          "1988": number
+          "1989": number
+          "1990": number
+          "1991": number
+          "1992": number
+          "1993": number
+          "1994": number
+          "1995": number
+          "1996": number
+          "1997": number
+          "1998": number
+          "1999": number
+          "2000": number
+          "2001": number
+          "2002": number
+          "2003": number
+          "2004": number
+          "2005": number
+          "2006": number
+          "2007": number
+          "2008": number
+          "2009": number
+          "2010": number
+          "2011": number
+          "2012": number
+          "2013": number
+          "2014": number
+          "2015": number
+          "2016": number
+          "2017": number
+          "2018": number
+          "2019": number
+          "2020": number
+          "2021": number
+          "2022": number
+          "2023": number
+          "2024": number
+          country_code: string
+          country_name: string
           created_at?: string
-          fund_name?: string | null
           id?: string
           imported_at?: string
           updated_at?: string
         }
         Update: {
-          "2024___apr"?: number | null
-          "2024___aug"?: number | null
-          "2024___dec"?: string | null
-          "2024___feb"?: number | null
-          "2024___jan"?: number | null
-          "2024___jul"?: number | null
-          "2024___jun"?: number | null
-          "2024___mar"?: number | null
-          "2024___may"?: number | null
-          "2024___nov"?: number | null
-          "2024___oct"?: number | null
-          "2024___sep"?: number | null
-          "2024_ytd"?: number | null
+          "1960"?: number
+          "1961"?: number
+          "1962"?: number
+          "1963"?: number
+          "1964"?: number
+          "1965"?: number
+          "1966"?: number
+          "1967"?: number
+          "1968"?: number
+          "1969"?: number
+          "1970"?: number
+          "1971"?: number
+          "1972"?: number
+          "1973"?: number
+          "1974"?: number
+          "1975"?: number
+          "1976"?: number
+          "1977"?: number
+          "1978"?: number
+          "1979"?: number
+          "1980"?: number
+          "1981"?: number
+          "1982"?: number
+          "1983"?: number
+          "1984"?: number
+          "1985"?: number
+          "1986"?: number
+          "1987"?: number
+          "1988"?: number
+          "1989"?: number
+          "1990"?: number
+          "1991"?: number
+          "1992"?: number
+          "1993"?: number
+          "1994"?: number
+          "1995"?: number
+          "1996"?: number
+          "1997"?: number
+          "1998"?: number
+          "1999"?: number
+          "2000"?: number
+          "2001"?: number
+          "2002"?: number
+          "2003"?: number
+          "2004"?: number
+          "2005"?: number
+          "2006"?: number
+          "2007"?: number
+          "2008"?: number
+          "2009"?: number
+          "2010"?: number
+          "2011"?: number
+          "2012"?: number
+          "2013"?: number
+          "2014"?: number
+          "2015"?: number
+          "2016"?: number
+          "2017"?: number
+          "2018"?: number
+          "2019"?: number
+          "2020"?: number
+          "2021"?: number
+          "2022"?: number
+          "2023"?: number
+          "2024"?: number
+          country_code?: string
+          country_name?: string
           created_at?: string
-          fund_name?: string | null
           id?: string
           imported_at?: string
           updated_at?: string
