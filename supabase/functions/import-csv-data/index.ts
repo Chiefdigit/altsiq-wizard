@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Proper CSV parsing function that handles quoted values and preserves whitespace
 function parseCSVLine(line: string): string[] {
   const values: string[] = [];
   let currentValue = '';
@@ -17,15 +16,12 @@ function parseCSVLine(line: string): string[] {
     
     if (char === '"') {
       if (insideQuotes && line[i + 1] === '"') {
-        // Handle escaped quotes
         currentValue += '"';
         i++;
       } else {
-        // Toggle quote state
         insideQuotes = !insideQuotes;
       }
     } else if (char === ',' && !insideQuotes) {
-      // End of field - preserve the value exactly as is
       values.push(currentValue);
       currentValue = '';
     } else {
@@ -33,7 +29,6 @@ function parseCSVLine(line: string): string[] {
     }
   }
   
-  // Add the last value, preserving it exactly as is
   values.push(currentValue);
   return values.map(v => v.trim());
 }
@@ -46,6 +41,7 @@ serve(async (req) => {
   try {
     const { csvAnalysisId, tableName } = await req.json()
     console.log('Starting import for analysis ID:', csvAnalysisId)
+    console.log('Target table:', tableName)
     
     if (!csvAnalysisId) {
       throw new Error('CSV analysis ID is required')
@@ -64,7 +60,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the analysis record
+    console.log('Fetching analysis record...')
     const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
@@ -75,8 +71,9 @@ serve(async (req) => {
       console.error('Failed to fetch analysis:', analysisError)
       throw new Error('Failed to fetch analysis record')
     }
+    console.log('Analysis record found:', analysis.file_path)
 
-    // Get the file data
+    console.log('Downloading CSV file...')
     const { data: fileData, error: fileError } = await supabase
       .storage
       .from('csv_uploads')
@@ -86,6 +83,7 @@ serve(async (req) => {
       console.error('Failed to fetch file:', fileError)
       throw new Error('Failed to fetch file')
     }
+    console.log('File downloaded successfully')
 
     const csvText = await fileData.text()
     const lines = csvText.split('\n')
@@ -98,18 +96,15 @@ serve(async (req) => {
 
     console.log(`Processing CSV with ${lines.length} lines (including header)`)
 
-    // Process headers using proper CSV parsing
     const headers = parseCSVLine(lines[0])
     console.log('Parsed headers:', headers)
     
-    // Map CSV headers to database column names
     const columnMap = headers.map(header => {
       let columnName = header
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '_')
-        .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
+        .replace(/^_+|_+$/g, '')
       
-      // Special handling for numeric columns
       if (/^\d+$/.test(columnName)) {
         columnName = `year_${columnName}`
       }
@@ -122,7 +117,6 @@ serve(async (req) => {
     const cleanNumericValue = (value: string): number | null => {
       if (!value || value.trim() === '') return null;
       
-      // Remove percentage sign and convert to decimal
       if (value.endsWith('%')) {
         const numericValue = parseFloat(value.replace('%', '')) / 100;
         return isNaN(numericValue) ? null : numericValue;
@@ -132,7 +126,6 @@ serve(async (req) => {
       return isNaN(numericValue) ? null : numericValue;
     };
 
-    // Process data rows with proper CSV parsing
     const records = lines.slice(1).map((line, index) => {
       const values = parseCSVLine(line)
       console.log(`Row ${index + 1} values:`, values)
@@ -144,11 +137,9 @@ serve(async (req) => {
         
         let value = values[colIndex]
         if (value !== undefined) {
-          // For the fund_name column, preserve the string value
           if (col === 'fund_name') {
             record[col] = value.trim() || null;
           } else {
-            // For numeric columns
             record[col] = cleanNumericValue(value);
           }
         }
@@ -164,8 +155,9 @@ serve(async (req) => {
       throw new Error('No valid records to import')
     }
 
-    // Insert records in batches
     const batchSize = 100
+    console.log(`Will insert records in batches of ${batchSize}`)
+    
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
       console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
@@ -178,9 +170,10 @@ serve(async (req) => {
         console.error('Failed to insert batch:', insertError)
         throw new Error(`Failed to insert batch: ${insertError.message}`)
       }
+      console.log(`Successfully inserted batch ${i / batchSize + 1}`)
     }
 
-    // Update analysis status
+    console.log('Updating analysis status...')
     const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({ analysis_status: 'imported' })
