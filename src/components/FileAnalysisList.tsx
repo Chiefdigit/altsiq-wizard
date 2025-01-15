@@ -55,11 +55,12 @@ export const FileAnalysisList = () => {
       });
 
       if (schemaError) throw schemaError;
+      if (!schema?.sql) throw new Error("No schema SQL generated");
 
       // Then create the table using the generated schema
       const { error: createError } = await supabase
         .rpc("execute_sql", { 
-          sql_query: schema!.sql
+          sql_query: schema.sql
         });
 
       if (createError) throw createError;
@@ -70,11 +71,11 @@ export const FileAnalysisList = () => {
       });
 
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Schema generation error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to generate schema",
         variant: "destructive",
       });
     } finally {
@@ -110,11 +111,11 @@ export const FileAnalysisList = () => {
       });
 
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Import error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to import data",
         variant: "destructive",
       });
     } finally {
