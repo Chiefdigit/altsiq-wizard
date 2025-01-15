@@ -105,6 +105,11 @@ serve(async (req) => {
         .replace(/[^a-z0-9]/g, '_')
         .replace(/^_+|_+$/g, '')
       
+      // Special handling for fund_name column to preserve it exactly as is
+      if (columnName === 'fund_name') {
+        return 'fund_name';
+      }
+      
       if (/^\d+$/.test(columnName)) {
         columnName = `year_${columnName}`
       }
@@ -117,6 +122,7 @@ serve(async (req) => {
     const cleanNumericValue = (value: string): number | null => {
       if (!value || value.trim() === '') return null;
       
+      // Remove any percentage signs and convert to decimal
       if (value.endsWith('%')) {
         const numericValue = parseFloat(value.replace('%', '')) / 100;
         return isNaN(numericValue) ? null : numericValue;
@@ -135,17 +141,19 @@ serve(async (req) => {
       columnMap.forEach((col, colIndex) => {
         if (!col) return;
         
-        let value = values[colIndex]
-        if (value !== undefined) {
-          if (col === 'fund_name') {
-            record[col] = value.trim() || null;
-          } else {
-            record[col] = cleanNumericValue(value);
-          }
+        const value = values[colIndex]?.trim() || null;
+        
+        // Special handling for fund_name to preserve it exactly
+        if (col === 'fund_name') {
+          record[col] = value;
+          console.log(`Fund name for row ${index + 1}:`, value);
+        } else {
+          record[col] = cleanNumericValue(value);
         }
       })
 
-      return record
+      console.log(`Processed record for row ${index + 1}:`, record);
+      return record;
     })
 
     console.log(`Prepared ${records.length} records for import`)
@@ -161,6 +169,7 @@ serve(async (req) => {
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
       console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
+      console.log('First record in batch:', batch[0])
       
       const { error: insertError } = await supabase
         .from(tableName)
