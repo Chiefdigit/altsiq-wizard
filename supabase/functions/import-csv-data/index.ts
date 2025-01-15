@@ -40,7 +40,8 @@ serve(async (req) => {
 
   try {
     const { csvAnalysisId, tableName } = await req.json()
-    console.log('Starting import for analysis ID:', csvAnalysisId)
+    console.log('Starting import process')
+    console.log('Analysis ID:', csvAnalysisId)
     console.log('Target table:', tableName)
     
     if (!csvAnalysisId) {
@@ -90,14 +91,14 @@ serve(async (req) => {
       .map(line => line.trim())
       .filter(line => line.length > 0)
 
+    console.log(`Total lines in CSV (including header):`, lines.length)
+
     if (lines.length < 2) {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
-    console.log(`Processing CSV with ${lines.length} lines (including header)`)
-
     const headers = parseCSVLine(lines[0])
-    console.log('Parsed headers:', headers)
+    console.log('CSV Headers:', headers)
     
     const columnMap = headers.map(header => {
       let columnName = header
@@ -107,7 +108,7 @@ serve(async (req) => {
       
       // Special handling for fund_name column to preserve it exactly as is
       if (columnName === 'fund_name') {
-        return 'fund_name';
+        return 'fund_name'
       }
       
       if (/^\d+$/.test(columnName)) {
@@ -120,40 +121,44 @@ serve(async (req) => {
     console.log('Mapped columns:', columnMap)
 
     const cleanNumericValue = (value: string): number | null => {
-      if (!value || value.trim() === '') return null;
+      if (!value || value.trim() === '') return null
       
       // Remove any percentage signs and convert to decimal
       if (value.endsWith('%')) {
-        const numericValue = parseFloat(value.replace('%', '')) / 100;
-        return isNaN(numericValue) ? null : numericValue;
+        const numericValue = parseFloat(value.replace('%', '')) / 100
+        return isNaN(numericValue) ? null : numericValue
       }
       
-      const numericValue = parseFloat(value);
-      return isNaN(numericValue) ? null : numericValue;
-    };
+      const numericValue = parseFloat(value)
+      return isNaN(numericValue) ? null : numericValue
+    }
 
-    const records = lines.slice(1).map((line, index) => {
+    // Process data rows, skipping header
+    const dataRows = lines.slice(1)
+    console.log(`Processing ${dataRows.length} data rows`)
+
+    const records = dataRows.map((line, index) => {
       const values = parseCSVLine(line)
       console.log(`Row ${index + 1} values:`, values)
       
       const record: Record<string, any> = {}
 
       columnMap.forEach((col, colIndex) => {
-        if (!col) return;
+        if (!col) return
         
-        const value = values[colIndex]?.trim() || null;
+        const value = values[colIndex]?.trim() || null
         
         // Special handling for fund_name to preserve it exactly
         if (col === 'fund_name') {
-          record[col] = value;
-          console.log(`Fund name for row ${index + 1}:`, value);
+          record[col] = value
+          console.log(`Fund name for row ${index + 1}:`, value)
         } else {
-          record[col] = cleanNumericValue(value);
+          record[col] = cleanNumericValue(value)
         }
       })
 
-      console.log(`Processed record for row ${index + 1}:`, record);
-      return record;
+      console.log(`Processed record for row ${index + 1}:`, record)
+      return record
     })
 
     console.log(`Prepared ${records.length} records for import`)
@@ -161,6 +166,18 @@ serve(async (req) => {
 
     if (records.length === 0) {
       throw new Error('No valid records to import')
+    }
+
+    // First, clear existing data for this import
+    console.log('Clearing existing data from table...')
+    const { error: clearError } = await supabase
+      .from(tableName)
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
+
+    if (clearError) {
+      console.error('Failed to clear existing data:', clearError)
+      throw new Error(`Failed to clear existing data: ${clearError.message}`)
     }
 
     const batchSize = 100
