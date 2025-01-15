@@ -153,69 +153,6 @@ export type Database = {
         }
         Relationships: []
       }
-      hf_performance: {
-        Row: {
-          apr_24: number | null
-          aug_24: number | null
-          created_at: string
-          dec_24: string | null
-          feb_24: number | null
-          fund_name: string | null
-          id: string
-          imported_at: string
-          jan_24: number | null
-          jul_24: number | null
-          jun_24: number | null
-          mar_24: number | null
-          may_24: number | null
-          nov_24: number | null
-          oct_24: number | null
-          sep_24: number | null
-          updated_at: string
-          ytd_2024: number | null
-        }
-        Insert: {
-          apr_24?: number | null
-          aug_24?: number | null
-          created_at?: string
-          dec_24?: string | null
-          feb_24?: number | null
-          fund_name?: string | null
-          id?: string
-          imported_at?: string
-          jan_24?: number | null
-          jul_24?: number | null
-          jun_24?: number | null
-          mar_24?: number | null
-          may_24?: number | null
-          nov_24?: number | null
-          oct_24?: number | null
-          sep_24?: number | null
-          updated_at?: string
-          ytd_2024?: number | null
-        }
-        Update: {
-          apr_24?: number | null
-          aug_24?: number | null
-          created_at?: string
-          dec_24?: string | null
-          feb_24?: number | null
-          fund_name?: string | null
-          id?: string
-          imported_at?: string
-          jan_24?: number | null
-          jul_24?: number | null
-          jun_24?: number | null
-          mar_24?: number | null
-          may_24?: number | null
-          nov_24?: number | null
-          oct_24?: number | null
-          sep_24?: number | null
-          updated_at?: string
-          ytd_2024?: number | null
-        }
-        Relationships: []
-      }
       inflation_rates: {
         Row: {
           country_code: string
@@ -478,6 +415,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      performance_hedge: {
+        Row: {
+          apr_24: number
+          aug_24: number
+          created_at: string
+          dec_24: string | null
+          feb_24: number
+          fund_name: string
+          id: string
+          imported_at: string
+          jan_24: number
+          jul_24: number
+          jun_24: number
+          mar_24: number
+          may_24: number
+          nov_24: number
+          oct_24: number
+          sep_24: number
+          updated_at: string
+          ytd_2024: number
+        }
+        Insert: {
+          apr_24: number
+          aug_24: number
+          created_at?: string
+          dec_24?: string | null
+          feb_24: number
+          fund_name: string
+          id?: string
+          imported_at?: string
+          jan_24: number
+          jul_24: number
+          jun_24: number
+          mar_24: number
+          may_24: number
+          nov_24: number
+          oct_24: number
+          sep_24: number
+          updated_at?: string
+          ytd_2024: number
+        }
+        Update: {
+          apr_24?: number
+          aug_24?: number
+          created_at?: string
+          dec_24?: string | null
+          feb_24?: number
+          fund_name?: string
+          id?: string
+          imported_at?: string
+          jan_24?: number
+          jul_24?: number
+          jun_24?: number
+          mar_24?: number
+          may_24?: number
+          nov_24?: number
+          oct_24?: number
+          sep_24?: number
+          updated_at?: string
+          ytd_2024?: number
+        }
+        Relationships: []
       }
       portfolio_projections: {
         Row: {

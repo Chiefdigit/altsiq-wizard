@@ -87,7 +87,7 @@ serve(async (req) => {
     console.log('File downloaded successfully')
 
     const csvText = await fileData.text()
-    const lines = csvText.split('\n')
+    const lines = csvText.split(/\r?\n/)
       .map(line => line.trim())
       .filter(line => line.length > 0)
 
@@ -135,6 +135,7 @@ serve(async (req) => {
 
     // Process data rows, skipping header
     const dataRows = lines.slice(1)
+      .filter(line => line.trim().length > 0) // Filter out empty lines
     console.log(`Processing ${dataRows.length} data rows`)
 
     const records = dataRows.map((line, index) => {
@@ -148,10 +149,14 @@ serve(async (req) => {
         
         const value = values[colIndex]?.trim() || null
         
-        // Special handling for fund_name to preserve it exactly
+        // Special handling for fund_name to preserve it exactly and ensure it's not null
         if (col === 'fund_name') {
-          record[col] = value
-          console.log(`Fund name for row ${index + 1}:`, value)
+          if (!value) {
+            console.warn(`Warning: Empty fund_name in row ${index + 1}`)
+            record[col] = `Unknown Fund ${index + 1}`  // Provide a default value
+          } else {
+            record[col] = value
+          }
         } else {
           record[col] = cleanNumericValue(value)
         }
