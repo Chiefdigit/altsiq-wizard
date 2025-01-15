@@ -16,7 +16,6 @@ function parseCSVLine(line: string): string[] {
     
     if (char === '"') {
       if (insideQuotes && line[i + 1] === '"') {
-        // Handle escaped quotes
         currentValue += '"';
         i++;
       } else {
@@ -35,15 +34,13 @@ function parseCSVLine(line: string): string[] {
 }
 
 function sanitizeColumnName(header: string): string {
-  // First, clean the header
   let cleanHeader = header.trim()
     .toLowerCase()
     .replace(/[^a-z0-9_]/g, '_')
-    .replace(/^(\d)/, 'col_$1') // Prefix with 'col_' if starts with number
-    .replace(/_+/g, '_') // Replace multiple underscores with single
-    .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+    .replace(/^(\d)/, 'col_$1')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
     
-  // If cleaning resulted in empty string, use a fallback
   if (!cleanHeader) {
     cleanHeader = 'column_' + Math.random().toString(36).substring(2, 7);
   }
@@ -105,49 +102,51 @@ serve(async (req) => {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
-    // Get and sanitize headers
-    const headers = parseCSVLine(lines[0]).map(sanitizeColumnName);
-    console.log('Sanitized CSV Headers:', headers);
+    const headers = parseCSVLine(lines[0]).map(sanitizeColumnName)
+    console.log('Sanitized CSV Headers:', headers)
 
-    // Verify no duplicate headers
-    const uniqueHeaders = new Set(headers);
+    const uniqueHeaders = new Set(headers)
     if (uniqueHeaders.size !== headers.length) {
-      throw new Error('Duplicate column names detected after sanitization');
+      throw new Error('Duplicate column names detected after sanitization')
     }
 
-    // Process each data row
-    const records = lines.slice(1).map((line, index) => {
-      const values = parseCSVLine(line)
-      console.log(`Processing row ${index + 1}/${lines.length - 1}`);
-      
-      const record: Record<string, any> = {}
-      
-      headers.forEach((header, i) => {
-        let value = values[i]?.trim() || null
+    const records = lines.slice(1)
+      .map((line, index) => {
+        const values = parseCSVLine(line)
+        console.log(`Processing row ${index + 1}/${lines.length - 1}`)
         
-        // Skip empty values for required fields
-        if (value === '') {
-          value = null;
+        if (values.length !== headers.length) {
+          console.warn(`Skipping row ${index + 1}: column count mismatch`)
+          return null
         }
         
-        // Try to convert to number if possible and not empty
-        if (value !== null && !isNaN(Number(value.replace('%', '')))) {
-          value = value.endsWith('%') 
-            ? Number(value.replace('%', '')) / 100 
-            : Number(value)
-        }
+        const record: Record<string, any> = {}
         
-        record[header] = value
+        headers.forEach((header, i) => {
+          let value = values[i]?.trim() || null
+          
+          if (value === '') {
+            value = null
+          }
+          
+          if (value !== null && !isNaN(Number(value.replace('%', '')))) {
+            value = value.endsWith('%') 
+              ? Number(value.replace('%', '')) / 100 
+              : Number(value)
+          }
+          
+          record[header] = value
+        })
+
+        // Validate required fields based on table name
+        if (tableName === 'performance_hedgefunds' && !record.hedge_fund_name) {
+          console.warn(`Skipping row ${index + 1}: missing hedge_fund_name`)
+          return null
+        }
+
+        return record
       })
-
-      // Validate required fields
-      if (record.hedge_fund_name === null) {
-        console.warn(`Skipping row ${index + 1} due to missing hedge_fund_name`);
-        return null;
-      }
-
-      return record
-    }).filter(Boolean); // Remove null records
+      .filter(Boolean)
 
     console.log(`Prepared ${records.length} valid records for import`)
     if (records.length > 0) {

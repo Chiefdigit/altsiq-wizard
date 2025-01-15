@@ -21,11 +21,16 @@ serve(async (req) => {
     
     console.log('Analyzing error:', error);
     console.log('Table name:', tableName);
-    console.log('Sample CSV data:', csvData?.slice(0, 500) + '...'); // Log first 500 chars
-
-    if (!error || !csvData) {
-      throw new Error('Error details and CSV data are required');
+    
+    if (!error) {
+      throw new Error('Error details are required');
     }
+
+    if (!csvData) {
+      throw new Error('CSV data is required for analysis');
+    }
+
+    console.log('Sample CSV data:', csvData.slice(0, 500) + '...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -34,7 +39,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -67,6 +72,11 @@ Please analyze the error and CSV data to:
     }
 
     const aiResponse = await response.json();
+    
+    if (!aiResponse?.choices?.[0]?.message?.content) {
+      throw new Error('Invalid response from OpenAI API');
+    }
+    
     console.log('AI Analysis:', aiResponse.choices[0].message.content);
 
     return new Response(
