@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Proper CSV parsing function that respects quotes
+// Proper CSV parsing function that handles quoted values and preserves whitespace
 function parseCSVLine(line: string): string[] {
   const values: string[] = [];
   let currentValue = '';
@@ -25,17 +25,17 @@ function parseCSVLine(line: string): string[] {
         insideQuotes = !insideQuotes;
       }
     } else if (char === ',' && !insideQuotes) {
-      // End of field
-      values.push(currentValue.trim());
+      // End of field - preserve the value exactly as is
+      values.push(currentValue);
       currentValue = '';
     } else {
       currentValue += char;
     }
   }
   
-  // Add the last value
-  values.push(currentValue.trim());
-  return values;
+  // Add the last value, preserving it exactly as is
+  values.push(currentValue);
+  return values.map(v => v.trim());
 }
 
 serve(async (req) => {
@@ -45,6 +45,7 @@ serve(async (req) => {
 
   try {
     const { csvAnalysisId, tableName } = await req.json()
+    console.log('Starting import for analysis ID:', csvAnalysisId)
     
     if (!csvAnalysisId) {
       throw new Error('CSV analysis ID is required')
@@ -63,6 +64,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Get the analysis record
     const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
@@ -74,6 +76,7 @@ serve(async (req) => {
       throw new Error('Failed to fetch analysis record')
     }
 
+    // Get the file data
     const { data: fileData, error: fileError } = await supabase
       .storage
       .from('csv_uploads')
@@ -97,6 +100,7 @@ serve(async (req) => {
 
     // Process headers using proper CSV parsing
     const headers = parseCSVLine(lines[0])
+    console.log('Parsed headers:', headers)
     
     // Map CSV headers to database column names
     const columnMap = headers.map(header => {
@@ -116,7 +120,7 @@ serve(async (req) => {
     console.log('Mapped columns:', columnMap)
 
     const cleanNumericValue = (value: string): number | null => {
-      if (!value || value === '') return null;
+      if (!value || value.trim() === '') return null;
       
       // Remove percentage sign and convert to decimal
       if (value.endsWith('%')) {
@@ -131,25 +135,29 @@ serve(async (req) => {
     // Process data rows with proper CSV parsing
     const records = lines.slice(1).map((line, index) => {
       const values = parseCSVLine(line)
+      console.log(`Row ${index + 1} values:`, values)
+      
       const record: Record<string, any> = {}
 
       columnMap.forEach((col, colIndex) => {
-        if (!col) return; // Skip empty column names
+        if (!col) return;
         
-        let value = values[colIndex] || null
-        
-        // Handle numeric values for year columns
-        if (/^year_\d+$/.test(col)) {
-          value = cleanNumericValue(value || '')
+        let value = values[colIndex]
+        if (value !== undefined) {
+          // For the fund_name column, preserve the string value
+          if (col === 'fund_name') {
+            record[col] = value.trim() || null;
+          } else {
+            // For numeric columns
+            record[col] = cleanNumericValue(value);
+          }
         }
-        
-        record[col] = value
       })
 
       return record
-    }).filter(record => Object.keys(record).length > 0)
+    })
 
-    console.log(`Prepared ${records.length} valid records for import`)
+    console.log(`Prepared ${records.length} records for import`)
     console.log('Sample record:', records[0])
 
     if (records.length === 0) {
