@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { parseCSVLine, sanitizeColumnName } from '../utils/csvParser.ts'
+import { parseCSVContent } from '../utils/dataTransformer.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,7 +26,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the file data
     const { data: fileData, error: fileError } = await supabase
       .storage
       .from('csv_uploads')
@@ -35,13 +36,8 @@ serve(async (req) => {
       throw new Error('Failed to fetch file')
     }
 
-    // Parse CSV content
     const csvText = await fileData.text()
-    
-    // Split by newlines and filter out empty lines and those with only whitespace
-    const lines = csvText.split(/\r?\n/)
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
+    const lines = parseCSVContent(csvText)
 
     console.log('Total non-empty lines found:', lines.length)
 
@@ -49,30 +45,24 @@ serve(async (req) => {
       throw new Error('CSV file is empty or invalid')
     }
 
-    // Parse headers and clean them
-    const headers = lines[0].split(',').map(header => 
-      header.trim().toLowerCase().replace(/['"]/g, '')
-    )
+    const headers = parseCSVLine(lines[0]).map(sanitizeColumnName)
     console.log('CSV Headers:', headers)
 
-    // Process only non-empty data rows for analysis
     const dataRows = lines.slice(1)
       .filter(line => {
-        const values = line.split(',').map(v => v.trim())
-        // Check if the row has at least one non-empty value
-        return values.some(v => v.length > 0)
+        const values = parseCSVLine(line)
+        return values.some(v => v.trim().length > 0)
       })
       .map(line => {
-        const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
+        const values = parseCSVLine(line)
         return headers.reduce((obj, header, index) => {
-          obj[header] = values[index] || null
+          obj[header] = values[index]?.trim() || null
           return obj
         }, {} as Record<string, string | null>)
       })
 
     console.log('Valid data rows found:', dataRows.length)
 
-    // Calculate column statistics by analyzing valid rows
     const columnStats = headers.map(header => {
       const values = dataRows.map(row => row[header]).filter(v => v !== null)
       const numericValues = values.map(v => parseFloat(v as string)).filter(n => !isNaN(n))
@@ -88,10 +78,6 @@ serve(async (req) => {
       }
     })
 
-    // Include all rows in the preview
-    const sampleRows = dataRows
-
-    // Update analysis record with results
     const { error: updateError } = await supabase
       .from('csv_analysis')
       .update({
@@ -99,7 +85,7 @@ serve(async (req) => {
         analysis_result: {
           headers,
           rowCount: dataRows.length,
-          sampleRows,
+          sampleRows: dataRows,
           columnStats,
           processedAt: new Date().toISOString()
         }
@@ -117,7 +103,7 @@ serve(async (req) => {
         rowCount: dataRows.length,
         headers,
         columnStats,
-        sampleRows
+        sampleRows: dataRows
       }),
       { 
         headers: { 
