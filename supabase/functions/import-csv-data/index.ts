@@ -88,49 +88,36 @@ serve(async (req) => {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
-    // Fixed column mapping for the database
-    const dbColumns = [
-      'jan_24', 'feb_24', 'mar_24', 'apr_24', 'may_24', 
-      'jun_24', 'jul_24', 'aug_24', 'sep_24', 'oct_24', 
-      'nov_24', 'ytd_2024', 'fund_name'
-    ]
+    // Get headers from first line and clean them
+    const headers = parseCSVLine(lines[0]).map(header => 
+      header.trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '_')
+        .replace(/^(\d)/, 'col_$1') // Prefix with 'col_' if starts with number
+    );
 
-    const cleanNumericValue = (value: string): number | null => {
-      if (!value || value.trim() === '') return null
-      
-      if (value.endsWith('%')) {
-        const numericValue = parseFloat(value.replace('%', '')) / 100
-        return isNaN(numericValue) ? null : numericValue
-      }
-      
-      const numericValue = parseFloat(value)
-      return isNaN(numericValue) ? null : numericValue
-    }
+    console.log('CSV Headers:', headers)
 
     // Process each data row
     const records = lines.slice(1).map((line, index) => {
       const values = parseCSVLine(line)
-      console.log(`Row ${index + 1} raw values:`, values)
+      console.log(`Row ${index + 1} values:`, values)
       
-      if (values.length !== 13) {
-        console.error(`Row ${index + 1} has incorrect number of columns:`, values)
-        throw new Error(`Invalid data: Row ${index + 1} has ${values.length} columns, expected 13`)
-      }
-
       const record: Record<string, any> = {}
       
-      // Process first 12 columns as numeric values
-      for (let i = 0; i < 12; i++) {
-        record[dbColumns[i]] = cleanNumericValue(values[i])
-      }
-      
-      // Last column is always fund name
-      const fundName = values[12]
-      if (!fundName?.trim()) {
-        console.error(`Row ${index + 1} has no fund name:`, values)
-        throw new Error(`Invalid data: Row ${index + 1} is missing fund name`)
-      }
-      record.fund_name = fundName.trim()
+      // Map each value to its corresponding header
+      headers.forEach((header, i) => {
+        let value = values[i]?.trim() || null
+        
+        // Try to convert to number if possible
+        if (value !== null && !isNaN(Number(value.replace('%', '')))) {
+          value = value.endsWith('%') 
+            ? Number(value.replace('%', '')) / 100 
+            : Number(value)
+        }
+        
+        record[header] = value
+      })
 
       return record
     })
