@@ -88,8 +88,8 @@ serve(async (req) => {
       }
     })
 
-    // Get just 2 sample rows for preview purposes
-    const sampleRows = dataRows.slice(0, 2)
+    // Include all rows in the preview
+    const sampleRows = dataRows
 
     // Update analysis record with results
     const { error: updateError } = await supabase
