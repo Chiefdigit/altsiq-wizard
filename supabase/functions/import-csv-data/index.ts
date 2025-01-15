@@ -7,27 +7,32 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
     const { csvAnalysisId, tableName } = await req.json()
-
-    if (!csvAnalysisId || !tableName) {
-      throw new Error('Missing required parameters')
+    
+    if (!csvAnalysisId) {
+      throw new Error('CSV analysis ID is required')
+    }
+    
+    if (!tableName) {
+      throw new Error('Table name is required')
     }
 
-    console.log(`Starting import for analysis ${csvAnalysisId} into table ${tableName}`)
+    // Validate table name (basic SQL injection prevention)
+    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tableName)) {
+      throw new Error('Invalid table name. Use only letters, numbers, and underscores, starting with a letter.')
+    }
 
-    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the analysis data
+    // Get the analysis record with the file path
     const { data: analysis, error: analysisError } = await supabase
       .from('csv_analysis')
       .select('*')
@@ -35,58 +40,54 @@ serve(async (req) => {
       .single()
 
     if (analysisError || !analysis) {
-      console.error('Analysis fetch error:', analysisError)
-      throw new Error(`Analysis not found: ${analysisError?.message}`)
+      console.error('Failed to fetch analysis:', analysisError)
+      throw new Error('Failed to fetch analysis record')
     }
 
-    console.log('Analysis found:', analysis.file_name)
-
-    // Validate analysis result structure
-    if (!analysis.analysis_result?.columnStats || !analysis.analysis_result?.sampleRows) {
-      throw new Error('Invalid analysis result structure')
-    }
-
-    // Get column names from the analysis result
-    const columns = analysis.analysis_result.columnStats.map(col => 
-      col.column.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/^_+|_+$/g, '')
-    ).filter(Boolean)
-
-    console.log('Columns:', columns)
-
-    if (columns.length === 0) {
-      throw new Error('No valid columns found in analysis')
-    }
-
-    // Download the CSV file to get all rows
-    const { data: fileData, error: downloadError } = await supabase
+    // Download the CSV file
+    const { data: fileData, error: fileError } = await supabase
       .storage
       .from('csv_uploads')
       .download(analysis.file_path)
 
-    if (downloadError || !fileData) {
-      console.error('Download error:', downloadError)
-      throw new Error(`Failed to download CSV: ${downloadError?.message}`)
+    if (fileError) {
+      console.error('Failed to fetch file:', fileError)
+      throw new Error('Failed to fetch file')
     }
 
-    // Parse CSV content using the file content
-    const text = await fileData.text()
-    const lines = text.split('\n')
-      .filter(line => line.trim() !== '') // Remove empty lines
-      .slice(1) // Skip header row
+    const csvText = await fileData.text()
+    const lines = csvText.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
 
-    console.log(`Processing ${lines.length} data rows`)
+    if (lines.length < 2) {
+      throw new Error('CSV file must contain headers and at least one data row')
+    }
 
-    // Helper function to clean numeric values
+    console.log(`Processing CSV with ${lines.length} lines (including header)`)
+
+    // Process headers
+    const columns = lines[0]
+      .split(',')
+      .map(header => header.trim().toLowerCase().replace(/['"]/g, ''))
+
+    console.log('Columns:', columns)
+
     const cleanNumericValue = (value: string): number | null => {
-      if (!value || value.trim() === '') return null;
-      // Remove % symbol and any other non-numeric characters except . and -
-      const cleaned = value.replace('%', '').trim();
-      const num = parseFloat(cleaned);
-      return isNaN(num) ? null : num;
+      if (!value || value === '') return null;
+      
+      // Remove percentage sign and convert to decimal
+      if (value.endsWith('%')) {
+        const numericValue = parseFloat(value.replace('%', '')) / 100;
+        return isNaN(numericValue) ? null : numericValue;
+      }
+      
+      const numericValue = parseFloat(value);
+      return isNaN(numericValue) ? null : numericValue;
     };
 
-    // Process each line into a record
-    const records = lines.map((line, index) => {
+    // Process data rows
+    const records = lines.slice(1).map((line, index) => {
       const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
       const record: Record<string, any> = {}
 
@@ -119,28 +120,27 @@ serve(async (req) => {
     }).filter(Boolean) // Remove invalid records
 
     console.log(`Prepared ${records.length} valid records for import`)
-    console.log('Sample record:', records[0])
+    console.log('First 3 records:', JSON.stringify(records.slice(0, 3), null, 2))
+    console.log('Last 3 records:', JSON.stringify(records.slice(-3), null, 2))
 
     if (records.length === 0) {
       throw new Error('No valid records to import')
     }
 
-    // Insert data in batches of 1000 rows
-    const batchSize = 1000
+    // Insert records in batches
+    const batchSize = 100
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize)
-      console.log(`Importing batch ${Math.floor(i/batchSize) + 1}, size: ${batch.length}`)
+      console.log(`Inserting batch ${i / batchSize + 1} of ${Math.ceil(records.length / batchSize)}`)
       
       const { error: insertError } = await supabase
         .from(tableName)
         .insert(batch)
 
       if (insertError) {
-        console.error('Insert error:', insertError)
+        console.error('Failed to insert batch:', insertError)
         throw new Error(`Failed to insert batch: ${insertError.message}`)
       }
-
-      console.log(`Successfully imported batch ${Math.floor(i/batchSize) + 1}`)
     }
 
     // Update analysis status
@@ -150,16 +150,22 @@ serve(async (req) => {
       .eq('id', csvAnalysisId)
 
     if (updateError) {
-      console.error('Status update error:', updateError)
+      console.error('Failed to update analysis status:', updateError)
       // Don't throw here as the import was successful
     }
 
     return new Response(
       JSON.stringify({ 
-        message: 'Data imported successfully',
-        rowCount: records.length 
+        message: `Successfully imported ${records.length} records`,
+        recordCount: records.length
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }, 
+        status: 200 
+      }
     )
 
   } catch (error) {
