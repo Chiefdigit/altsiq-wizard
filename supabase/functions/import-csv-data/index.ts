@@ -16,21 +16,22 @@ function parseCSVLine(line: string): string[] {
     
     if (char === '"') {
       if (insideQuotes && line[i + 1] === '"') {
+        // Handle escaped quotes
         currentValue += '"';
         i++;
       } else {
         insideQuotes = !insideQuotes;
       }
     } else if (char === ',' && !insideQuotes) {
-      values.push(currentValue);
+      values.push(currentValue.trim());
       currentValue = '';
     } else {
       currentValue += char;
     }
   }
   
-  values.push(currentValue);
-  return values.map(v => v.trim());
+  values.push(currentValue.trim());
+  return values;
 }
 
 serve(async (req) => {
@@ -87,12 +88,11 @@ serve(async (req) => {
     console.log('File downloaded successfully')
 
     const csvText = await fileData.text()
-    // Split by newlines and filter out empty lines
     const lines = csvText.split(/\r?\n/)
       .map(line => line.trim())
       .filter(line => line.length > 0)
 
-    console.log(`Total non-empty lines in CSV (including header):`, lines.length)
+    console.log(`Total lines in CSV:`, lines.length)
 
     if (lines.length < 2) {
       throw new Error('CSV file must contain headers and at least one data row')
@@ -107,7 +107,6 @@ serve(async (req) => {
         .replace(/[^a-z0-9]/g, '_')
         .replace(/^_+|_+$/g, '')
       
-      // Special handling for fund_name column to preserve it exactly as is
       if (columnName === 'fund_name') {
         return 'fund_name'
       }
@@ -124,7 +123,6 @@ serve(async (req) => {
     const cleanNumericValue = (value: string): number | null => {
       if (!value || value.trim() === '') return null
       
-      // Remove any percentage signs and convert to decimal
       if (value.endsWith('%')) {
         const numericValue = parseFloat(value.replace('%', '')) / 100
         return isNaN(numericValue) ? null : numericValue
@@ -134,7 +132,6 @@ serve(async (req) => {
       return isNaN(numericValue) ? null : numericValue
     }
 
-    // Process data rows, skipping header
     const dataRows = lines.slice(1)
     console.log(`Processing ${dataRows.length} data rows`)
 
@@ -142,12 +139,6 @@ serve(async (req) => {
       const values = parseCSVLine(line)
       console.log(`Row ${index + 1} values:`, values)
       
-      // Validate row has all required columns
-      if (values.length !== headers.length) {
-        console.error(`Row ${index + 1} has incorrect number of columns. Expected ${headers.length}, got ${values.length}`)
-        throw new Error(`Invalid CSV format: Row ${index + 1} has incorrect number of columns`)
-      }
-
       const record: Record<string, any> = {}
 
       columnMap.forEach((col, colIndex) => {
@@ -155,12 +146,7 @@ serve(async (req) => {
         
         const value = values[colIndex]?.trim() || null
         
-        // Special handling for fund_name - must be non-null
         if (col === 'fund_name') {
-          if (!value) {
-            console.error(`Row ${index + 1} has no fund name`)
-            throw new Error(`Invalid data: Row ${index + 1} is missing required fund name`)
-          }
           record[col] = value
           console.log(`Fund name for row ${index + 1}:`, value)
         } else {
@@ -184,7 +170,7 @@ serve(async (req) => {
     const { error: clearError } = await supabase
       .from(tableName)
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all records
+      .neq('id', '00000000-0000-0000-0000-000000000000')
 
     if (clearError) {
       console.error('Failed to clear existing data:', clearError)

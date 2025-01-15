@@ -416,6 +416,66 @@ export type Database = {
           },
         ]
       }
+      performance_hedge: {
+        Row: {
+          apr_24: number
+          aug_24: number
+          created_at: string
+          feb_24: number
+          fund_name: string
+          id: string
+          imported_at: string
+          jan_24: number
+          jul_24: number
+          jun_24: number
+          mar_24: number
+          may_24: number
+          nov_24: number
+          oct_24: number
+          sep_24: number
+          updated_at: string
+          ytd_2024: number
+        }
+        Insert: {
+          apr_24: number
+          aug_24: number
+          created_at?: string
+          feb_24: number
+          fund_name: string
+          id?: string
+          imported_at?: string
+          jan_24: number
+          jul_24: number
+          jun_24: number
+          mar_24: number
+          may_24: number
+          nov_24: number
+          oct_24: number
+          sep_24: number
+          updated_at?: string
+          ytd_2024: number
+        }
+        Update: {
+          apr_24?: number
+          aug_24?: number
+          created_at?: string
+          feb_24?: number
+          fund_name?: string
+          id?: string
+          imported_at?: string
+          jan_24?: number
+          jul_24?: number
+          jun_24?: number
+          mar_24?: number
+          may_24?: number
+          nov_24?: number
+          oct_24?: number
+          sep_24?: number
+          updated_at?: string
+          ytd_2024?: number
+        }
+        Relationships: []
+      }
       portfolio_projections: {
         Row: {
           created_at: string
