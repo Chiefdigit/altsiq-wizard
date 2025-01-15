@@ -97,33 +97,24 @@ serve(async (req) => {
       throw new Error('CSV file must contain headers and at least one data row')
     }
 
-    // Parse headers and filter out any empty ones
-    const headers = parseCSVLine(lines[0])
-      .map(header => header.trim())
-      .filter(header => header.length > 0)
+    // Parse headers and normalize them
+    const rawHeaders = parseCSVLine(lines[0])
+    console.log('Raw headers:', rawHeaders)
     
-    console.log('CSV Headers:', headers)
-    
-    const columnMap = headers.map(header => {
-      let columnName = header
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '_')
-        .replace(/^_+|_+$/g, '')
+    // Map the headers to database column names
+    const columnMap = rawHeaders.map(header => {
+      const normalizedHeader = header.toLowerCase().trim()
       
-      // Special handling for "fund name" column
-      if (columnName === 'fund_name' || header.toLowerCase() === 'fund name') {
+      // Special handling for fund name column
+      if (normalizedHeader === 'fund name') {
         return 'fund_name'
       }
       
-      // Handle year columns
-      if (/^\d+$/.test(columnName)) {
-        columnName = `year_${columnName}`
-      }
-      
-      return columnName
+      // Handle month columns (convert apr-24 to apr_24)
+      return normalizedHeader.replace(/-/g, '_')
     })
-
-    console.log('Mapped columns:', columnMap)
+    
+    console.log('Column mapping:', columnMap)
 
     const cleanNumericValue = (value: string): number | null => {
       if (!value || value.trim() === '') return null
@@ -137,28 +128,21 @@ serve(async (req) => {
       return isNaN(numericValue) ? null : numericValue
     }
 
-    const dataRows = lines.slice(1)
-    console.log(`Processing ${dataRows.length} data rows`)
-
-    const records = dataRows.map((line, index) => {
+    const records = lines.slice(1).map((line, index) => {
       const values = parseCSVLine(line)
       console.log(`Row ${index + 1} values:`, values)
       
       const record: Record<string, any> = {}
-
-      headers.forEach((header, colIndex) => {
-        const columnName = columnMap[colIndex]
-        if (!columnName) return // Skip empty column names
-        
+      
+      columnMap.forEach((columnName, colIndex) => {
         const value = values[colIndex]?.trim() || null
         
         if (columnName === 'fund_name') {
           if (!value) {
-            console.error(`Row ${index + 1} has no fund name`)
+            console.error(`Row ${index + 1} has no fund name:`, values)
             throw new Error(`Invalid data: Row ${index + 1} is missing required fund name`)
           }
           record[columnName] = value
-          console.log(`Fund name for row ${index + 1}:`, value)
         } else {
           record[columnName] = cleanNumericValue(value)
         }
