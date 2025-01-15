@@ -153,6 +153,69 @@ export type Database = {
         }
         Relationships: []
       }
+      he_fund_performance: {
+        Row: {
+          "2024___apr": number | null
+          "2024___aug": number | null
+          "2024___dec": string | null
+          "2024___feb": number | null
+          "2024___jan": number | null
+          "2024___jul": number | null
+          "2024___jun": number | null
+          "2024___mar": number | null
+          "2024___may": number | null
+          "2024___nov": number | null
+          "2024___oct": number | null
+          "2024___sep": number | null
+          "2024_ytd": number | null
+          created_at: string
+          fund_name: string | null
+          id: string
+          imported_at: string
+          updated_at: string
+        }
+        Insert: {
+          "2024___apr"?: number | null
+          "2024___aug"?: number | null
+          "2024___dec"?: string | null
+          "2024___feb"?: number | null
+          "2024___jan"?: number | null
+          "2024___jul"?: number | null
+          "2024___jun"?: number | null
+          "2024___mar"?: number | null
+          "2024___may"?: number | null
+          "2024___nov"?: number | null
+          "2024___oct"?: number | null
+          "2024___sep"?: number | null
+          "2024_ytd"?: number | null
+          created_at?: string
+          fund_name?: string | null
+          id?: string
+          imported_at?: string
+          updated_at?: string
+        }
+        Update: {
+          "2024___apr"?: number | null
+          "2024___aug"?: number | null
+          "2024___dec"?: string | null
+          "2024___feb"?: number | null
+          "2024___jan"?: number | null
+          "2024___jul"?: number | null
+          "2024___jun"?: number | null
+          "2024___mar"?: number | null
+          "2024___may"?: number | null
+          "2024___nov"?: number | null
+          "2024___oct"?: number | null
+          "2024___sep"?: number | null
+          "2024_ytd"?: number | null
+          created_at?: string
+          fund_name?: string | null
+          id?: string
+          imported_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inflation_rates: {
         Row: {
           "1960": number

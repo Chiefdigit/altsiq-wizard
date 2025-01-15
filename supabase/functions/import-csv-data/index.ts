@@ -76,6 +76,15 @@ serve(async (req) => {
 
     console.log(`Processing ${lines.length} data rows`)
 
+    // Helper function to clean numeric values
+    const cleanNumericValue = (value: string): number | null => {
+      if (!value || value.trim() === '') return null;
+      // Remove % symbol and any other non-numeric characters except . and -
+      const cleaned = value.replace('%', '').trim();
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? null : num;
+    };
+
     // Process each line into a record
     const records = lines.map((line, index) => {
       const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''))
@@ -85,9 +94,9 @@ serve(async (req) => {
       columns.forEach((col, colIndex) => {
         let value = values[colIndex]
         
-        // Handle numeric values for inflation_rates table
-        if (tableName === 'inflation_rates' && !isNaN(Number(col))) {
-          value = value === '' ? null : Number(value)
+        // Handle numeric values
+        if (analysis.analysis_result.columnStats[colIndex].suggestedType === 'numeric') {
+          value = cleanNumericValue(value);
         } else {
           // Convert empty strings to null for text fields
           value = (value === '' || value === undefined) ? null : value
@@ -95,10 +104,8 @@ serve(async (req) => {
         
         record[col] = value
 
-        // For inflation_rates table, ensure required fields are present
-        if (tableName === 'inflation_rates' && 
-            (col === 'country_name' || col === 'country_code') && 
-            !value) {
+        // For required fields, ensure they are present
+        if ((col === 'country_name' || col === 'country_code') && !value) {
           console.log(`Row ${index + 2}: Missing required field ${col}`)
           hasRequiredFields = false
         }
