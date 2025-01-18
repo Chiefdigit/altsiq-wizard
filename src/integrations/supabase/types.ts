@@ -9,54 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      alt_strategies: {
-        Row: {
-          collectibles_allocation: number | null
-          commodities_allocation: number | null
-          created_at: string
-          cryptocurrencies_allocation: number | null
-          hedge_funds_allocation: number | null
-          id: string
-          name: string
-          private_credit_allocation: number | null
-          private_debt_allocation: number | null
-          private_equity_allocation: number | null
-          real_estate_allocation: number | null
-          strategy_type: Database["public"]["Enums"]["alt_strategy_type"]
-          updated_at: string
-        }
-        Insert: {
-          collectibles_allocation?: number | null
-          commodities_allocation?: number | null
-          created_at?: string
-          cryptocurrencies_allocation?: number | null
-          hedge_funds_allocation?: number | null
-          id?: string
-          name: string
-          private_credit_allocation?: number | null
-          private_debt_allocation?: number | null
-          private_equity_allocation?: number | null
-          real_estate_allocation?: number | null
-          strategy_type: Database["public"]["Enums"]["alt_strategy_type"]
-          updated_at?: string
-        }
-        Update: {
-          collectibles_allocation?: number | null
-          commodities_allocation?: number | null
-          created_at?: string
-          cryptocurrencies_allocation?: number | null
-          hedge_funds_allocation?: number | null
-          id?: string
-          name?: string
-          private_credit_allocation?: number | null
-          private_debt_allocation?: number | null
-          private_equity_allocation?: number | null
-          real_estate_allocation?: number | null
-          strategy_type?: Database["public"]["Enums"]["alt_strategy_type"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
       color_palettes: {
         Row: {
           color_names: Json | null
@@ -93,63 +45,204 @@ export type Database = {
         }
         Relationships: []
       }
-      csv_analysis: {
+      fund_companies: {
         Row: {
-          analysis_result: Json | null
-          analysis_status: string | null
-          content_type: string | null
           created_at: string
-          file_name: string
-          file_path: string
+          description: string
+          fund_company_name: string
           id: string
-          size: number | null
+          imported_at: string
           updated_at: string
+          website_url: string
         }
         Insert: {
-          analysis_result?: Json | null
-          analysis_status?: string | null
-          content_type?: string | null
           created_at?: string
-          file_name: string
-          file_path: string
+          description: string
+          fund_company_name: string
           id?: string
-          size?: number | null
+          imported_at?: string
           updated_at?: string
+          website_url: string
         }
         Update: {
-          analysis_result?: Json | null
-          analysis_status?: string | null
-          content_type?: string | null
           created_at?: string
-          file_name?: string
-          file_path?: string
+          description?: string
+          fund_company_name?: string
           id?: string
-          size?: number | null
+          imported_at?: string
           updated_at?: string
+          website_url?: string
         }
         Relationships: []
       }
-      default_settings: {
+      fund_contacts: {
+        Row: {
+          bio: string | null
+          business_address: string | null
+          company: string
+          company_email: string | null
+          company_id: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          imported_at: string
+          linkedin_profile: string | null
+          phone_number: string | null
+          title: string | null
+          updated_at: string
+          website_url: string | null
+          work_email: string | null
+        }
+        Insert: {
+          bio?: string | null
+          business_address?: string | null
+          company: string
+          company_email?: string | null
+          company_id?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          imported_at?: string
+          linkedin_profile?: string | null
+          phone_number?: string | null
+          title?: string | null
+          updated_at?: string
+          website_url?: string | null
+          work_email?: string | null
+        }
+        Update: {
+          bio?: string | null
+          business_address?: string | null
+          company?: string
+          company_email?: string | null
+          company_id?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          imported_at?: string
+          linkedin_profile?: string | null
+          phone_number?: string | null
+          title?: string | null
+          updated_at?: string
+          website_url?: string | null
+          work_email?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "fund_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fund_performance: {
         Row: {
           created_at: string
+          date: string
+          frequency: string
+          fund_id: string | null
+          fund_name: string
           id: string
-          key: string
+          imported_at: string
+          performance_value: number
           updated_at: string
-          value: string
         }
         Insert: {
           created_at?: string
+          date: string
+          frequency: string
+          fund_id?: string | null
+          fund_name: string
           id?: string
-          key: string
+          imported_at?: string
+          performance_value: number
           updated_at?: string
-          value: string
         }
         Update: {
           created_at?: string
+          date?: string
+          frequency?: string
+          fund_id?: string | null
+          fund_name?: string
           id?: string
-          key?: string
+          imported_at?: string
+          performance_value?: number
           updated_at?: string
-          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_performance_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funds: {
+        Row: {
+          company_id: string
+          created_at: string
+          fund_name: string
+          id: string
+          imported_at: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          fund_name: string
+          id?: string
+          imported_at?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          fund_name?: string
+          id?: string
+          imported_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funds_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "fund_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      index_performance: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          imported_at: string
+          index_measures: string
+          performance_value: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          imported_at?: string
+          index_measures: string
+          performance_value: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          imported_at?: string
+          index_measures?: string
+          performance_value?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -158,220 +251,31 @@ export type Database = {
           country_code: string
           country_name: string
           created_at: string
+          date: string
           id: string
           imported_at: string
+          inflation_value: number
           updated_at: string
-          year_1960: number
-          year_1961: number
-          year_1962: number
-          year_1963: number
-          year_1964: number
-          year_1965: number
-          year_1966: number
-          year_1967: number
-          year_1968: number
-          year_1969: number
-          year_1970: number
-          year_1971: number
-          year_1972: number
-          year_1973: number
-          year_1974: number
-          year_1975: number
-          year_1976: number
-          year_1977: number
-          year_1978: number
-          year_1979: number
-          year_1980: number
-          year_1981: number
-          year_1982: number
-          year_1983: number
-          year_1984: number
-          year_1985: number
-          year_1986: number
-          year_1987: number
-          year_1988: number
-          year_1989: number
-          year_1990: number
-          year_1991: number
-          year_1992: number
-          year_1993: number
-          year_1994: number
-          year_1995: number
-          year_1996: number
-          year_1997: number
-          year_1998: number
-          year_1999: number
-          year_2000: number
-          year_2001: number
-          year_2002: number
-          year_2003: number
-          year_2004: number
-          year_2005: number
-          year_2006: number
-          year_2007: number
-          year_2008: number
-          year_2009: number
-          year_2010: number
-          year_2011: number
-          year_2012: number
-          year_2013: number
-          year_2014: number
-          year_2015: number
-          year_2016: number
-          year_2017: number
-          year_2018: number
-          year_2019: number
-          year_2020: number
-          year_2021: number
-          year_2022: number
-          year_2023: number
-          year_2024: number
         }
         Insert: {
           country_code: string
           country_name: string
           created_at?: string
+          date: string
           id?: string
           imported_at?: string
+          inflation_value: number
           updated_at?: string
-          year_1960: number
-          year_1961: number
-          year_1962: number
-          year_1963: number
-          year_1964: number
-          year_1965: number
-          year_1966: number
-          year_1967: number
-          year_1968: number
-          year_1969: number
-          year_1970: number
-          year_1971: number
-          year_1972: number
-          year_1973: number
-          year_1974: number
-          year_1975: number
-          year_1976: number
-          year_1977: number
-          year_1978: number
-          year_1979: number
-          year_1980: number
-          year_1981: number
-          year_1982: number
-          year_1983: number
-          year_1984: number
-          year_1985: number
-          year_1986: number
-          year_1987: number
-          year_1988: number
-          year_1989: number
-          year_1990: number
-          year_1991: number
-          year_1992: number
-          year_1993: number
-          year_1994: number
-          year_1995: number
-          year_1996: number
-          year_1997: number
-          year_1998: number
-          year_1999: number
-          year_2000: number
-          year_2001: number
-          year_2002: number
-          year_2003: number
-          year_2004: number
-          year_2005: number
-          year_2006: number
-          year_2007: number
-          year_2008: number
-          year_2009: number
-          year_2010: number
-          year_2011: number
-          year_2012: number
-          year_2013: number
-          year_2014: number
-          year_2015: number
-          year_2016: number
-          year_2017: number
-          year_2018: number
-          year_2019: number
-          year_2020: number
-          year_2021: number
-          year_2022: number
-          year_2023: number
-          year_2024: number
         }
         Update: {
           country_code?: string
           country_name?: string
           created_at?: string
+          date?: string
           id?: string
           imported_at?: string
+          inflation_value?: number
           updated_at?: string
-          year_1960?: number
-          year_1961?: number
-          year_1962?: number
-          year_1963?: number
-          year_1964?: number
-          year_1965?: number
-          year_1966?: number
-          year_1967?: number
-          year_1968?: number
-          year_1969?: number
-          year_1970?: number
-          year_1971?: number
-          year_1972?: number
-          year_1973?: number
-          year_1974?: number
-          year_1975?: number
-          year_1976?: number
-          year_1977?: number
-          year_1978?: number
-          year_1979?: number
-          year_1980?: number
-          year_1981?: number
-          year_1982?: number
-          year_1983?: number
-          year_1984?: number
-          year_1985?: number
-          year_1986?: number
-          year_1987?: number
-          year_1988?: number
-          year_1989?: number
-          year_1990?: number
-          year_1991?: number
-          year_1992?: number
-          year_1993?: number
-          year_1994?: number
-          year_1995?: number
-          year_1996?: number
-          year_1997?: number
-          year_1998?: number
-          year_1999?: number
-          year_2000?: number
-          year_2001?: number
-          year_2002?: number
-          year_2003?: number
-          year_2004?: number
-          year_2005?: number
-          year_2006?: number
-          year_2007?: number
-          year_2008?: number
-          year_2009?: number
-          year_2010?: number
-          year_2011?: number
-          year_2012?: number
-          year_2013?: number
-          year_2014?: number
-          year_2015?: number
-          year_2016?: number
-          year_2017?: number
-          year_2018?: number
-          year_2019?: number
-          year_2020?: number
-          year_2021?: number
-          year_2022?: number
-          year_2023?: number
-          year_2024?: number
         }
         Relationships: []
       }
@@ -415,126 +319,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      performance_hedgefunds: {
-        Row: {
-          apr_24: number
-          aug_24: number
-          created_at: string
-          feb_24: number
-          hedge_fund_name: string
-          id: string
-          imported_at: string
-          jan_24: number
-          jul_24: number
-          jun_24: number
-          mar_24: number
-          may_24: number
-          nov_24: number
-          oct_24: number
-          sep_24: number
-          updated_at: string
-          ytd_2024: number
-        }
-        Insert: {
-          apr_24: number
-          aug_24: number
-          created_at?: string
-          feb_24: number
-          hedge_fund_name: string
-          id?: string
-          imported_at?: string
-          jan_24: number
-          jul_24: number
-          jun_24: number
-          mar_24: number
-          may_24: number
-          nov_24: number
-          oct_24: number
-          sep_24: number
-          updated_at?: string
-          ytd_2024: number
-        }
-        Update: {
-          apr_24?: number
-          aug_24?: number
-          created_at?: string
-          feb_24?: number
-          hedge_fund_name?: string
-          id?: string
-          imported_at?: string
-          jan_24?: number
-          jul_24?: number
-          jun_24?: number
-          mar_24?: number
-          may_24?: number
-          nov_24?: number
-          oct_24?: number
-          sep_24?: number
-          updated_at?: string
-          ytd_2024?: number
-        }
-        Relationships: []
-      }
-      performance_indices: {
-        Row: {
-          apr_24: number
-          aug_24: number
-          created_at: string
-          feb_24: number
-          id: string
-          imported_at: string
-          index_measures: string
-          jan_24: number
-          jul_24: number
-          jun_24: number
-          mar_24: string
-          may_24: number
-          nov_24: number
-          oct_24: number
-          sep_24: string
-          updated_at: string
-          ytd_2024: number
-        }
-        Insert: {
-          apr_24: number
-          aug_24: number
-          created_at?: string
-          feb_24: number
-          id?: string
-          imported_at?: string
-          index_measures: string
-          jan_24: number
-          jul_24: number
-          jun_24: number
-          mar_24: string
-          may_24: number
-          nov_24: number
-          oct_24: number
-          sep_24: string
-          updated_at?: string
-          ytd_2024: number
-        }
-        Update: {
-          apr_24?: number
-          aug_24?: number
-          created_at?: string
-          feb_24?: number
-          id?: string
-          imported_at?: string
-          index_measures?: string
-          jan_24?: number
-          jul_24?: number
-          jun_24?: number
-          mar_24?: string
-          may_24?: number
-          nov_24?: number
-          oct_24?: number
-          sep_24?: string
-          updated_at?: string
-          ytd_2024?: number
-        }
-        Relationships: []
       }
       portfolio_projections: {
         Row: {
@@ -605,36 +389,284 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
+      security_violation_logs: {
         Row: {
           created_at: string
+          details: Json | null
+          id: string
+          record_id: string | null
+          table_name: string
+          user_id: string | null
+          violation_type: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          record_id?: string | null
+          table_name: string
+          user_id?: string | null
+          violation_type: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          record_id?: string | null
+          table_name?: string
+          user_id?: string | null
+          violation_type?: string
+        }
+        Relationships: []
+      }
+      sys_util_csv_analysis: {
+        Row: {
+          analysis_result: Json | null
+          analysis_status: string | null
+          content_type: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          original_file_id: string | null
+          size: number | null
+          updated_at: string
+          version_notes: string | null
+          version_type: string | null
+        }
+        Insert: {
+          analysis_result?: Json | null
+          analysis_status?: string | null
+          content_type?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          original_file_id?: string | null
+          size?: number | null
+          updated_at?: string
+          version_notes?: string | null
+          version_type?: string | null
+        }
+        Update: {
+          analysis_result?: Json | null
+          analysis_status?: string | null
+          content_type?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          original_file_id?: string | null
+          size?: number | null
+          updated_at?: string
+          version_notes?: string | null
+          version_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sys_util_csv_analysis_original_file_id_fkey"
+            columns: ["original_file_id"]
+            isOneToOne: false
+            referencedRelation: "sys_util_csv_analysis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sys_util_data_patterns: {
+        Row: {
+          created_at: string
+          description: string | null
+          detection_rules: Json
+          id: string
+          pattern_name: string
+          pattern_type: string
+          transformation_template: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          detection_rules: Json
+          id?: string
+          pattern_name: string
+          pattern_type: string
+          transformation_template?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          detection_rules?: Json
+          id?: string
+          pattern_name?: string
+          pattern_type?: string
+          transformation_template?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sys_util_recommendations: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          csv_analysis_id: string | null
+          id: string
+          notes: string[] | null
+          pattern_id: string | null
+          suggested_schema: Json | null
+          transformation_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          csv_analysis_id?: string | null
+          id?: string
+          notes?: string[] | null
+          pattern_id?: string | null
+          suggested_schema?: Json | null
+          transformation_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          csv_analysis_id?: string | null
+          id?: string
+          notes?: string[] | null
+          pattern_id?: string | null
+          suggested_schema?: Json | null
+          transformation_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sys_util_recommendations_csv_analysis_id_fkey"
+            columns: ["csv_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "sys_util_csv_analysis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sys_util_recommendations_pattern_id_fkey"
+            columns: ["pattern_id"]
+            isOneToOne: false
+            referencedRelation: "sys_util_data_patterns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sys_util_recommendations_transformation_id_fkey"
+            columns: ["transformation_id"]
+            isOneToOne: false
+            referencedRelation: "sys_util_transformations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sys_util_transformations: {
+        Row: {
+          config: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          transformation_type: string
+          updated_at: string
+        }
+        Insert: {
+          config: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          transformation_type: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          transformation_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          email: string | null
           first_name: string | null
           id: string
           is_accredited: boolean | null
+          is_active: boolean
           last_name: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          email?: string | null
           first_name?: string | null
           id: string
           is_accredited?: boolean | null
+          is_active?: boolean
           last_name?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          email?: string | null
           first_name?: string | null
           id?: string
           is_accredited?: boolean | null
+          is_active?: boolean
           last_name?: string | null
           updated_at?: string
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      contacts_without_companies: {
+        Row: {
+          company: string | null
+          contact_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       create_csv_import_table: {
@@ -650,14 +682,76 @@ export type Database = {
         }
         Returns: undefined
       }
+      extract_company_name: {
+        Args: {
+          fund_name: string
+        }
+        Returns: string
+      }
+      get_table_info: {
+        Args: {
+          table_name: string
+        }
+        Returns: {
+          column_name: string
+          data_type: string
+        }[]
+      }
+      gtrgm_compress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: {
+          "": unknown
+        }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      safe_to_numeric: {
+        Args: {
+          v: string
+        }
+        Returns: number
+      }
+      set_limit: {
+        Args: {
+          "": number
+        }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: {
+          "": string
+        }
+        Returns: string[]
+      }
     }
     Enums: {
-      alt_strategy_type:
-        | "diversification"
-        | "growth"
-        | "income"
-        | "preservation"
-        | "custom"
+      app_role: "sys_admin" | "manager" | "investor"
       investment_type:
         | "real_estate"
         | "private_equity"
